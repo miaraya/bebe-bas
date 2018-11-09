@@ -24,6 +24,8 @@ const createRoutes = () => {
       <Route path={"/f/:id"} component={Fabric} />
       <Route path={"/s/:id"} component={Swatchbook} />
       <Route path={"/s"} component={Home} />
+      <Route path={"/swatchbooks/swatchbook/:id"} component={Swatchbook} />
+      <Route path={"/fabrics/fabric/:id"} component={Fabric} />
     </Route>
   );
 };
