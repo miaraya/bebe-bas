@@ -1,12 +1,18 @@
 import React, {Component} from "react";
 import "antd/dist/antd.css";
 import "../css/css.css";
-import {Layout} from "antd";
+import {Layout, Modal} from "antd";
 
 import Logo from "../assets/logo.png";
 import {Radio} from "antd";
 import {Input} from "antd";
 import {api, fabric_url, fabric_url_full, location_url} from "./constants";
+import {Table, Divider, Tag} from "antd";
+import {Link} from "react-router";
+import {Avatar} from "antd";
+import {Spin} from "antd";
+
+const {Column, ColumnGroup} = Table;
 
 const Search = Input.Search;
 const {Content, Header} = Layout;
@@ -15,6 +21,8 @@ class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      image: "",
+      visible: false,
       value: 1,
       data: [],
       loading: false,
@@ -22,23 +30,18 @@ class Home extends Component {
       selectedOption: {
         value: 1,
         placeholder: "Fabric Code",
-        url: "fabrics?filter[where][unique_code][like]="
+        url: "fabricdetails?filter[where][unique_code][like]="
       },
       options: [
         {
           value: 1,
           placeholder: "Fabric Code",
-          url: "fabrics?filter[where][unique_code][like]="
+          url: "fabricdetails?filter[where][unique_code][like]="
         },
         {
           value: 2,
           placeholder: "Fabric Old Code",
-          url: "fabrics?filter[where][old_code][like]="
-        },
-        {
-          value: 3,
-          placeholder: "Swatchbook",
-          url: "swatchbooks?[where][type_id]="
+          url: "fabricdetails?filter[where][old_code][like]="
         }
       ]
     };
@@ -57,12 +60,21 @@ class Home extends Component {
       })
       .then(data => {
         this.setState({data});
+        this.setState({loading: false});
       })
       .catch(error => {});
   };
 
   render() {
-    const {value, options, selectedOption, data} = this.state;
+    const {
+      value,
+      options,
+      selectedOption,
+      data,
+      visible,
+      image,
+      loading
+    } = this.state;
     return (
       <Layout className="wrapper">
         <Header className="header">
@@ -103,7 +115,63 @@ class Home extends Component {
               style={{width: 200}}
             />
           </div>
+          <Divider />
+          {loading ? (
+            <div style={{display: "flex", justifyContent: "center"}}>
+              <Spin size="large" />
+            </div>
+          ) : (
+            <Table dataSource={data}>
+              <Column
+                title="Fabric"
+                dataIndex="unique_code"
+                key="unique_code"
+                render={fabric => <Link to={`/f/${fabric}`}>{fabric}</Link>}
+              />
+              <Column title="Old Code" dataIndex="old_code" key="old_code" />
+              <Column
+                title="Swatchbook"
+                dataIndex="swatchbook"
+                key="swatchbook"
+                render={swatchbook => (
+                  <Link to={`/s/${swatchbook}`}>{swatchbook}</Link>
+                )}
+              />
+              <Column
+                title="Thumbnail"
+                dataIndex="fabric_image"
+                key="fabric_image"
+                render={fabric_image => (
+                  <Avatar
+                    size={100}
+                    shape="square"
+                    src={fabric_url + fabric_image}
+                    onClick={() => {
+                      this.setState({
+                        image: fabric_url_full + fabric_image
+                      });
+                      this.setState({visible: true});
+                    }}
+                  />
+                )}
+              />
+            </Table>
+          )}
         </Content>
+        <Modal
+          visible={visible}
+          footer={null}
+          maskClosable={true}
+          onCancel={() => this.setState({visible: false})}
+          width="100%"
+        >
+          <img
+            style={{width: "100%"}}
+            alt="Bebe Tailor"
+            src={image}
+            onClick={() => this.setState({visible: false})}
+          />
+        </Modal>
       </Layout>
     );
   }
