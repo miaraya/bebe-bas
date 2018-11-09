@@ -111,7 +111,7 @@ class Swatchbook extends Component {
                 <div key={s.id}>
                   <div>
                     <Divider>
-                      <h2>Swatchbook {id}</h2>
+                      <h2>Swatchbook {id.toUpperCase()}</h2>
                     </Divider>
                     <div>Number of fabrics: {s.count}</div>
                     <div>Type: {s.description}</div>
