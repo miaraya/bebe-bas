@@ -22,6 +22,8 @@ class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      locationData: [],
+      locations: [],
       swatchbooks: [],
       types: [],
       image: "",
@@ -47,8 +49,11 @@ class Home extends Component {
         },
         {
           value: 3,
-          placeholder: "Swatchbook",
-          url: "fabricdetails?filter[where][old_code][like]="
+          placeholder: "Swatchbook"
+        },
+        {
+          value: 4,
+          placeholder: "Location"
         }
       ],
 
@@ -115,11 +120,25 @@ class Home extends Component {
           dataIndex: "count",
           key: "count"
         }
+      ],
+      columnsLocations: [
+        {
+          title: "Fabric",
+          dataIndex: "unique_code",
+          key: "unique_code",
+          render: fabric => <Link to={`/f/${fabric}`}>{fabric}</Link>
+        },
+        {
+          title: "Location",
+          dataIndex: "location",
+          key: "location"
+        }
       ]
     };
   }
   componentWillMount = () => {
     this.getTypes();
+    this.getLocations();
     console.log(this.state);
   };
 
@@ -164,7 +183,6 @@ class Home extends Component {
   };
   getSwatchbooks = id => {
     this.setState({loading: true});
-
     fetch(api + "web_swatchbooks?filter[where][description]=" + id)
       .then(res => {
         if (res.ok) {
@@ -179,8 +197,53 @@ class Home extends Component {
       })
       .catch(error => {});
   };
-  handleChange = value => {
+
+  getLocationData = id => {
+    this.setState({loading: true});
+    fetch(api + "stock_locations?filter[where][location]=" + id)
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          throw new Error("Something went wrong ...");
+        }
+      })
+      .then(locationData => {
+        this.setState({
+          locationData
+        });
+        this.setState({loading: false});
+      })
+      .catch(error => {});
+  };
+  getLocations = () => {
+    this.setState({loading: true});
+    fetch(api + "locations")
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          throw new Error("Something went wrong ...");
+        }
+      })
+      .then(locations => {
+        this.setState({
+          locations: _.sortBy(locations, [
+            function(o) {
+              return o.description;
+            }
+          ])
+        });
+        this.setState({loading: false});
+      })
+      .catch(error => {});
+  };
+  handleChangeType = value => {
     this.getSwatchbooks(value);
+  };
+
+  handleChangeLocation = value => {
+    this.getLocationData(value);
   };
   render() {
     const {
@@ -193,7 +256,10 @@ class Home extends Component {
       columns,
       types,
       swatchbooks,
-      columnsSwatchbooks
+      columnsSwatchbooks,
+      columnsLocations,
+      locations,
+      locationData
     } = this.state;
 
     return (
@@ -235,19 +301,19 @@ class Home extends Component {
                 </Radio.Button>
               ))}
             </Radio.Group>
-            {selectedOption.value !== 3 ? (
+            {selectedOption.value === 1 || selectedOption.value === 2 ? (
               <Search
                 placeholder={selectedOption.placeholder}
                 onSearch={query => this.doSearch(selectedOption.url, query)}
                 style={{width: 200}}
               />
-            ) : (
+            ) : selectedOption.value === 3 ? (
               <Select
                 showSearch
                 style={{width: 200}}
                 placeholder="Select a Fabric Type"
                 optionFilterProp="children"
-                onChange={value => this.handleChange(value)}
+                onChange={value => this.handleChangeType(value)}
                 filterOption={(input, option) =>
                   option.props.children
                     .toLowerCase()
@@ -261,7 +327,30 @@ class Home extends Component {
                     </Option>
                   ))
                 ) : (
-                  <Option value="jack">Jack</Option>
+                  <div />
+                )}
+              </Select>
+            ) : (
+              <Select
+                showSearch
+                style={{width: 200}}
+                placeholder="Select a Location"
+                optionFilterProp="children"
+                onChange={value => this.handleChangeLocation(value)}
+                filterOption={(input, option) =>
+                  option.props.children
+                    .toLowerCase()
+                    .indexOf(input.toLowerCase()) >= 0
+                }
+              >
+                {locations ? (
+                  locations.map(l => (
+                    <Option value={l.description} key={l.id}>
+                      {l.description}
+                    </Option>
+                  ))
+                ) : (
+                  <div />
                 )}
               </Select>
             )}
@@ -271,7 +360,8 @@ class Home extends Component {
             <div style={{display: "flex", justifyContent: "center"}}>
               <Spin size="large" />
             </div>
-          ) : data.length > 0 && selectedOption.value !== 3 ? (
+          ) : data.length > 0 &&
+          (selectedOption.value === 1 || selectedOption.value === 2) ? (
             <Table
               dataSource={data}
               columns={columns}
@@ -284,6 +374,13 @@ class Home extends Component {
               dataSource={swatchbooks}
               columns={columnsSwatchbooks}
               rowKey="unique_code"
+            />
+          ) : locationData.length > 0 && selectedOption.value === 4 ? (
+            <Table
+              size="small"
+              dataSource={locationData}
+              columns={columnsLocations}
+              rowKey="description"
             />
           ) : (
             <div />
