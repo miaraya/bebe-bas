@@ -102,7 +102,9 @@ class Fabric extends Component {
       return (
         <Layout className="wrapper">
           <Header className="header">
-            <img src={Logo} alt="Bebe Tailor" width="150px" />
+            <Link to={`/`}>
+              <img src={Logo} alt="Bebe Tailor" width="150px" />
+            </Link>
           </Header>
           <Content className="container">
             <div
@@ -256,14 +258,20 @@ class Fabric extends Component {
             visible={visible}
             footer={null}
             maskClosable={true}
-            onCancel={() => this.setState({visible: false})}
+            onCancel={() => {
+              this.setState({visible: false});
+              this.setState({image: null});
+            }}
             width="100%"
           >
             <img
               style={{width: "100%"}}
               alt="Bebe Tailor"
               src={image}
-              onClick={() => this.setState({visible: false})}
+              onClick={() => {
+                this.setState({visible: false});
+                this.setState({image: null});
+              }}
             />
           </Modal>
         </Layout>
