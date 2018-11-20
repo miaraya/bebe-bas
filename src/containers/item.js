@@ -69,7 +69,9 @@ class Item extends Component {
           .value();
         measurement_images
           ? this.setState({
-              measurement_images: measurement_images[0].measurements
+              measurement_images: measurement_images[0]
+                ? measurement_images[0].measurements
+                : []
             })
           : this.setState({measurement_images: []});
       });
@@ -87,7 +89,7 @@ class Item extends Component {
       .then(json => {
         console.log(json);
         json
-          ? this.setState({measurement_note: json[0].note})
+          ? this.setState({measurement_note: json[0] ? json[0].note : ""})
           : this.setState({measurement_note: ""});
         var measurements = _(json)
           .groupBy(x => x.customer_name)
@@ -98,7 +100,9 @@ class Item extends Component {
           .value();
 
         measurements
-          ? this.setState({measurements: measurements[0].measurements})
+          ? this.setState({
+              measurements: measurements[0] ? measurements[0].measurements : []
+            })
           : this.setState({measurements: []});
         this.setState({error: false});
       });
@@ -324,71 +328,68 @@ class Item extends Component {
                   <h3>Options</h3>
                   <Row type="flex" justify="space-between" style={{margin: 20}}>
                     <Col>
-                      {options.length > 0 ? (
-                        options.map(o => (
-                          <Row key={o.id}>
-                            {o.option_name}: <b>{o.value}</b>
-                          </Row>
-                        ))
-                      ) : (
-                        <div />
-                      )}
+                      {options.length > 0
+                        ? options.map(o => (
+                            <Row key={o.id}>
+                              {o.option_name}: <b>{o.value}</b>
+                            </Row>
+                          ))
+                        : "No Options"}
                     </Col>
                   </Row>
                   <h3>Images</h3>
 
-                  <Row type="flex" justify="center">
-                    {images.length > 0 ? (
-                      images.map(m => (
-                        <Card
-                          key={m.id}
-                          hoverable
-                          onClick={() => {
-                            console.log(m.image);
-                            this.setState({image: item_images + m.image});
-                            this.setState({visible: true});
-                          }}
-                          style={{width: 300, margin: 10}}
-                          cover={
-                            <img
-                              alt="Bebe Tailor"
-                              src={item_images + m.image}
-                            />
-                          }
-                        >
-                          <Meta title={m.notes ? m.notes : "No notes"} />
-                        </Card>
-                      ))
-                    ) : (
-                      <div />
-                    )}
+                  <Row type="flex" justify="space-between" style={{margin: 20}}>
+                    {images.length > 0
+                      ? images.map(m => (
+                          <Card
+                            key={m.id}
+                            hoverable
+                            onClick={() => {
+                              console.log(m.image);
+                              this.setState({image: item_images + m.image});
+                              this.setState({visible: true});
+                            }}
+                            style={{width: 300, margin: 10}}
+                            cover={
+                              <img
+                                alt="Bebe Tailor"
+                                src={item_images + m.image}
+                              />
+                            }
+                          >
+                            <Meta title={m.notes ? m.notes : "No notes"} />
+                          </Card>
+                        ))
+                      : "No Images"}
                   </Row>
                   <h3>Fabrics</h3>
 
-                  <Row type="flex" justify="center">
-                    {fabrics.length > 0 ? (
-                      fabrics.map(f => (
-                        <Card
-                          title={
-                            f.unique_code + (f.type === 1 ? " - Lining" : "")
-                          }
-                          key={f.id}
-                          hoverable
-                          onClick={() => {
-                            this.setState({image: fabric_url_full + f.image});
-                            this.setState({visible: true});
-                          }}
-                          style={{width: 300, margin: 10}}
-                          cover={
-                            <img alt="Bebe Tailor" src={fabric_url + f.image} />
-                          }
-                        >
-                          <Meta title={f.notes ? f.notes : "No notes"} />
-                        </Card>
-                      ))
-                    ) : (
-                      <div />
-                    )}
+                  <Row type="flex" justify="space-between" style={{margin: 20}}>
+                    {fabrics.length > 0
+                      ? fabrics.map(f => (
+                          <Card
+                            title={
+                              f.unique_code + (f.type === 1 ? " - Lining" : "")
+                            }
+                            key={f.id}
+                            hoverable
+                            onClick={() => {
+                              this.setState({image: fabric_url_full + f.image});
+                              this.setState({visible: true});
+                            }}
+                            style={{width: 300, margin: 10}}
+                            cover={
+                              <img
+                                alt="Bebe Tailor"
+                                src={fabric_url + f.image}
+                              />
+                            }
+                          >
+                            <Meta title={f.notes ? f.notes : "No notes"} />
+                          </Card>
+                        ))
+                      : "No Fabrics"}
                   </Row>
                 </TabPane>
                 <TabPane tab={<h3>Fittings</h3>} key="2">
@@ -416,7 +417,7 @@ class Item extends Component {
                         </Timeline.Item>
                       ))
                     ) : (
-                      <div />
+                      <div>No History</div>
                     )}
                   </Timeline>
                 </TabPane>
@@ -429,42 +430,38 @@ class Item extends Component {
 
                   <Row type="flex" justify="space-between" style={{margin: 20}}>
                     <Col>
-                      {measurements.length > 0 ? (
-                        measurements.map(m => (
-                          <Row key={m.id}>
-                            {m.type_viet + "  /  " + m.type_eng}:{" "}
-                            <b>{m.value}</b>
-                          </Row>
-                        ))
-                      ) : (
-                        <div />
-                      )}
+                      {measurements.length > 0
+                        ? measurements.map(m => (
+                            <Row key={m.id}>
+                              {m.type_viet + "  /  " + m.type_eng}:{" "}
+                              <b>{m.value}</b>
+                            </Row>
+                          ))
+                        : "No Measurements"}
                     </Col>
                   </Row>
 
                   <h3>Images</h3>
-                  <Row type="flex" justify="center">
-                    {measurement_images.length > 0 ? (
-                      measurement_images.map(mi => (
-                        <Card
-                          key={mi.id}
-                          hoverable
-                          onClick={() => {
-                            this.setState({image: item_images + mi.image});
-                            this.setState({visible: true});
-                          }}
-                          style={{width: 300, margin: 10}}
-                          cover={
-                            <img
-                              alt="Bebe Tailor"
-                              src={item_images + mi.image}
-                            />
-                          }
-                        />
-                      ))
-                    ) : (
-                      <div />
-                    )}
+                  <Row type="flex" justify="space-between" style={{margin: 20}}>
+                    {measurement_images.length > 0
+                      ? measurement_images.map(mi => (
+                          <Card
+                            key={mi.id}
+                            hoverable
+                            onClick={() => {
+                              this.setState({image: item_images + mi.image});
+                              this.setState({visible: true});
+                            }}
+                            style={{width: 300, margin: 10}}
+                            cover={
+                              <img
+                                alt="Bebe Tailor"
+                                src={item_images + mi.image}
+                              />
+                            }
+                          />
+                        ))
+                      : "No Images"}
                   </Row>
                 </TabPane>
               </Tabs>
