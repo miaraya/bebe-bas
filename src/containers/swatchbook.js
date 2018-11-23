@@ -4,17 +4,13 @@ import "antd/dist/antd.css";
 import "../css/css.css";
 import {Spin} from "antd";
 import {Divider} from "antd";
-import {Button} from "antd";
 
 import Logo from "../assets/logo_small.png";
 
-import {api, fabric_url, fabric_url_full, location_url} from "./constants";
+import {api, fabric_url, fabric_url_full} from "./constants";
 import {Card} from "antd";
 import {Layout, Modal} from "antd";
 import {Rate} from "antd";
-import {Input} from "antd";
-
-const Search = Input.Search;
 
 const {Content, Header} = Layout;
 
@@ -26,8 +22,7 @@ class Swatchbook extends Component {
       error: true,
       image: "",
       visible: false,
-      locations: [],
-      language: "Vietnamese"
+      locations: []
     };
   }
   componentWillMount = () => {
@@ -75,17 +70,7 @@ class Swatchbook extends Component {
   render() {
     const {id} = this.props.params;
 
-    const {
-      loading,
-      error,
-      fabrics,
-      swatchbook,
-      image,
-      visible,
-      locations,
-      language,
-      query
-    } = this.state;
+    const {loading, error, fabrics, swatchbook, image, visible} = this.state;
 
     if (loading) {
       return (
@@ -96,7 +81,7 @@ class Swatchbook extends Component {
     } else if (error) {
       return (
         <div>
-          <b>SWATCHBOOK NOT FOUND :(</b>
+          <b>SWATCHBOOK {this.props.params.id} NOT FOUND :(</b>
         </div>
       );
     } else
@@ -122,7 +107,7 @@ class Swatchbook extends Component {
                 </div>
               ))
             ) : (
-              <div>Swatchbook not found</div>
+              <div>Swatchbook {this.props.params.id} not found</div>
             )}
             <div
               style={{display: "flex", flexDirection: "row", flexWrap: "wrap"}}
