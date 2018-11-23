@@ -7,16 +7,11 @@ import {Divider} from "antd";
 import {Button} from "antd";
 
 import Logo from "../assets/logo_small.png";
-import VN from "../assets/vietnam.png";
-import EN from "../assets/united-kingdom.png";
 
 import {api, fabric_url, fabric_url_full, location_url} from "./constants";
 import {Card} from "antd";
 import {Layout, Modal} from "antd";
 import {Rate} from "antd";
-import {Input} from "antd";
-
-const Search = Input.Search;
 
 const {Content, Header} = Layout;
 
@@ -28,8 +23,7 @@ class Fabric extends Component {
       error: true,
       image: "",
       visible: false,
-      locations: [],
-      language: "Vietnamese"
+      locations: []
     };
   }
   componentWillMount = () => {
@@ -75,16 +69,7 @@ class Fabric extends Component {
       });
   };
   render() {
-    const {
-      loading,
-      error,
-      fabric,
-      image,
-      visible,
-      locations,
-      language,
-      query
-    } = this.state;
+    const {loading, error, fabric, image, visible, locations} = this.state;
 
     if (loading) {
       return (
@@ -95,7 +80,7 @@ class Fabric extends Component {
     } else if (error) {
       return (
         <div>
-          <b>FABRIC NOT FOUND :(</b>
+          <b>FABRIC {this.props.params.id} NOT FOUND :(</b>
         </div>
       );
     } else
