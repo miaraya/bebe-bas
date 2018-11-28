@@ -18,7 +18,7 @@ class Top extends Component {
   };
 
   handleLanguage = () => {
-    console.log(localStorage.getItem("language"));
+    //console.log(localStorage.getItem("language"));
   };
   render() {
     return (

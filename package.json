@@ -5,6 +5,7 @@
   "dependencies": {
     "@version/react-router-v3": "^1.0.0",
     "antd": "^3.10.1",
+    "jwt-decode": "^2.2.0",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
     "react-scripts": "2.0.5"
