@@ -1,23 +1,17 @@
 import React, {Component} from "react";
 import "antd/dist/antd.css";
 import "../css/css.css";
-import {Layout, Tabs, Row, Col, Modal} from "antd";
+import {Layout, Row, Col, Modal} from "antd";
 import {Divider} from "antd";
 import {Spin} from "antd";
-import {Timeline, Icon} from "antd";
-import _ from "lodash";
-import {Table, Tag} from "antd";
-import {Card} from "antd";
+import {Table} from "antd";
 import {Link} from "react-router";
 
 import Logo from "../assets/logo_small.png";
-import {api, fabric_url, item_images, fabric_url_full} from "./constants";
-const {Column, ColumnGroup} = Table;
-
-const {Meta} = Card;
+import {api} from "./constants";
+const {Column} = Table;
 
 const {Content, Header} = Layout;
-const TabPane = Tabs.TabPane;
 
 class Order extends Component {
   constructor(props) {

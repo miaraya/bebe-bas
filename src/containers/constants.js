@@ -1,4 +1,4 @@
-//export const api = "http://192.168.1.92:5000/api/";
+//export const api = "http://localhost:5000/api/";
 export const api = "http://apibas.herokuapp.com/api/";
 
 export const garment_options =
@@ -11,3 +11,4 @@ export const item_images = api + "containers/bebe-order-images/download/";
 export const location_url = api + "containers/bebe-locations/download/";
 
 export const swatchbook_url = "";
+export const login_url = api + "login";

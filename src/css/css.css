@@ -10,24 +10,36 @@
 }
 .header {
   background: white;
-  padding: 50px;
   margin:0px;
   display: flex;
   justify-content: center;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   flex:1;
   flex-wrap: wrap;
+  height: 100%
 
 }
 .container {
   background: white;
   justify-content: center;
   align-items: center;
-padding: 10px
+padding: 50px
 }
 .wrapper
 {
   max-width: 1024px;
    margin: 0 auto;
+   background: white;
+   margin-top:10px;
+
+}
+.login-form {
+  max-width: 300px;
+}
+ .login-form-forgot {
+  float: right;
+}
+ .login-form-button {
+  width: 100%;
 }
