@@ -50,7 +50,6 @@ class Home extends Component {
     this.props.form.validateFields((err, values) => {
       if (!err) {
         this.setState({loading: true});
-
         this.doLogin(values.userName, values.password);
       }
     });

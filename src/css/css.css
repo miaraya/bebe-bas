@@ -24,7 +24,9 @@
   background: white;
   justify-content: center;
   align-items: center;
-padding: 50px
+  padding: 50px;
+  padding-top: 20px;
+
 }
 .wrapper
 {

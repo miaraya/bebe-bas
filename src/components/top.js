@@ -1,6 +1,5 @@
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import {Button} from "antd";
 import AuthService from "../AuthService";
 import {Icon} from "antd";
 
@@ -18,7 +17,21 @@ class Top extends Component {
   };
 
   handleLanguage = () => {
-    //console.log(localStorage.getItem("language"));
+    //console.log(localStorage.getItem("language"));ç
+    /*
+    <Button
+      style={{
+        alignSelf: "center",
+        borderColor: "transparent",
+        backgroundColor: "transparent",
+        boxShadow: "unset",
+        marginLeft: 15
+      }}
+      shape="circle"
+      onClick={() => this.edit(record)}
+    >
+      <Icon type="edit" />
+    </Button>*/
   };
   render() {
     return (

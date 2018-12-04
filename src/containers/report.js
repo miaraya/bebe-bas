@@ -1,4 +1,6 @@
 import React, {Component} from "react";
+import {Table} from "antd";
+
 import PropTypes from "prop-types";
 
 import "antd/dist/antd.css";
@@ -8,7 +10,6 @@ import {Layout} from "antd";
 import AuthService from "../AuthService";
 import HeaderApp from "../components/header";
 import Top from "../components/top";
-import {Table} from "antd";
 
 import {api} from "./constants";
 import {Link} from "react-router";
@@ -33,7 +34,7 @@ class Report extends Component {
           title: "Order",
           dataIndex: "order_id",
           key: "order_id",
-          render: id => <Link to={`/o/${id}`}>{id}</Link>
+          render: id =>  <Link to={`/o/${id}`}>{id}</Link>
         },
         {
           title: "Date",
@@ -97,12 +98,7 @@ class Report extends Component {
         to
     )
       .then(res => {
-        if (res.ok) {
-          return res.json();
-        } else {
-          this.setState({error: true});
-          throw new Error("Something went wrong ...");
-        }
+        return res.json();
       })
       .then(orders => {
         this.setState({orders, loading: false});
@@ -127,10 +123,12 @@ class Report extends Component {
   };
   render() {
     const {orders, columns, user, loading} = this.state;
+
     return (
       <Layout className="wrapper">
         {Auth.loggedIn() && <Top username={user.username} />}
         <HeaderApp index="2" />
+
         <Content className="container">
           <div
             style={{
@@ -147,7 +145,8 @@ class Report extends Component {
               onChange={date => this.onDateChange(date)}
             />
           </div>
-          {!loading > 0 ? (
+
+          {!loading ? (
             <Table
               dataSource={orders}
               columns={columns}
