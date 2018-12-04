@@ -288,10 +288,7 @@ class _Search extends Component {
         this.setState({
           user: profile
         });
-        this.doSearch(
-          "fabricdetails?filter[where][unique_code][like]=",
-          "sh2151"
-        );
+
         this.getTypes();
         this.getLocations();
         this.getColors();
