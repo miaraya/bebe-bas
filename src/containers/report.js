@@ -17,6 +17,7 @@ import {Link} from "react-router";
 import {DatePicker} from "antd";
 
 import {Spin} from "antd";
+import locale from "antd/lib/date-picker/locale/vi_VN";
 
 const Auth = new AuthService(null);
 
@@ -27,66 +28,61 @@ const {RangePicker} = DatePicker;
 class Report extends Component {
   constructor(props) {
     super(props);
+    this.getWord = this.getWord.bind(this);
+    this.handleLanguage = this.handleLanguage.bind(this);
+    this.getLanguage = this.getLanguage.bind(this);
+
     this.state = {
       loading: true,
-      columns: [
-        {
-          title: "Order",
-          dataIndex: "order_id",
-          key: "order_id",
-          render: id =>  <Link to={`/o/${id}`}>{id}</Link>
-        },
-        {
-          title: "Date",
-          dataIndex: "order_date",
-          key: "order_date",
-          render: date => (
-            <div>{new Date(date).toLocaleString("ES").slice(0, 10)}</div>
-          )
-        },
-        {
-          title: "Customer",
-          dataIndex: "customer_name",
-          key: "customer_name"
-        },
-        {
-          title: "Hotel",
-          dataIndex: "hotel_name",
-          key: "hotel_name"
-        },
-        {
-          title: "Room",
-          dataIndex: "hotel_room",
-          key: "hotel_room"
-        },
-        {
-          title: "Origin",
-          dataIndex: "order_origin",
-          key: "order_origin"
-        },
-        {
-          title: "Total [USD]",
-          dataIndex: "total",
-          key: "total"
-        },
-        {
-          title: "# Items",
-          dataIndex: "num_items",
-          key: "num_items"
-        }
-      ]
+      isLoading: true,
+      language: "vietnamese"
     };
   }
+  getLanguage = () => {
+    return this.state.language;
+  };
   componentWillMount = () => {
-    let today = new Date().toISOString().slice(0, 10);
+    //console.log(Auth.loggedIn());
+    if (!Auth.loggedIn()) {
+      this.context.router.replace("/");
+    } else {
+      try {
+        const profile = Auth.getProfile();
+        //console.log(profile);
+        this.setState({
+          user: profile
+        });
+        this.getDictionary();
+        this.setState({language: localStorage.getItem("language")});
 
-    //console.log(today);
-    const profile = Auth.getProfile();
-    this.setState({
-      user: profile
-    });
+        let today = new Date().toISOString().slice(0, 10);
 
-    this.getOrders(today, today);
+        this.getOrders(today, today);
+      } catch (err) {
+        //console.log(err);
+        Auth.logout();
+        this.context.router.replace("/");
+      }
+    }
+  };
+  getDictionary = () => {
+    fetch(api + "/dictionaries")
+      .then(res => res.json())
+      .then(dictionary => {
+        this.setState({dictionary});
+        this.setState({isLoading: false});
+      });
+  };
+  getWord = key => {
+    return this.state.dictionary
+      ? this.state.language === "vietnamese"
+        ? this.state.dictionary.find(i => i.key === key)
+          ? this.state.dictionary.find(i => i.key === key).vietnamese
+          : ""
+        : this.state.dictionary.find(i => i.key === key)
+          ? this.state.dictionary.find(i => i.key === key).english
+          : ""
+      : "";
   };
 
   getOrders = (from, to) => {
@@ -121,13 +117,77 @@ class Report extends Component {
         new Date(date[1]).toISOString().slice(0, 10)
       );
   };
-  render() {
-    const {orders, columns, user, loading} = this.state;
+  handleLanguage = () => {
+    this.state.language === "vietnamese"
+      ? this.setState({language: "english"})
+      : this.setState({language: "vietnamese"});
 
-    return (
+    this.state.language === "vietnamese"
+      ? localStorage.setItem("language", "english")
+      : localStorage.setItem("language", "vietnamese");
+  };
+
+  render() {
+    const {orders, user, loading, isLoading} = this.state;
+
+    const columns = [
+      {
+        title: this.getWord("order"),
+        dataIndex: "order_id",
+        key: "order_id",
+        render: id => <Link to={`/o/${id}`}>{id}</Link>
+      },
+      {
+        title: this.getWord("date"),
+        dataIndex: "order_date",
+        key: "order_date",
+        render: date => (
+          <div>{new Date(date).toLocaleString("ES").slice(0, 10)}</div>
+        )
+      },
+      {
+        title: this.getWord("customer-name"),
+        dataIndex: "customer_name",
+        key: "customer_name"
+      },
+      {
+        title: this.getWord("hotel"),
+        dataIndex: "hotel_name",
+        key: "hotel_name"
+      },
+      {
+        title: this.getWord("room"),
+        dataIndex: "hotel_room",
+        key: "hotel_room"
+      },
+      {
+        title: this.getWord("origin"),
+        dataIndex: "order_origin",
+        key: "order_origin"
+      },
+      {
+        title: this.getWord("price-usd") + " [USD]",
+        dataIndex: "total",
+        key: "total"
+      },
+      {
+        title: this.getWord("total-items"),
+        dataIndex: "num_items",
+        key: "num_items"
+      }
+    ];
+
+    return !isLoading ? (
       <Layout className="wrapper">
-        {Auth.loggedIn() && <Top username={user.username} />}
-        <HeaderApp index="2" />
+        {Auth.loggedIn() && (
+          <Top
+            username={this.state.user.username}
+            handleLanguage={this.handleLanguage}
+            getWord={this.getWord}
+            getLanguage={this.getLanguage}
+          />
+        )}
+        <HeaderApp index="2" getWord={this.getWord} />
 
         <Content className="container">
           <div
@@ -141,6 +201,7 @@ class Report extends Component {
             }}
           >
             <RangePicker
+              locale={this.state.language === "vietnamese" && locale}
               format="DD/MM/YYYY"
               onChange={date => this.onDateChange(date)}
             />
@@ -160,6 +221,10 @@ class Report extends Component {
           )}
         </Content>
       </Layout>
+    ) : (
+      <Content className="containerHome">
+        <Spin size="large" />
+      </Content>
     );
   }
 }

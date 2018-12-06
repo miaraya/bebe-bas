@@ -1,11 +1,14 @@
 import React, {Component} from "react";
 import PropTypes from "prop-types";
 import AuthService from "../AuthService";
-import {Icon} from "antd";
+import {Icon, Button} from "antd";
 
 const Auth = new AuthService(null);
 
 class Top extends Component {
+  constructor(props) {
+    super(props);
+  }
   static contextTypes = {
     router: PropTypes.shape({
       history: PropTypes.shape({
@@ -16,23 +19,6 @@ class Top extends Component {
     }).isRequired
   };
 
-  handleLanguage = () => {
-    //console.log(localStorage.getItem("language"));ç
-    /*
-    <Button
-      style={{
-        alignSelf: "center",
-        borderColor: "transparent",
-        backgroundColor: "transparent",
-        boxShadow: "unset",
-        marginLeft: 15
-      }}
-      shape="circle"
-      onClick={() => this.edit(record)}
-    >
-      <Icon type="edit" />
-    </Button>*/
-  };
   render() {
     return (
       <div
@@ -49,18 +35,26 @@ class Top extends Component {
         <div>
           <Icon type="user" style={{marginRight: 10}} />
           {this.props.username}
+          <a
+            style={{marginLeft: 20}}
+            onClick={() => {
+              this.props.handleLanguage();
+            }}
+          >
+            <Icon type="global" style={{marginRight: 10}} />
+            {this.props.getWord("to" + this.props.getLanguage())}
+          </a>
         </div>
 
-        <div
-          style={{cursor: "pointer"}}
+        <a
           onClick={() => {
             Auth.logout();
             this.context.router.push("/");
           }}
         >
-          Log Out
+          {this.props.getWord("logout")}
           <Icon type="logout" style={{marginLeft: 10}} />
-        </div>
+        </a>
       </div>
     );
   }

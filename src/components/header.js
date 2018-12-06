@@ -37,7 +37,7 @@ class HeaderApp extends Component {
               this.props.index !== 1 ? this.context.router.push("/search") : ""
             }
           >
-            Search
+            {this.props.getWord("search")}
           </Menu.Item>
           {localStorage.getItem("role") === "admin" ? (
             <Menu.Item
@@ -48,7 +48,7 @@ class HeaderApp extends Component {
                   : ""
               }
             >
-              Reports
+              {this.props.getWord("reports")}
             </Menu.Item>
           ) : (
             ""
