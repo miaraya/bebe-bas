@@ -11,6 +11,7 @@ import {api, fabric_url, fabric_url_full} from "./constants";
 import {Card} from "antd";
 import {Layout, Modal} from "antd";
 import {Rate} from "antd";
+import _ from "lodash";
 
 const {Content, Header} = Layout;
 
@@ -42,11 +43,38 @@ class Swatchbook extends Component {
         }
       })
       .then(fabrics => {
-        this.setState({fabrics});
+        var result = _(fabrics)
+          .groupBy(x => x.unique_code)
+          .map((value, key) => ({
+            stock: value,
+            unique_code: key,
+            old_code: value[0].old_code,
+            swatchbook: value[0].swatchbook,
+            fabric_image: value[0].fabric_image,
+            color: value[0].color,
+            fabric_id: value[0].fabric_id,
+            hetvai: true
+          }))
+          .value();
+        result = this.checkHetVai(result);
+
+        this.setState({fabrics: result});
       })
       .catch(error => {});
   };
+  checkHetVai = data => {
+    var total;
 
+    data.map(r => {
+      total = 0;
+      r.stock.map(s => {
+        total = total + Number(s.total_stock) + Number(s.extra_fabric);
+        //console.log(total);
+      });
+      total > 0 ? (r.hetvai = false) : (r.hetvai = true);
+    });
+    return data;
+  };
   getSwatchbookData = id => {
     fetch(api + "web_swatchbooks?filter[where][unique_code]=" + id)
       .then(res => {
@@ -154,7 +182,11 @@ class Swatchbook extends Component {
                   >
                     <div style={{margin: 10}}>Color: {fabric.color}</div>
                     <div style={{margin: 10}}>Old Code: {fabric.old_code}</div>
-                    <div style={{margin: 10}}>Supplier: {fabric.supplier}</div>
+                    {fabric.hetvai ? (
+                      <div style={{margin: 10, color: "red"}}>Out of Stock</div>
+                    ) : (
+                      <div style={{margin: 10, color: "green"}}>In Stock</div>
+                    )}
                   </Card>
                 ))
               ) : (
