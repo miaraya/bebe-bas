@@ -5,6 +5,7 @@ import "../css/css.css";
 import {Spin} from "antd";
 import {Divider} from "antd";
 import {Button} from "antd";
+import _ from "lodash";
 
 import Logo from "../assets/logo_small.png";
 
@@ -43,7 +44,9 @@ class Fabric extends Component {
         }
       })
       .then(locations => {
-        this.setState({locations});
+        this.setState({
+          locations: _.filter(locations, i => i.quantity > 0 || i.extra > 0)
+        });
       })
       .catch(error => {});
   };
