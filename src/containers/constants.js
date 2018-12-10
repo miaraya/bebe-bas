@@ -1,4 +1,4 @@
-//export const api = 'http://localhost:5000/api/'
+//export const api = "http://localhost:5000/api/";
 export const api = "http://apibas.herokuapp.com/api/";
 
 export const garment_options =
@@ -12,3 +12,27 @@ export const location_url = api + "containers/bebe-locations/download/";
 
 export const swatchbook_url = "";
 export const login_url = api + "login";
+
+export const formItemLayout = {
+  labelCol: {
+    xs: {span: 24},
+    sm: {span: 8}
+  },
+  wrapperCol: {
+    xs: {span: 24},
+    sm: {span: 16}
+  }
+};
+
+export const tailFormItemLayout = {
+  wrapperCol: {
+    xs: {
+      span: 24,
+      offset: 0
+    },
+    sm: {
+      span: 16,
+      offset: 8
+    }
+  }
+};

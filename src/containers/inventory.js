@@ -3,9 +3,8 @@ import PropTypes from "prop-types";
 
 import "antd/dist/antd.css";
 import "../css/css.css";
-import {Layout, Icon} from "antd";
+import {Layout} from "antd";
 
-import {Button} from "antd";
 import AuthService from "../AuthService";
 import HeaderApp from "../components/header";
 import Top from "../components/top";

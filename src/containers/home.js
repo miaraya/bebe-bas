@@ -128,6 +128,5 @@ class Home extends Component {
     );
   }
 }
-const WrappedNormalLoginForm = Form.create()(Home);
 
-export default WrappedNormalLoginForm;
+export default Form.create()(Home);

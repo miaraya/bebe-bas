@@ -128,7 +128,7 @@ class Report extends Component {
   };
 
   render() {
-    const {orders, user, loading, isLoading} = this.state;
+    const {orders, loading, isLoading} = this.state;
 
     const columns = [
       {

@@ -1,14 +1,11 @@
 import React, {Component} from "react";
 import PropTypes from "prop-types";
 import AuthService from "../AuthService";
-import {Icon, Button} from "antd";
+import {Icon} from "antd";
 
 const Auth = new AuthService(null);
 
 class Top extends Component {
-  constructor(props) {
-    super(props);
-  }
   static contextTypes = {
     router: PropTypes.shape({
       history: PropTypes.shape({

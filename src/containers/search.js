@@ -7,7 +7,7 @@ import {Layout, Modal} from "antd";
 
 import {Radio, Button, message} from "antd";
 import {Input} from "antd";
-import {api, fabric_url, fabric_url_full} from "./constants";
+import {api, fabric_url, fabric_url_full, formItemLayout} from "./constants";
 import {Table} from "antd";
 import {Link} from "react-router";
 import {Avatar} from "antd";
@@ -33,6 +33,11 @@ class _Search extends Component {
     this.handleLanguage = this.handleLanguage.bind(this);
     this.getWord = this.getWord.bind(this);
     this.getLanguage = this.getLanguage.bind(this);
+    this.types = this.types.bind(this);
+    this.suppliers = this.suppliers.bind(this);
+    this.colors = this.colors.bind(this);
+    this.swatchbooklist = this.swatchbooklist.bind(this);
+    this.locationlist = this.locationlist.bind(this);
 
     this.state = {
       isLoading: true,
@@ -56,14 +61,7 @@ class _Search extends Component {
       selectedOption: undefined
     };
   }
-  getLanguage = () => {
-    return this.state.language;
-  };
-  addStock = record => {
-    this.clear();
-    this.setState({record});
-    this.setState({addStockVisible: true});
-  };
+
   componentWillMount = () => {
     //console.log(Auth.loggedIn());
     if (!Auth.loggedIn()) {
@@ -81,6 +79,8 @@ class _Search extends Component {
         this.getTypes();
         this.getLocations();
         this.getColors();
+        this.getSuppliers();
+        this.getSwatchbookList();
 
         this.setState({
           selectedOption: {
@@ -95,6 +95,69 @@ class _Search extends Component {
       }
     }
   };
+
+  locationlist = () => {
+    return this.state.locations;
+  };
+
+  colors = () => {
+    return this.state.colors;
+  };
+  swatchbooklist = () => {
+    return this.state.swatchbooklist;
+  };
+  getSwatchbookList = () => {
+    fetch(api + "swatchbooks")
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          throw new Error("Something went wrong ...");
+        }
+      })
+      .then(swatchbooklist => {
+        this.setState({
+          swatchbooklist: _.sortBy(swatchbooklist, [
+            function(o) {
+              return o.unique_code;
+            }
+          ])
+        });
+      })
+      .catch(error => {});
+  };
+  getSuppliers = () => {
+    fetch(api + "suppliers")
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          throw new Error("Something went wrong ...");
+        }
+      })
+      .then(suppliers => {
+        this.setState({
+          suppliers: _.sortBy(suppliers, [
+            function(o) {
+              return o.name;
+            }
+          ])
+        });
+      })
+      .catch(error => {});
+  };
+  suppliers = () => {
+    return this.state.suppliers;
+  };
+  getLanguage = () => {
+    return this.state.language;
+  };
+  addStock = record => {
+    this.clear();
+    this.setState({record});
+    this.setState({addStockVisible: true});
+  };
+
   getDictionary = () => {
     fetch(api + "/dictionaries")
       .then(res => res.json())
@@ -150,6 +213,9 @@ class _Search extends Component {
         this.setState({loading: false});
       })
       .catch(error => {});
+  };
+  types = () => {
+    return this.state.types;
   };
   getTypes = () => {
     fetch(api + "types")
@@ -217,6 +283,7 @@ class _Search extends Component {
         }
       })
       .then(locations => {
+        console.log(locations);
         this.setState({
           locations: _.sortBy(locations, [
             function(o) {
@@ -475,16 +542,7 @@ class _Search extends Component {
       oldLocation,
       newExtra
     } = this.state;
-    const formItemLayout = {
-      labelCol: {
-        xs: {span: 24},
-        sm: {span: 8}
-      },
-      wrapperCol: {
-        xs: {span: 24},
-        sm: {span: 16}
-      }
-    };
+
     const options = [
       {
         value: 1,
@@ -643,34 +701,30 @@ class _Search extends Component {
               <Dropdown
                 overlay={
                   <Menu>
-                    <Menu.Item>
-                      <a onClick={() => this.addStock(this.state.record)}>
-                        {this.getWord("add-remove-stock")}
-                      </a>
+                    <Menu.Item onClick={() => this.addStock(this.state.record)}>
+                      {this.getWord("add-remove-stock")}
                     </Menu.Item>
                     {this.state.record &&
                       (!this.state.record.hetvai && (
-                        <Menu.Item>
-                          <a
-                            onClick={() => this.adjustStock(this.state.record)}
-                          >
-                            {this.getWord("het-vai-adjust")}
-                          </a>
+                        <Menu.Item
+                          onClick={() => this.adjustStock(this.state.record)}
+                        >
+                          {this.getWord("het-vai-adjust")}
                         </Menu.Item>
                       ))}
                     {this.state.record &&
                       (!this.state.record.hetvai && (
-                        <Menu.Item>
-                          <a onClick={() => this.moveStock(this.state.record)}>
-                            {this.getWord("move-fabric")}
-                          </a>
+                        <Menu.Item
+                          onClick={() => this.moveStock(this.state.record)}
+                        >
+                          {this.getWord("move-fabric")}
                         </Menu.Item>
                       ))}
                   </Menu>
                 }
                 onClick={() => this.setState({record})}
               >
-                <Icon type="edit" />
+                <Icon type="edit" style={{fontSize: 20}} />
               </Dropdown>
             </div>
           </div>
@@ -710,7 +764,15 @@ class _Search extends Component {
             getLanguage={this.getLanguage}
           />
         )}
-        <HeaderApp index="1" getWord={this.getWord} />
+        <HeaderApp
+          index="1"
+          getWord={this.getWord}
+          types={this.types}
+          suppliers={this.suppliers}
+          colors={this.colors}
+          swatchbooklist={this.swatchbooklist}
+          locationlist={this.locationlist}
+        />
         <Content className="container">
           <div
             style={{
@@ -893,7 +955,7 @@ class _Search extends Component {
                       />
                     </FormItem>
 
-                    <FormItem label="Extra Fabric" {...formItemLayout}>
+                    <FormItem label={this.getWord("extra")} {...formItemLayout}>
                       <InputNumber
                         min={0}
                         value={l.extra_fabric}
