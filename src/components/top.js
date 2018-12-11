@@ -30,8 +30,13 @@ class Top extends Component {
         }}
       >
         <div>
-          <Icon type="user" style={{marginRight: 10}} />
-          {this.props.username}
+          {Auth.loggedIn() && (
+            <span>
+              <Icon type="user" style={{marginRight: 10}} />
+              {this.props.username}
+            </span>
+          )}
+
           <a
             style={{marginLeft: 20}}
             onClick={() => {
@@ -42,16 +47,17 @@ class Top extends Component {
             {this.props.getWord("to" + this.props.getLanguage())}
           </a>
         </div>
-
-        <a
-          onClick={() => {
-            Auth.logout();
-            this.context.router.push("/");
-          }}
-        >
-          {this.props.getWord("logout")}
-          <Icon type="logout" style={{marginLeft: 10}} />
-        </a>
+        {Auth.loggedIn() && (
+          <a
+            onClick={() => {
+              Auth.logout();
+              this.context.router.push("/");
+            }}
+          >
+            {this.props.getWord("logout")}
+            <Icon type="logout" style={{marginLeft: 10}} />
+          </a>
+        )}
       </div>
     );
   }

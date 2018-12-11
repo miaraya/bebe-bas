@@ -6,6 +6,7 @@ import {Spin} from "antd";
 import {Divider} from "antd";
 import {Button} from "antd";
 import _ from "lodash";
+import Top from "../components/top";
 
 import Logo from "../assets/logo_small.png";
 
@@ -13,6 +14,9 @@ import {api, fabric_url, fabric_url_full, location_url} from "./constants";
 import {Card} from "antd";
 import {Layout, Modal} from "antd";
 import {Rate} from "antd";
+import AuthService from "../AuthService";
+
+const Auth = new AuthService(null);
 
 const {Content, Header} = Layout;
 
@@ -31,6 +35,21 @@ class Fabric extends Component {
     let id = this.props.params.id;
     this.getFabricData(id);
     this.getStockData(id);
+    this.getDictionary();
+    const profile = Auth.getProfile();
+    //console.log(profile);
+    this.setState({
+      user: profile
+    });
+    this.setState({language: localStorage.getItem("language")});
+  };
+  getDictionary = () => {
+    fetch(api + "/dictionaries")
+      .then(res => res.json())
+      .then(dictionary => {
+        this.setState({dictionary});
+        this.setState({isLoading: false});
+      });
   };
 
   getStockData = id => {
@@ -71,6 +90,29 @@ class Fabric extends Component {
         this.setState({error: true});
       });
   };
+  handleLanguage = () => {
+    this.state.language === "vietnamese"
+      ? this.setState({language: "english"})
+      : this.setState({language: "vietnamese"});
+
+    this.state.language === "vietnamese"
+      ? localStorage.setItem("language", "english")
+      : localStorage.setItem("language", "vietnamese");
+  };
+  getLanguage = () => {
+    return this.state.language;
+  };
+  getWord = key => {
+    return this.state.dictionary
+      ? this.state.language === "vietnamese"
+        ? this.state.dictionary.find(i => i.key === key)
+          ? this.state.dictionary.find(i => i.key === key).vietnamese
+          : ""
+        : this.state.dictionary.find(i => i.key === key)
+          ? this.state.dictionary.find(i => i.key === key).english
+          : ""
+      : "";
+  };
   render() {
     const {loading, error, fabric, image, visible, locations} = this.state;
 
@@ -89,6 +131,12 @@ class Fabric extends Component {
     } else
       return (
         <Layout className="wrapper">
+          <Top
+            username={this.state.user.username}
+            handleLanguage={this.handleLanguage}
+            getWord={this.getWord}
+            getLanguage={this.getLanguage}
+          />
           <Header className="header">
             <Link to={`/`}>
               <img src={Logo} alt="Bebe Tailor" width="150px" />
@@ -146,8 +194,12 @@ class Fabric extends Component {
                     />
                   }
                 >
-                  <div style={{margin: 10}}>Old Code: {fabric.old_code}</div>
-                  <div style={{margin: 10}}>Supplier: {fabric.supplier}</div>
+                  <div style={{margin: 10}}>
+                    {this.getWord("old-code")}: {fabric.old_code}
+                  </div>
+                  <div style={{margin: 10}}>
+                    {this.getWord("supplier")}: {fabric.supplier}
+                  </div>
                 </Card>
               </div>
 
@@ -160,21 +212,30 @@ class Fabric extends Component {
                   flex: 2
                 }}
               >
-                <Card title={<h2>Fabric Details</h2>} bordered={true}>
-                  <div style={{margin: 10}}>Type: {fabric.type}</div>
-                  <div style={{margin: 10}}>Color: {fabric.color}</div>
+                <Card
+                  title={<h2>{this.getWord("fabric-details")}</h2>}
+                  bordered={true}
+                >
                   <div style={{margin: 10}}>
-                    Swatchbook:{" "}
+                    {this.getWord("type")}: {fabric.type}
+                  </div>
+                  <div style={{margin: 10}}>
+                    {this.getWord("color")}: {fabric.color}
+                  </div>
+                  <div style={{margin: 10}}>
+                    {this.getWord("swatchbook")}:{" "}
                     <Link to={`/s/${fabric.swatchbook}`}>
                       {fabric.swatchbook}
                     </Link>
                   </div>
                   <div style={{margin: 10}}>
-                    Total Stock:{" "}
+                    {this.getWord("total-stock")}:{" "}
                     {fabric.total_stock > 0 ? (
                       fabric.total_stock + "m"
                     ) : (
-                      <span style={{color: "red"}}>NO STOCK</span>
+                      <span style={{color: "red"}}>
+                        {this.getWord("no-stock")}
+                      </span>
                     )}
                   </div>
 
@@ -183,11 +244,13 @@ class Fabric extends Component {
                       margin: 10
                     }}
                   >
-                    Extra Fabric:{" "}
+                    {this.getWord("extra-fabric")}:{" "}
                     {fabric.extra_fabric > 0 ? (
                       fabric.extra_fabric + "m"
                     ) : (
-                      <span style={{color: "red"}}>NO EXTRA STOCK</span>
+                      <span style={{color: "red"}}>
+                        {this.getWord("no-extra")}
+                      </span>
                     )}
                   </div>
                 </Card>
@@ -197,7 +260,7 @@ class Fabric extends Component {
                       marginTop: 20,
                       flex: 1
                     }}
-                    title={<h2>Stock by Location </h2>}
+                    title={<h2>{this.getWord("stock-fabric-location")}</h2>}
                     bordered={true}
                   >
                     {locations.length > 0 ? (
@@ -221,8 +284,8 @@ class Fabric extends Component {
                             </h3>
                           </Button>
                           <div>
-                            Quantity: {l.quantity}
-                            {" - "} Extra: {l.extra}
+                            {this.getWord("quantity")}: {l.quantity}
+                            {" - "} {this.getWord("extra")}: {l.extra}
                           </div>
                           {locations.length > 1 &&
                           locations.length - 1 !== i ? (
