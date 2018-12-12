@@ -284,7 +284,7 @@ class _Search extends Component {
         }
       })
       .then(locations => {
-        console.log(locations);
+        //onsole.log(locations);
         this.setState({
           locations: _.sortBy(locations, [
             function(o) {
@@ -399,7 +399,8 @@ class _Search extends Component {
         fabric_id,
         location_id,
         quantity: quantity ? quantity : 0,
-        extra: extra ? extra : 0
+        extra: 0,
+        user_id: Number(this.state.user.user_id)
       })
     })
       .then(response => response.json())
