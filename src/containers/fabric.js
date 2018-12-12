@@ -230,26 +230,11 @@ class Fabric extends Component {
                   </div>
                   <div style={{margin: 10}}>
                     {this.getWord("total-stock")}:{" "}
-                    {fabric.total_stock > 0 ? (
-                      fabric.total_stock + "m"
+                    {fabric.stock > 0 ? (
+                      fabric.stock + "m"
                     ) : (
                       <span style={{color: "red"}}>
                         {this.getWord("no-stock")}
-                      </span>
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      margin: 10
-                    }}
-                  >
-                    {this.getWord("extra-fabric")}:{" "}
-                    {fabric.extra_fabric > 0 ? (
-                      fabric.extra_fabric + "m"
-                    ) : (
-                      <span style={{color: "red"}}>
-                        {this.getWord("no-extra")}
                       </span>
                     )}
                   </div>
@@ -265,34 +250,22 @@ class Fabric extends Component {
                   >
                     {locations.length > 0 ? (
                       locations.map((l, i) => (
-                        <div key={l.location}>
-                          <Button
+                        <div key={l.location} style={{margin: 10}}>
+                          <a
                             style={{
                               borderColor: "transparent",
                               padding: 0
                             }}
+                            onClick={() => {
+                              this.setState({
+                                image: location_url + l.image
+                              });
+                              this.setState({visible: true});
+                            }}
                           >
-                            <h3
-                              onClick={() => {
-                                this.setState({
-                                  image: location_url + l.image
-                                });
-                                this.setState({visible: true});
-                              }}
-                            >
-                              {l.location}
-                            </h3>
-                          </Button>
-                          <div>
-                            {this.getWord("quantity")}: {l.quantity}
-                            {" - "} {this.getWord("extra")}: {l.extra}
-                          </div>
-                          {locations.length > 1 &&
-                          locations.length - 1 !== i ? (
-                            <Divider />
-                          ) : (
-                            <div />
-                          )}
+                            <span>{l.location + ": "}</span>
+                          </a>
+                          <span> {l.quantity + "m"}</span>
                         </div>
                       ))
                     ) : (

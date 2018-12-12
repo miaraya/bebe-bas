@@ -14,13 +14,14 @@ import {Avatar} from "antd";
 import {Spin} from "antd";
 import {Select} from "antd";
 import _ from "lodash";
-import AuthService from "../AuthService";
 import HeaderApp from "../components/header";
 import Top from "../components/top";
 import {Form, Icon, InputNumber, Dropdown, Menu} from "antd";
-const FormItem = Form.Item;
+import AuthService from "../AuthService";
 
 const Auth = new AuthService(null);
+const FormItem = Form.Item;
+
 const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
 const Option = Select.Option;
@@ -333,7 +334,7 @@ class _Search extends Component {
     data.map(r => {
       total = 0;
       r.stock.map(s => {
-        total = total + Number(s.total_stock) + Number(s.extra_fabric);
+        total = total + Number(s.total_stock);
         //console.log(total);
       });
       total > 0 ? (r.hetvai = false) : (r.hetvai = true);
@@ -432,7 +433,7 @@ class _Search extends Component {
 
             let total = 0;
             aux.stock.map(s => {
-              total = total + Number(s.total_stock) + Number(s.extra_fabric);
+              total = total + Number(s.total_stock);
               //console.log(total);
             });
             total > 0 ? (aux.hetvai = false) : (aux.hetvai = true);
@@ -667,12 +668,12 @@ class _Search extends Component {
         role: "admin",
 
         render: (stock, record) => (
-          <div style={{display: "flex"}}>
+          <div style={{display: "flex", justifyContent: "space-between"}}>
             <div>
               {!record.hetvai ? (
                 record.stock.map(
                   (s, i) =>
-                    Number(s.total_stock) + Number(s.extra_fabric) > 0 && (
+                    Number(s.total_stock) > 0 && (
                       <div
                         key={i}
                         style={{display: "flex", flexDirection: "column"}}
@@ -680,30 +681,27 @@ class _Search extends Component {
                         <span>
                           <b>{s.location}</b>
                         </span>
-                        <span style={{marginLeft: 20}}>
-                          {this.getWord("stock") +
-                            ": " +
-                            s.total_stock +
-                            "m - " +
-                            this.getWord("extra") +
-                            ": " +
-                            s.extra_fabric +
-                            "m"}
+                        <span style={{marginLeft: 10}}>
+                          {this.getWord("stock") + ": " + s.total_stock + "m "}
                         </span>
                       </div>
                     )
                 )
               ) : (
-                <div style={{color: "red"}}>No Stock </div>
+                <div style={{color: "red"}}>{this.getWord("no-stock")} </div>
               )}
             </div>
             <div style={{marginLeft: 15, alignSelf: "center"}}>
               <Dropdown
                 overlay={
                   <Menu>
-                    <Menu.Item onClick={() => this.addStock(this.state.record)}>
-                      {this.getWord("add-remove-stock")}
-                    </Menu.Item>
+                    {this.state.record && (
+                      <Menu.Item
+                        onClick={() => this.addStock(this.state.record)}
+                      >
+                        {this.getWord("add-remove-stock")}
+                      </Menu.Item>
+                    )}
                     {this.state.record &&
                       (!this.state.record.hetvai && (
                         <Menu.Item
@@ -953,17 +951,7 @@ class _Search extends Component {
                           this.setState({data});
                         }}
                       />
-                    </FormItem>
-
-                    <FormItem label={this.getWord("extra")} {...formItemLayout}>
-                      <InputNumber
-                        min={0}
-                        value={l.extra_fabric}
-                        onChange={value => {
-                          l.extra_fabric = value;
-                          this.setState({data});
-                        }}
-                      />
+                      <span>{" m"}</span>
                     </FormItem>
                   </div>
                 ))}
@@ -1093,6 +1081,7 @@ class _Search extends Component {
                     this.setState({newStock});
                   }}
                 />
+                <span>{" m"}</span>
                 {add === 1 && (
                   <Button
                     onClick={() => {
@@ -1100,31 +1089,6 @@ class _Search extends Component {
                         newStock: Number(
                           record.stock.find(i => i.location_id === newLocation)
                             .total_stock
-                        )
-                      });
-                    }}
-                    style={{marginLeft: 20}}
-                    disabled={!newLocation}
-                  >
-                    {this.getWord("all")}
-                  </Button>
-                )}
-              </FormItem>
-              <FormItem label={this.getWord("extra")} {...formItemLayout}>
-                <InputNumber
-                  min={0}
-                  value={this.state.newExtra ? this.state.newExtra : 0}
-                  onChange={newExtra => {
-                    this.setState({newExtra});
-                  }}
-                />
-                {add === 1 && (
-                  <Button
-                    onClick={() => {
-                      this.setState({
-                        newExtra: Number(
-                          record.stock.find(i => i.location_id === newLocation)
-                            .extra_fabric
                         )
                       });
                     }}
@@ -1239,6 +1203,7 @@ class _Search extends Component {
                     this.setState({newStock});
                   }}
                 />
+                <span>{" m"}</span>
                 <Button
                   style={{marginLeft: 20}}
                   disabled={!oldLocation}
@@ -1255,22 +1220,6 @@ class _Search extends Component {
                 >
                   {this.getWord("all")}
                 </Button>
-              </FormItem>
-              <FormItem label={this.getWord("extra")} {...formItemLayout}>
-                <InputNumber
-                  min={0}
-                  max={
-                    oldLocation &&
-                    Number(
-                      record.stock.find(i => i.location_id === oldLocation)
-                        .extra_fabric
-                    )
-                  }
-                  value={newExtra ? newExtra : 0}
-                  onChange={newExtra => {
-                    this.setState({newExtra});
-                  }}
-                />
               </FormItem>
             </Form>
           </div>
