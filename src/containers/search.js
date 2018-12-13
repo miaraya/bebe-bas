@@ -383,7 +383,7 @@ class _Search extends Component {
     }).isRequired
   };
 
-  setStock = (fabric_id, location_id, quantity, extra, add) => {
+  setStock = (fabric_id, location_id, quantity, extra, add, action) => {
     //add or Remove
     if (add === 1) {
       quantity = quantity * -1;
@@ -400,7 +400,8 @@ class _Search extends Component {
         location_id,
         quantity: quantity ? quantity : 0,
         extra: 0,
-        user_id: Number(this.state.user.user_id)
+        user_id: Number(this.state.user.user_id),
+        action
       })
     })
       .then(response => response.json())
@@ -463,7 +464,8 @@ class _Search extends Component {
         s.location_id,
         Number(s.total_stock) + Number(oldStock[i].total_stock) * -1,
         Number(s.extra_fabric) + Number(oldStock[i].extra_fabric) * -1,
-        1
+        1,
+        "adjust"
       );
     });
     //console.log(this.state.record);
@@ -496,8 +498,8 @@ class _Search extends Component {
     this.setState({moveStockVisible: true});
   };
   saveMoveStock = (fabric_id, from, to, quantity, extra) => {
-    this.setStock(fabric_id, from, quantity, extra, 1);
-    this.setStock(fabric_id, to, quantity, extra, 0);
+    this.setStock(fabric_id, from, quantity, extra, 1, "move");
+    this.setStock(fabric_id, to, quantity, extra, 0, "move");
   };
 
   setHetVai = oldStockLocations => {
@@ -1007,7 +1009,8 @@ class _Search extends Component {
                   this.state.newLocation,
                   this.state.newStock,
                   this.state.newExtra,
-                  add
+                  add,
+                  add === 0 ? "add" : "remove"
                 );
               }}
             >
