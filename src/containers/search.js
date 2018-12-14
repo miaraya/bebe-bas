@@ -676,8 +676,7 @@ class _Search extends Component {
             )}
           </Select>*/
           <div>{color}</div>
-        ),
-        role: "admin"
+        )
       },
 
       {
@@ -685,6 +684,14 @@ class _Search extends Component {
         dataIndex: "total_stock",
         key: "total_stock",
         sorter: (a, b) => a.total_stock - b.total_stock,
+        filters: [
+          {
+            text: "Het Vai",
+            value: 0
+          }
+        ],
+        onFilter: (stock, record) => record.total_stock <= 0,
+
         render: (stock, record) => (
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <div>
