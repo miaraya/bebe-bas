@@ -138,7 +138,7 @@ class Fabric extends Component {
             getLanguage={this.getLanguage}
           />
           <Header className="header">
-            <Link to={`/`}>
+            <Link to={`/search`}>
               <img src={Logo} alt="Bebe Tailor" width="150px" />
             </Link>
           </Header>

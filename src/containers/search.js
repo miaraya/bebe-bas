@@ -313,6 +313,13 @@ class _Search extends Component {
             }
           ])
         });
+
+        let colorFilter = [];
+        colors.map(c =>
+          colorFilter.push({text: c.description, value: c.description})
+        );
+        this.setState({colorFilter});
+
         this.setState({loading: false});
       })
       .catch(error => {});
@@ -338,6 +345,7 @@ class _Search extends Component {
         //console.log(total);
       });
       total > 0 ? (r.hetvai = false) : (r.hetvai = true);
+      total > 0 ? (r.total_stock = total) : (r.total_stock = 0);
     });
     return data;
   };
@@ -546,6 +554,7 @@ class _Search extends Component {
       oldLocation,
       newExtra
     } = this.state;
+    console.log(this.state.colors);
 
     const options = [
       {
@@ -632,6 +641,9 @@ class _Search extends Component {
         title: this.getWord("color"),
         dataIndex: "color",
         key: "color",
+        filters: this.state.colorFilter,
+        onFilter: (color, record) => record.color.indexOf(color) === 0,
+
         sorter: (a, b) => {
           return a.color.localeCompare(b.color);
         },
@@ -668,7 +680,7 @@ class _Search extends Component {
         title: this.getWord("stock"),
         dataIndex: "total_stock",
         key: "total_stock",
-
+        sorter: (a, b) => a.total_stock - b.total_stock,
         render: (stock, record) => (
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <div>

@@ -49,7 +49,7 @@ class HeaderApp extends Component {
 
     return (
       <Header className="header">
-        <Link to={`/`}>
+        <Link to={`/search`}>
           <img src={Logo} alt="Bebe Tailor" width="150px" />
         </Link>
 
