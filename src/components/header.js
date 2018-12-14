@@ -76,7 +76,7 @@ class HeaderApp extends Component {
             >
               {this.props.getWord("search")}
             </Menu.Item>
-            {localStorage.getItem("role") === "admin" ? (
+            {localStorage.getItem("role") === "admin" && (
               <Menu.Item
                 key="2"
                 onClick={() =>
@@ -87,40 +87,39 @@ class HeaderApp extends Component {
               >
                 {this.props.getWord("reports")}
               </Menu.Item>
-            ) : (
-              ""
             )}
           </Menu>
-
-          <Dropdown
-            style={{flex: 1}}
-            overlay={
-              <Menu>
-                <Menu.Item
-                  onClick={() => this.setState({addFabricVisible: true})}
-                >
-                  {this.props.getWord("add-fabric")}
-                </Menu.Item>
-                <Menu.Item
-                  onClick={() => {
-                    this.getSwatchbookCode();
+          {["admin", "stock"].find(i => i === localStorage.getItem("role")) && (
+            <Dropdown
+              style={{flex: 1}}
+              overlay={
+                <Menu>
+                  <Menu.Item
+                    onClick={() => this.setState({addFabricVisible: true})}
+                  >
+                    {this.props.getWord("add-fabric")}
+                  </Menu.Item>
+                  <Menu.Item
+                    onClick={() => {
+                      this.getSwatchbookCode();
+                    }}
+                  >
+                    {this.props.getWord("add-swatchbook")}
+                  </Menu.Item>
+                </Menu>
+              }
+            >
+              <a className="ant-dropdown-link" href="#">
+                <Icon
+                  type="plus-circle"
+                  style={{
+                    fontSize: 30,
+                    alignSelf: "center"
                   }}
-                >
-                  {this.props.getWord("add-swatchbook")}
-                </Menu.Item>
-              </Menu>
-            }
-          >
-            <a className="ant-dropdown-link" href="#">
-              <Icon
-                type="plus-circle"
-                style={{
-                  fontSize: 30,
-                  alignSelf: "center"
-                }}
-              />
-            </a>
-          </Dropdown>
+                />
+              </a>
+            </Dropdown>
+          )}
         </div>
         <Modal
           title={this.props.getWord("add-fabric")}

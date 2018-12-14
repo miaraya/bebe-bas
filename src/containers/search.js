@@ -668,7 +668,6 @@ class _Search extends Component {
         title: this.getWord("stock"),
         dataIndex: "total_stock",
         key: "total_stock",
-        role: "admin",
 
         render: (stock, record) => (
           <div style={{display: "flex", justifyContent: "space-between"}}>
@@ -694,40 +693,44 @@ class _Search extends Component {
                 <div style={{color: "red"}}>{this.getWord("no-stock")} </div>
               )}
             </div>
-            <div style={{marginLeft: 15, alignSelf: "center"}}>
-              <Dropdown
-                overlay={
-                  <Menu>
-                    {this.state.record && (
-                      <Menu.Item
-                        onClick={() => this.addStock(this.state.record)}
-                      >
-                        {this.getWord("add-remove-stock")}
-                      </Menu.Item>
-                    )}
-                    {this.state.record &&
-                      (!this.state.record.hetvai && (
+            {["admin", "stock"].find(
+              i => i === localStorage.getItem("role")
+            ) && (
+              <div style={{marginLeft: 15, alignSelf: "center"}}>
+                <Dropdown
+                  overlay={
+                    <Menu>
+                      {this.state.record && (
                         <Menu.Item
-                          onClick={() => this.adjustStock(this.state.record)}
+                          onClick={() => this.addStock(this.state.record)}
                         >
-                          {this.getWord("het-vai-adjust")}
+                          {this.getWord("add-remove-stock")}
                         </Menu.Item>
-                      ))}
-                    {this.state.record &&
-                      (!this.state.record.hetvai && (
-                        <Menu.Item
-                          onClick={() => this.moveStock(this.state.record)}
-                        >
-                          {this.getWord("move-fabric")}
-                        </Menu.Item>
-                      ))}
-                  </Menu>
-                }
-                onClick={() => this.setState({record})}
-              >
-                <Icon type="edit" style={{fontSize: 20}} />
-              </Dropdown>
-            </div>
+                      )}
+                      {this.state.record &&
+                        (!this.state.record.hetvai && (
+                          <Menu.Item
+                            onClick={() => this.adjustStock(this.state.record)}
+                          >
+                            {this.getWord("het-vai-adjust")}
+                          </Menu.Item>
+                        ))}
+                      {this.state.record &&
+                        (!this.state.record.hetvai && (
+                          <Menu.Item
+                            onClick={() => this.moveStock(this.state.record)}
+                          >
+                            {this.getWord("move-fabric")}
+                          </Menu.Item>
+                        ))}
+                    </Menu>
+                  }
+                  onClick={() => this.setState({record})}
+                >
+                  <Icon type="edit" style={{fontSize: 20}} />
+                </Dropdown>
+              </div>
+            )}
           </div>
         )
       }
