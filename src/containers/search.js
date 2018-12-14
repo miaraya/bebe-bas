@@ -318,6 +318,7 @@ class _Search extends Component {
         colors.map(c =>
           colorFilter.push({text: c.description, value: c.description})
         );
+
         this.setState({colorFilter});
 
         this.setState({loading: false});
@@ -554,7 +555,6 @@ class _Search extends Component {
       oldLocation,
       newExtra
     } = this.state;
-    console.log(this.state.colors);
 
     const options = [
       {
@@ -641,7 +641,11 @@ class _Search extends Component {
         title: this.getWord("color"),
         dataIndex: "color",
         key: "color",
-        filters: this.state.colorFilter,
+        filters: _.sortBy(this.state.colorFilter, [
+          function(o) {
+            return o.text;
+          }
+        ]),
         onFilter: (color, record) => record.color.indexOf(color) === 0,
 
         sorter: (a, b) => {
