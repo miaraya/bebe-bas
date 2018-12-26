@@ -13,7 +13,6 @@ class HeaderApp extends Component {
     super(props);
     this.getWord = this.props.getWord.bind(this);
     this.swatchbookcode = this.swatchbookcode.bind(this);
-
     this.state = {creatingLoading: false};
   }
   static contextTypes = {
@@ -41,11 +40,7 @@ class HeaderApp extends Component {
   };
 
   render() {
-    const {
-      addFabricVisible,
-      creatingLoading,
-      addSwatchbookVisible
-    } = this.state;
+    const {addFabricVisible, addSwatchbookVisible} = this.state;
 
     return (
       <Header className="header">
@@ -69,9 +64,7 @@ class HeaderApp extends Component {
             <Menu.Item
               key="1"
               onClick={() =>
-                this.props.index !== 1
-                  ? this.context.router.push("/search")
-                  : ""
+                this.props.index !== 1 && this.context.router.push("/search")
               }
             >
               {this.props.getWord("search")}
@@ -80,9 +73,7 @@ class HeaderApp extends Component {
               <Menu.Item
                 key="2"
                 onClick={() =>
-                  this.props.index !== 2
-                    ? this.context.router.push("/reports")
-                    : ""
+                  this.props.index !== 2 && this.context.router.push("/reports")
                 }
               >
                 {this.props.getWord("reports")}
@@ -109,15 +100,16 @@ class HeaderApp extends Component {
                 </Menu>
               }
             >
-              <a className="ant-dropdown-link" href="#">
+              <Link>
                 <Icon
                   type="plus-circle"
+                  theme="twoTone"
                   style={{
                     fontSize: 30,
                     alignSelf: "center"
                   }}
                 />
-              </a>
+              </Link>
             </Dropdown>
           )}
         </div>
@@ -136,6 +128,7 @@ class HeaderApp extends Component {
             colors={this.props.colors}
             swatchbooklist={this.props.swatchbooklist}
             locationlist={this.props.locationlist}
+            user={this.props.user}
           />
         </Modal>
         <Modal
@@ -151,6 +144,7 @@ class HeaderApp extends Component {
             types={this.props.types}
             swatchbookcode={this.swatchbookcode}
             addSwatchbookVisible={this.setState.addSwatchbookVisible}
+            user={this.props.user}
           />
         </Modal>
       </Header>

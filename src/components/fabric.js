@@ -1,15 +1,5 @@
 import React, {Component} from "react";
-import {
-  Icon,
-  Form,
-  Input,
-  Select,
-  Button,
-  InputNumber,
-  Rate,
-  message
-} from "antd";
-import {Link} from "react-router";
+import {Form, Input, Select, Button, InputNumber, Rate, message} from "antd";
 
 import {api, formItemLayout, tailFormItemLayout} from "../containers/constants";
 
@@ -38,7 +28,9 @@ export class FabricForm extends Component {
       });
   };
 
-  componentWillMount = () => {};
+  componentWillMount = () => {
+    console.log(this.props);
+  };
   clear = () => {
     this.props.form.setFieldsValue({
       code: undefined,
@@ -50,8 +42,7 @@ export class FabricForm extends Component {
       swatchbook: undefined,
       price_band: undefined,
       location: undefined,
-      stock: undefined,
-      price_band: undefined
+      stock: undefined
     });
   };
 
@@ -72,7 +63,8 @@ export class FabricForm extends Component {
         price: values.price,
         swatchbook_id: values.swatchbook,
         price_band_id: values.price_band,
-        image: values.code.toUpperCase() + ".jpg"
+        image: values.code.toUpperCase() + ".jpg",
+        user_id: this.props.user ? Number(this.props.user.user_id) : -1
       })
     })
       .then(response => response.json())
@@ -100,7 +92,10 @@ export class FabricForm extends Component {
       body: JSON.stringify({
         fabric_id,
         location_id,
-        quantity
+        quantity,
+        extra: 0,
+        user_id: this.props.user ? Number(this.props.user.user_id) : -1,
+        action: "add"
       })
     })
       .then(response => response.json())
@@ -123,8 +118,7 @@ export class FabricForm extends Component {
     });
   };
   render() {
-    const {getFieldDecorator, setFieldsValue} = this.props.form;
-    const code = this.state;
+    const {getFieldDecorator} = this.props.form;
 
     return (
       <Form onSubmit={this.handleSubmit}>
@@ -390,7 +384,8 @@ export class SwatchbookForm extends Component {
       },
       body: JSON.stringify({
         unique_code: values.swatchbookcode,
-        type_id: values.type
+        type_id: values.type,
+        user_id: this.props.user ? Number(this.props.user.user_id) : -1
       })
     })
       .then(response => response.json())
@@ -410,7 +405,7 @@ export class SwatchbookForm extends Component {
   };
 
   render() {
-    const {getFieldDecorator, setFieldsValue} = this.props.form;
+    const {getFieldDecorator} = this.props.form;
     const {creatingLoading} = this.state;
 
     return (

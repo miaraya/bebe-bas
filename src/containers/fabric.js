@@ -3,8 +3,6 @@ import {Link} from "react-router";
 import "antd/dist/antd.css";
 import "../css/css.css";
 import {Spin} from "antd";
-import {Divider} from "antd";
-import {Button} from "antd";
 import _ from "lodash";
 import Top from "../components/top";
 
@@ -248,10 +246,10 @@ class Fabric extends Component {
                     title={<h2>{this.getWord("stock-fabric-location")}</h2>}
                     bordered={true}
                   >
-                    {locations.length > 0 ? (
+                    {locations.length > 0 &&
                       locations.map((l, i) => (
                         <div key={l.location} style={{margin: 10}}>
-                          <a
+                          <Link
                             style={{
                               borderColor: "transparent",
                               padding: 0
@@ -264,13 +262,10 @@ class Fabric extends Component {
                             }}
                           >
                             <span>{l.location + ": "}</span>
-                          </a>
+                          </Link>
                           <span> {l.quantity + "m"}</span>
                         </div>
-                      ))
-                    ) : (
-                      <div />
-                    )}
+                      ))}
                   </Card>
                 ) : (
                   <div />

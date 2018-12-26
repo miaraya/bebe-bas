@@ -2,6 +2,7 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import AuthService from "../AuthService";
 import {Icon} from "antd";
+import {Link} from "react-router";
 
 const Auth = new AuthService(null);
 
@@ -37,7 +38,7 @@ class Top extends Component {
             </span>
           )}
 
-          <a
+          <Link
             style={{marginLeft: 20}}
             onClick={() => {
               this.props.handleLanguage();
@@ -45,10 +46,10 @@ class Top extends Component {
           >
             <Icon type="global" style={{marginRight: 10}} />
             {this.props.getWord("to" + this.props.getLanguage())}
-          </a>
+          </Link>
         </div>
         {Auth.loggedIn() && (
-          <a
+          <Link
             onClick={() => {
               Auth.logout();
               this.context.router.push("/");
@@ -56,7 +57,7 @@ class Top extends Component {
           >
             {this.props.getWord("logout")}
             <Icon type="logout" style={{marginLeft: 10}} />
-          </a>
+          </Link>
         )}
       </div>
     );

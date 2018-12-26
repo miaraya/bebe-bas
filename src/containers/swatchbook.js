@@ -65,9 +65,9 @@ class Swatchbook extends Component {
   checkHetVai = data => {
     var total;
 
-    data.map(r => {
+    data.forEach(r => {
       total = 0;
-      r.stock.map(s => {
+      r.stock.forEach(s => {
         total = total + Number(s.total_stock) + Number(s.extra_fabric);
         //console.log(total);
       });

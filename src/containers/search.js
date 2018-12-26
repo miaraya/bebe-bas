@@ -339,9 +339,9 @@ class _Search extends Component {
   checkHetVai = data => {
     var total;
 
-    data.map(r => {
+    data.forEach(r => {
       total = 0;
-      r.stock.map(s => {
+      r.stock.forEach(s => {
         total = total + Number(s.total_stock);
         //console.log(total);
       });
@@ -371,7 +371,6 @@ class _Search extends Component {
   };
 
   clear = () => {
-    //console.log("clear");
     this.setState({
       newLocation: undefined,
       newStock: undefined,
@@ -443,7 +442,7 @@ class _Search extends Component {
             ]);
 
             let total = 0;
-            aux.stock.map(s => {
+            aux.stock.forEach(s => {
               total = total + Number(s.total_stock);
               //console.log(total);
             });
@@ -467,14 +466,14 @@ class _Search extends Component {
   };
 
   saveAdjustStock = (stock, oldStock) => {
-    stock.map((s, i) => {
+    stock.forEach((s, i) => {
       this.setStock(
         s.fabric_id,
         s.location_id,
         Number(s.total_stock) + Number(oldStock[i].total_stock) * -1,
         Number(s.extra_fabric) + Number(oldStock[i].extra_fabric) * -1,
         1,
-        "adjust"
+        Number(oldStock[i].total_stock) === 0 ? "het vai" : "adjust"
       );
     });
     //console.log(this.state.record);
@@ -512,7 +511,7 @@ class _Search extends Component {
   };
 
   setHetVai = oldStockLocations => {
-    oldStockLocations.map(l => {
+    oldStockLocations.forEach(l => {
       l.total_stock = 0;
       l.extra_fabric = 0;
     });
@@ -646,7 +645,9 @@ class _Search extends Component {
             return o.text;
           }
         ]),
-        onFilter: (color, record) => record.color.indexOf(color) === 0,
+        onFilter: (color, record) => {
+          return record.color.indexOf(color) === 0;
+        },
 
         sorter: (a, b) => {
           return a.color.localeCompare(b.color);
@@ -690,7 +691,9 @@ class _Search extends Component {
             value: 0
           }
         ],
-        onFilter: (stock, record) => record.total_stock <= 0,
+        onFilter: (stock, record) => {
+          return record.total_stock <= 0;
+        },
 
         render: (stock, record) => (
           <div style={{display: "flex", justifyContent: "space-between"}}>
@@ -799,6 +802,7 @@ class _Search extends Component {
           colors={this.colors}
           swatchbooklist={this.swatchbooklist}
           locationlist={this.locationlist}
+          user={this.state.user}
         />
         <Content className="container">
           <div
