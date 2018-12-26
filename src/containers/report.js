@@ -231,7 +231,7 @@ class Report extends Component {
         dataIndex: "order_origin",
         key: "order_origin",
         sorter: (a, b) => {
-          return a.origin.localeCompare(b.origin);
+          return a.order_origin.localeCompare(b.order_origin);
         }
       },
       {
