@@ -244,10 +244,10 @@ class Report extends Component {
       },
       {
         title: this.getWord("staff"),
-        dataIndex: "staff",
-        key: "staff",
+        dataIndex: "staff_name",
+        key: "staff_name",
         sorter: (a, b) => {
-          return a.staff.localeCompare(b.staff);
+          return a.staff_name.localeCompare(b.staff_name);
         }
       },
       {
