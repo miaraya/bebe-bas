@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Table, Select, Form} from "antd";
+import {Table, Select, Form, Input, Button, Icon} from "antd";
 
 import PropTypes from "prop-types";
 import _ from "lodash";
@@ -20,6 +20,7 @@ import {DatePicker} from "antd";
 import {Spin} from "antd";
 import locale from "antd/lib/date-picker/locale/vi_VN";
 import moment from "moment";
+import Highlighter from "react-highlight-words";
 
 const Auth = new AuthService(null);
 const Option = Select.Option;
@@ -48,6 +49,75 @@ class Report extends Component {
       columns: []
     };
   }
+  handleSearch = (selectedKeys, confirm) => {
+    confirm();
+    this.setState({searchText: selectedKeys[0]});
+  };
+
+  handleReset = clearFilters => {
+    clearFilters();
+    this.setState({searchText: ""});
+  };
+  getColumnSearchProps = dataIndex => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters
+    }) => (
+      <div className="custom-filter-dropdown">
+        <Input
+          ref={node => {
+            this.searchInput = node;
+          }}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={e =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
+          onPressEnter={() => this.handleSearch(selectedKeys, confirm)}
+          style={{width: 188, marginBottom: 8, display: "block"}}
+        />
+        <Button
+          type="primary"
+          onClick={() => this.handleSearch(selectedKeys, confirm)}
+          icon="search"
+          size="small"
+          style={{width: 90, marginRight: 8}}
+        >
+          Search
+        </Button>
+        <Button
+          onClick={() => this.handleReset(clearFilters)}
+          size="small"
+          style={{width: 90}}
+        >
+          Reset
+        </Button>
+      </div>
+    ),
+    filterIcon: filtered => (
+      <Icon type="search" style={{color: filtered ? "#1890ff" : undefined}} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        .toString()
+        .toLowerCase()
+        .includes(value.toLowerCase()),
+    onFilterDropdownVisibleChange: visible => {
+      if (visible) {
+        setTimeout(() => this.searchInput.select());
+      }
+    },
+    render: text => (
+      <Highlighter
+        highlightStyle={{backgroundColor: "#ffc069", padding: 0}}
+        searchWords={[this.state.searchText]}
+        autoEscape
+        textToHighlight={text.toString()}
+      />
+    )
+  });
   getStockColumns = () => {
     return [
       {
@@ -77,7 +147,7 @@ class Report extends Component {
           </span>
         ),
         sorter: (a, b) => {
-          return a.quantity > b.quantity;
+          return a.quantity - b.quantity;
         }
       },
       {
@@ -91,7 +161,10 @@ class Report extends Component {
       {
         title: this.getWord("user"),
         dataIndex: "user",
-        key: "user"
+        key: "user",
+        sorter: (a, b) => {
+          return a.user.localeCompare(b.user);
+        }
       },
       {
         title: this.getWord("date"),
@@ -99,7 +172,10 @@ class Report extends Component {
         key: "date",
         render: date => (
           <div>{new Date(date).toLocaleString("ES").slice(0, 10)}</div>
-        )
+        ),
+        sorter: (a, b) => {
+          return a.date.localeCompare(b.date);
+        }
       }
     ];
   };
@@ -109,7 +185,10 @@ class Report extends Component {
         title: this.getWord("order"),
         dataIndex: "order_id",
         key: "order_id",
-        render: id => <Link to={`/o/${id}`}>{id}</Link>
+        render: id => <Link to={`/o/${id}`}>{id}</Link>,
+        sorter: (a, b) => {
+          return a.order_id - b.order_id;
+        }
       },
       {
         title: this.getWord("date"),
@@ -117,37 +196,67 @@ class Report extends Component {
         key: "order_date",
         render: date => (
           <div>{new Date(date).toLocaleString("ES").slice(0, 10)}</div>
-        )
+        ),
+        sorter: (a, b) => {
+          return a.date.localeCompare(b.date);
+        }
       },
       {
         title: this.getWord("customer-name"),
         dataIndex: "customer_name",
-        key: "customer_name"
+        key: "customer_name",
+        sorter: (a, b) => {
+          return a.customer_name.localeCompare(b.customer_name);
+        },
+        ...this.getColumnSearchProps("customer_name")
       },
       {
         title: this.getWord("hotel"),
         dataIndex: "hotel_name",
-        key: "hotel_name"
+        key: "hotel_name",
+        sorter: (a, b) => {
+          return a.hotel_name.localeCompare(b.hotel_nam);
+        }
       },
       {
         title: this.getWord("room"),
         dataIndex: "hotel_room",
-        key: "hotel_room"
+        key: "hotel_room",
+        sorter: (a, b) => {
+          return a.hotel_room.localeCompare(b.hotel_room);
+        }
       },
       {
         title: this.getWord("origin"),
         dataIndex: "order_origin",
-        key: "order_origin"
+        key: "order_origin",
+        sorter: (a, b) => {
+          return a.origin.localeCompare(b.origin);
+        }
       },
       {
         title: this.getWord("price-usd") + " [USD]",
         dataIndex: "total",
-        key: "total"
+        key: "total",
+        sorter: (a, b) => {
+          return a.total - b.total;
+        }
+      },
+      {
+        title: this.getWord("staff"),
+        dataIndex: "staff",
+        key: "staff",
+        sorter: (a, b) => {
+          return a.staff.localeCompare(b.staff);
+        }
       },
       {
         title: this.getWord("total-items"),
         dataIndex: "num_items",
-        key: "num_items"
+        key: "num_items",
+        sorter: (a, b) => {
+          return a.num_items - b.num_items;
+        }
       }
     ];
   };
@@ -336,6 +445,9 @@ class Report extends Component {
         this.setState({
           user: profile
         });
+        this.getStockColumns();
+        this.getOrderColumns();
+
         this.getDictionary();
         this.getTypes();
         this.getSwatchbookList();
