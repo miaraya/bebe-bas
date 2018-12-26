@@ -54,12 +54,18 @@ class Report extends Component {
         title: this.getWord("fabric-code"),
         dataIndex: "unique_code",
         key: "unique_code",
-        render: id => <Link to={`/f/${id}`}>{id}</Link>
+        render: id => <Link to={`/f/${id}`}>{id}</Link>,
+        sorter: (a, b) => {
+          return a.unique_code.localeCompare(b.unique_code);
+        }
       },
       {
         title: this.getWord("location"),
         dataIndex: "location",
-        key: "location"
+        key: "location",
+        sorter: (a, b) => {
+          return a.location.localeCompare(b.location);
+        }
       },
       {
         title: this.getWord("quantity") + " [m]",
@@ -69,12 +75,18 @@ class Report extends Component {
           <span style={{color: record.operation === "add" ? "green" : "red"}}>
             {quantity}
           </span>
-        )
+        ),
+        sorter: (a, b) => {
+          return a.quantity > b.quantity;
+        }
       },
       {
         title: this.getWord("action"),
         dataIndex: "action",
-        key: "action"
+        key: "action",
+        sorter: (a, b) => {
+          return a.action.localeCompare(b.action);
+        }
       },
       {
         title: this.getWord("user"),
@@ -146,13 +158,19 @@ class Report extends Component {
         title: this.getWord("fabric-code"),
         dataIndex: "unique_code",
         key: "unique_code",
-        render: id => <Link to={`/f/${id}`}>{id}</Link>
+        render: id => <Link to={`/f/${id}`}>{id}</Link>,
+        sorter: (a, b) => {
+          return a.unique_code.localeCompare(b.unique_code);
+        }
       },
       {
         title: this.getWord("swatchbook"),
         dataIndex: "swatchbook",
         key: "swatchbook",
-        render: id => <Link to={`/s/${id}`}>{id}</Link>
+        render: id => <Link to={`/s/${id}`}>{id}</Link>,
+        sorter: (a, b) => {
+          return a.swatchbook.localeCompare(b.swatchbook);
+        }
       },
       {
         title: this.getWord("date"),
@@ -160,12 +178,18 @@ class Report extends Component {
         key: "date",
         render: date => (
           <div>{new Date(date).toLocaleString("ES").slice(0, 10)}</div>
-        )
+        ),
+        sorter: (a, b) => {
+          return a.date.localeCompare(b.date);
+        }
       },
       {
         title: this.getWord("user"),
         dataIndex: "user",
-        key: "user"
+        key: "user",
+        sorter: (a, b) => {
+          return a.user.localeCompare(b.user);
+        }
       }
     ];
   };
@@ -454,6 +478,7 @@ class Report extends Component {
   };
 
   onDateChange = date => {
+    console.log(date);
     if (date.length) {
       let from = new Date(date[0]).toISOString().slice(0, 10);
       let to = new Date(date[1]).toISOString().slice(0, 10);
@@ -467,6 +492,9 @@ class Report extends Component {
           break;
         case 2:
           date.length && this.getStockReport(from, to);
+          break;
+        case 3:
+          date.length && this.getFabricReport(from, to);
           break;
         default:
       }
@@ -508,7 +536,10 @@ class Report extends Component {
 
         <Content className="container">
           <div>
-            <FormItem label="Select a Report" {...formItemLayout}>
+            <FormItem
+              label={this.getWord("select-a-report")}
+              {...formItemLayout}
+            >
               <Select
                 defaultValue={selectedReport}
                 style={{width: 200}}
@@ -516,13 +547,16 @@ class Report extends Component {
                   this.handleChangeReport(value, this.state.from, this.state.to)
                 }
               >
-                <Option value={1}>Orders</Option>
-                <Option value={2}>Stock movements</Option>
-                <Option value={3}>Fabric creation</Option>
+                <Option value={1}>{this.getWord("orders")}</Option>
+                <Option value={2}>{this.getWord("stock-movements")}</Option>
+                <Option value={3}>{this.getWord("fabric-creation")}</Option>
               </Select>
             </FormItem>
 
-            <FormItem label="Select a Date range " {...formItemLayout}>
+            <FormItem
+              label={this.getWord("select-a-date-range")}
+              {...formItemLayout}
+            >
               <RangePicker
                 locale={this.state.language === "vietnamese" && locale}
                 format="DD/MM/YYYY"
