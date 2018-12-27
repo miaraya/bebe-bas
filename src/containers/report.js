@@ -198,7 +198,7 @@ class Report extends Component {
           <div>{new Date(date).toLocaleString("ES").slice(0, 10)}</div>
         ),
         sorter: (a, b) => {
-          return a.date.localeCompare(b.date);
+          return a.order_date.localeCompare(b.order_date);
         }
       },
       {
