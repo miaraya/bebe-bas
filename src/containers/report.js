@@ -302,6 +302,113 @@ class Report extends Component {
       }
     ];
   };
+
+  getPaymentColumns = () => {
+    return [
+      {
+        title: this.getWord("order"),
+        dataIndex: "order_id",
+        key: "order_id",
+        sorter: (a, b) => {
+          return a.order_id - b.order_id;
+        },
+        render: id => <Link to={`/o/${id}`}>{id}</Link>
+      },
+      {
+        title: this.getWord("date"),
+        dataIndex: "date",
+        key: "date",
+        render: date => (
+          <div>{new Date(date).toLocaleString("ES").slice(0, 10)}</div>
+        )
+      },
+      {
+        title: this.getWord("type"),
+        dataIndex: "type",
+        key: "type",
+        sorter: (a, b) => {
+          return a.type.localeCompare(b.type);
+        }
+      },
+      {
+        title: this.getWord("method"),
+        dataIndex: "is_cc",
+        key: "is_cc",
+        sorter: (a, b) => {
+          return a.is_cc - b.is_cc;
+        },
+        render: is_cc => (
+          <div>
+            {is_cc === 1 ? (
+              <Icon type="credit-card" title="Credit Card" />
+            ) : (
+              <Icon type="dollar" title="Cash" style={{color: "green"}} />
+            )}
+          </div>
+        )
+      },
+
+      {
+        title: this.getWord("amount"),
+        dataIndex: "alt_amount",
+        key: "alt_amount",
+        render: (alt_amount, record) => (
+          <span>{alt_amount + " " + record.currency}</span>
+        )
+      },
+      {
+        title: this.getWord("usd"),
+        dataIndex: "usd",
+        key: "usd",
+        sorter: (a, b) => {
+          return a.usd - b.usd;
+        }
+      },
+
+      {
+        title: this.getWord("fee"),
+        dataIndex: "fee",
+        key: "fee",
+        sorter: (a, b) => {
+          return a.fee - b.fee;
+        },
+        render: fee => <span>{fee > 0 ? fee : "-"}</span>
+      },
+      {
+        title: this.getWord("balance"),
+        dataIndex: "balance",
+        key: "balance",
+        sorter: (a, b) => {
+          return a.balance - b.balance;
+        }
+      },
+      {
+        title: this.getWord("total-price") + "[USD]",
+        dataIndex: "total",
+        key: "total",
+        render: (total, record) =>
+          record.balance === 0 ? (
+            <span>
+              {total}
+              <Icon type="check" style={{color: "green", marginLeft: 10}} />
+            </span>
+          ) : (
+            <span>{total}</span>
+          ),
+        sorter: (a, b) => {
+          return a.total - b.total;
+        }
+      },
+      {
+        title: this.getWord("staff"),
+        dataIndex: "staff",
+        key: "staff",
+        sorter: (a, b) => {
+          return a.staff.localeCompare(b.staff);
+        }
+      }
+    ];
+  };
   locationlist = () => {
     return this.state.locations;
   };
@@ -445,8 +552,6 @@ class Report extends Component {
         this.setState({
           user: profile
         });
-        this.getStockColumns();
-        this.getOrderColumns();
 
         this.getDictionary();
         this.getTypes();
@@ -467,6 +572,8 @@ class Report extends Component {
     }
   };
   getDictionary = () => {
+    this.getStockColumns();
+    this.getOrderColumns();
     fetch(api + "/dictionaries")
       .then(res => res.json())
       .then(dictionary => {
@@ -560,19 +667,45 @@ class Report extends Component {
       });
   };
 
+  getPaymentReport = (from, to) => {
+    fetch(
+      api +
+        "report_payments?filter[where][date][gt]=" +
+        from +
+        "&[where][date][lt]=" +
+        to
+    )
+      .then(res => {
+        return res.json();
+      })
+      .then(payments => {
+        console.log(payments);
+        payments = _.sortBy(payments, [
+          function(o) {
+            return o.date;
+          }
+        ]);
+        this.setState({
+          data: payments.reverse(),
+          columns: this.getPaymentColumns(),
+          loading: false
+        });
+      });
+  };
+
   handleChangeReport = (selectedReport, from, to) => {
     switch (selectedReport) {
       case 1:
         this.getOrderReport(from, to);
-
         break;
       case 2:
         this.getStockReport(from, to);
-
         break;
       case 3:
         this.getFabricReport(from, to);
-
+        break;
+      case 4:
+        this.getPaymentReport(from, to);
         break;
       default:
     }
@@ -607,6 +740,9 @@ class Report extends Component {
           break;
         case 3:
           date.length && this.getFabricReport(from, to);
+          break;
+        case 4:
+          date.length && this.getPaymentReport(from, to);
           break;
         default:
       }
@@ -662,6 +798,7 @@ class Report extends Component {
                 <Option value={1}>{this.getWord("orders")}</Option>
                 <Option value={2}>{this.getWord("stock-movements")}</Option>
                 <Option value={3}>{this.getWord("fabric-creation")}</Option>
+                <Option value={4}>{this.getWord("order-payments")}</Option>
               </Select>
             </FormItem>
 
