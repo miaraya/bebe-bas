@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Table, Select, Form, Input, Button, Icon} from "antd";
+import {Table, Select, Form, Input, Button, Icon, Divider, Card} from "antd";
 
 import PropTypes from "prop-types";
 import _ from "lodash";
@@ -46,7 +46,8 @@ class Report extends Component {
       language: "vietnamese",
       selectedReport: 1,
       data: [],
-      columns: []
+      columns: [],
+      summary: []
     };
   }
   handleSearch = (selectedKeys, confirm) => {
@@ -303,112 +304,6 @@ class Report extends Component {
     ];
   };
 
-  getPaymentColumns = () => {
-    return [
-      {
-        title: this.getWord("order"),
-        dataIndex: "order_id",
-        key: "order_id",
-        sorter: (a, b) => {
-          return a.order_id - b.order_id;
-        },
-        render: id => <Link to={`/o/${id}`}>{id}</Link>
-      },
-      {
-        title: this.getWord("date"),
-        dataIndex: "date",
-        key: "date",
-        render: date => (
-          <div>{new Date(date).toLocaleString("ES").slice(0, 10)}</div>
-        )
-      },
-      {
-        title: this.getWord("type"),
-        dataIndex: "type",
-        key: "type",
-        sorter: (a, b) => {
-          return a.type.localeCompare(b.type);
-        }
-      },
-      {
-        title: this.getWord("method"),
-        dataIndex: "is_cc",
-        key: "is_cc",
-        sorter: (a, b) => {
-          return a.is_cc - b.is_cc;
-        },
-        render: is_cc => (
-          <div>
-            {is_cc === 1 ? (
-              <Icon type="credit-card" title="Credit Card" />
-            ) : (
-              <Icon type="dollar" title="Cash" style={{color: "green"}} />
-            )}
-          </div>
-        )
-      },
-
-      {
-        title: this.getWord("amount"),
-        dataIndex: "alt_amount",
-        key: "alt_amount",
-        render: (alt_amount, record) => (
-          <span>{alt_amount + " " + record.currency}</span>
-        )
-      },
-      {
-        title: this.getWord("usd"),
-        dataIndex: "usd",
-        key: "usd",
-        sorter: (a, b) => {
-          return a.usd - b.usd;
-        }
-      },
-
-      {
-        title: this.getWord("fee"),
-        dataIndex: "fee",
-        key: "fee",
-        sorter: (a, b) => {
-          return a.fee - b.fee;
-        },
-        render: fee => <span>{fee > 0 ? fee : "-"}</span>
-      },
-      {
-        title: this.getWord("balance"),
-        dataIndex: "balance",
-        key: "balance",
-        sorter: (a, b) => {
-          return a.balance - b.balance;
-        }
-      },
-      {
-        title: this.getWord("total-price") + "[USD]",
-        dataIndex: "total",
-        key: "total",
-        render: (total, record) =>
-          record.balance === 0 ? (
-            <span>
-              {total}
-              <Icon type="check" style={{color: "green", marginLeft: 10}} />
-            </span>
-          ) : (
-            <span>{total}</span>
-          ),
-        sorter: (a, b) => {
-          return a.total - b.total;
-        }
-      },
-      {
-        title: this.getWord("staff"),
-        dataIndex: "staff",
-        key: "staff",
-        sorter: (a, b) => {
-          return a.staff.localeCompare(b.staff);
-        }
-      }
-    ];
-  };
   locationlist = () => {
     return this.state.locations;
   };
@@ -531,13 +426,6 @@ class Report extends Component {
             }
           ])
         });
-
-        let colorFilter = [];
-        colors.map(c =>
-          colorFilter.push({text: c.description, value: c.description})
-        );
-
-        this.setState({colorFilter});
 
         this.setState({loading: false});
       })
@@ -679,18 +567,164 @@ class Report extends Component {
         return res.json();
       })
       .then(payments => {
-        console.log(payments);
-        payments = _.sortBy(payments, [
-          function(o) {
-            return o.date;
-          }
-        ]);
+        payments = _.sortBy(payments, o => {
+          return o.date;
+        });
+
+        var summary = _(payments)
+          .groupBy(x => x.currency)
+          .map((value, key) => ({
+            total: this.getTotal(value),
+            currency: key
+          }))
+          .value();
+
+        console.log(summary);
+
         this.setState({
+          summary,
           data: payments.reverse(),
-          columns: this.getPaymentColumns(),
+          columns: [
+            {
+              title: this.getWord("order"),
+              dataIndex: "order_id",
+              key: "order_id",
+              sorter: (a, b) => {
+                return a.order_id - b.order_id;
+              },
+              render: id => <Link to={`/o/${id}`}>{id}</Link>
+            },
+            {
+              title: this.getWord("date"),
+              dataIndex: "date",
+              key: "date",
+              sorter: (a, b) => {
+                return a.date.localeCompare(b.date);
+              },
+              render: date => (
+                <div>
+                  {new moment(new Date(date))
+                    .utcOffset("+00:00")
+                    .format("DD/MM, HH:mm")}
+                </div>
+              )
+            },
+            {
+              title: this.getWord("type"),
+              dataIndex: "type",
+              key: "type",
+              sorter: (a, b) => {
+                return a.type.localeCompare(b.type);
+              }
+            },
+            {
+              title: this.getWord("method"),
+              dataIndex: "is_cc",
+              key: "is_cc",
+              sorter: (a, b) => {
+                return a.is_cc - b.is_cc;
+              },
+              render: is_cc => (
+                <div>
+                  {is_cc === 1 ? (
+                    <Icon type="credit-card" title="Credit Card" />
+                  ) : (
+                    <Icon type="dollar" title="Cash" style={{color: "green"}} />
+                  )}
+                </div>
+              )
+            },
+            {
+              title: this.getWord("amount"),
+              dataIndex: "alt_amount",
+              key: "alt_amount",
+              render: (alt_amount, record) => (
+                <span>
+                  <b>{alt_amount + " " + record.currency}</b>
+                </span>
+              )
+            },
+            {
+              title: this.getWord("usd"),
+              dataIndex: "usd",
+              key: "usd",
+              sorter: (a, b) => {
+                return a.usd - b.usd;
+              }
+            },
+            {
+              title: this.getWord("fee"),
+              dataIndex: "fee",
+              key: "fee",
+              sorter: (a, b) => {
+                return a.fee - b.fee;
+              },
+              render: fee => <span>{fee > 0 ? fee : "-"}</span>
+            },
+            {
+              title: this.getWord("balance"),
+              dataIndex: "balance",
+              key: "balance",
+              sorter: (a, b) => {
+                return a.balance - b.balance;
+              }
+            },
+            {
+              title: this.getWord("total-price") + "[USD]",
+              dataIndex: "total",
+              key: "total",
+              render: (total, record) =>
+                record.balance === 0 ? (
+                  <span>
+                    {total}
+                    <Icon
+                      type="check"
+                      style={{color: "green", marginLeft: 10}}
+                    />
+                  </span>
+                ) : (
+                  <span>{total}</span>
+                ),
+              sorter: (a, b) => {
+                return a.total - b.total;
+              }
+            },
+            {
+              title: this.getWord("staff"),
+              dataIndex: "staff",
+              key: "staff",
+              filters: _.sortBy(
+                _.map(_.uniqBy(payments, "staff"), i => {
+                  return {
+                    text: i.staff,
+                    value: i.staff
+                  };
+                })
+              ),
+              onFilter: (staff, record) => {
+                return record.staff.indexOf(staff) === 0;
+              },
+              sorter: (a, b) => {
+                return a.staff.localeCompare(b.staff);
+              }
+            }
+          ],
           loading: false
         });
       });
+  };
+
+  getTotal = value => {
+    let total = 0;
+    value.forEach(
+      v =>
+        v.is_cc === 0
+          ? v.currency.toUpperCase() === "USD"
+            ? (total = total + v.amount)
+            : (total = total + v.alt_amount)
+          : (total = total)
+    );
+    return total;
   };
 
   handleChangeReport = (selectedReport, from, to) => {
@@ -723,7 +757,6 @@ class Report extends Component {
   };
 
   onDateChange = date => {
-    console.log(date);
     if (date.length) {
       let from = new Date(date[0]).toISOString().slice(0, 10);
       let to = new Date(date[1]).toISOString().slice(0, 10);
@@ -759,7 +792,14 @@ class Report extends Component {
   };
 
   render() {
-    const {loading, isLoading, selectedReport, data, columns} = this.state;
+    const {
+      loading,
+      isLoading,
+      selectedReport,
+      data,
+      columns,
+      summary
+    } = this.state;
     const dateFormat = "YYYY/MM/DD";
 
     return !isLoading ? (
@@ -810,6 +850,10 @@ class Report extends Component {
                 locale={this.state.language === "vietnamese" && locale}
                 format="DD/MM/YYYY"
                 onChange={date => this.onDateChange(date)}
+                ranges={{
+                  Today: [moment(), moment()],
+                  Month: [moment().startOf("month"), moment().endOf("month")]
+                }}
                 defaultValue={[
                   moment(this.state.from, dateFormat),
                   moment(this.state.to, dateFormat)
@@ -817,17 +861,41 @@ class Report extends Component {
               />
             </FormItem>
           </div>
+
           {!loading ? (
-            <Table
-              dataSource={data}
-              columns={columns}
-              rowKey="id"
-              size="small"
-            />
+            data.length > 0 ? (
+              <Table
+                style={{paddingTop: 30}}
+                dataSource={data}
+                columns={columns}
+                rowKey="id"
+                size="small"
+              />
+            ) : (
+              <div style={{display: "flex", justifyContent: "center"}}>
+                <Divider style={{marginTop: 0}} />
+              </div>
+            )
           ) : (
             <div style={{display: "flex", justifyContent: "center"}}>
               <Spin size="large" />
             </div>
+          )}
+          {selectedReport === 4 && summary.length ? (
+            <div style={{display: "flex", justifyContent: "center"}}>
+              <Card
+                title="Cash Summary"
+                style={{width: "100%", marginBottom: 20}}
+              >
+                {summary.map(s => (
+                  <p key={s.currency}>
+                    <b>{s.currency + ": " + s.total}</b>
+                  </p>
+                ))}
+              </Card>
+            </div>
+          ) : (
+            ""
           )}
         </Content>
       </Layout>
