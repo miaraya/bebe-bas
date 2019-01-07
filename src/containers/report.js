@@ -119,190 +119,6 @@ class Report extends Component {
       />
     )
   });
-  getStockColumns = () => {
-    return [
-      {
-        title: this.getWord("fabric-code"),
-        dataIndex: "unique_code",
-        key: "unique_code",
-        render: id => <Link to={`/f/${id}`}>{id}</Link>,
-        sorter: (a, b) => {
-          return a.unique_code.localeCompare(b.unique_code);
-        }
-      },
-      {
-        title: this.getWord("location"),
-        dataIndex: "location",
-        key: "location",
-        sorter: (a, b) => {
-          return a.location.localeCompare(b.location);
-        }
-      },
-      {
-        title: this.getWord("quantity") + " [m]",
-        dataIndex: "quantity",
-        key: "quantity",
-        render: (quantity, record) => (
-          <span style={{color: record.operation === "add" ? "green" : "red"}}>
-            {quantity}
-          </span>
-        ),
-        sorter: (a, b) => {
-          return a.quantity - b.quantity;
-        }
-      },
-      {
-        title: this.getWord("action"),
-        dataIndex: "action",
-        key: "action",
-        sorter: (a, b) => {
-          return a.action.localeCompare(b.action);
-        }
-      },
-      {
-        title: this.getWord("user"),
-        dataIndex: "user",
-        key: "user",
-        sorter: (a, b) => {
-          return a.user.localeCompare(b.user);
-        }
-      },
-      {
-        title: this.getWord("date"),
-        dataIndex: "date",
-        key: "date",
-        render: date => (
-          <div>{new Date(date).toLocaleString("ES").slice(0, 10)}</div>
-        ),
-        sorter: (a, b) => {
-          return a.date.localeCompare(b.date);
-        }
-      }
-    ];
-  };
-  getOrderColumns = () => {
-    return [
-      {
-        title: this.getWord("order"),
-        dataIndex: "order_id",
-        key: "order_id",
-        render: id => <Link to={`/o/${id}`}>{id}</Link>,
-        sorter: (a, b) => {
-          return a.order_id - b.order_id;
-        }
-      },
-      {
-        title: this.getWord("date"),
-        dataIndex: "order_date",
-        key: "order_date",
-        render: date => (
-          <div>{new Date(date).toLocaleString("ES").slice(0, 10)}</div>
-        ),
-        sorter: (a, b) => {
-          return a.order_date.localeCompare(b.order_date);
-        }
-      },
-      {
-        title: this.getWord("customer-name"),
-        dataIndex: "customer_name",
-        key: "customer_name",
-        sorter: (a, b) => {
-          return a.customer_name.localeCompare(b.customer_name);
-        },
-        ...this.getColumnSearchProps("customer_name")
-      },
-      {
-        title: this.getWord("hotel"),
-        dataIndex: "hotel_name",
-        key: "hotel_name",
-        sorter: (a, b) => {
-          return a.hotel_name.localeCompare(b.hotel_nam);
-        }
-      },
-      {
-        title: this.getWord("room"),
-        dataIndex: "hotel_room",
-        key: "hotel_room",
-        sorter: (a, b) => {
-          return a.hotel_room.localeCompare(b.hotel_room);
-        }
-      },
-      {
-        title: this.getWord("origin"),
-        dataIndex: "order_origin",
-        key: "order_origin",
-        sorter: (a, b) => {
-          return a.order_origin.localeCompare(b.order_origin);
-        }
-      },
-      {
-        title: this.getWord("price-usd") + " [USD]",
-        dataIndex: "total",
-        key: "total",
-        sorter: (a, b) => {
-          return a.total - b.total;
-        }
-      },
-      {
-        title: this.getWord("staff"),
-        dataIndex: "staff_name",
-        key: "staff_name",
-        sorter: (a, b) => {
-          return a.staff_name.localeCompare(b.staff_name);
-        }
-      },
-      {
-        title: this.getWord("total-items"),
-        dataIndex: "num_items",
-        key: "num_items",
-        sorter: (a, b) => {
-          return a.num_items - b.num_items;
-        }
-      }
-    ];
-  };
-
-  getFabricColumns = () => {
-    return [
-      {
-        title: this.getWord("fabric-code"),
-        dataIndex: "unique_code",
-        key: "unique_code",
-        render: id => <Link to={`/f/${id}`}>{id}</Link>,
-        sorter: (a, b) => {
-          return a.unique_code.localeCompare(b.unique_code);
-        }
-      },
-      {
-        title: this.getWord("swatchbook"),
-        dataIndex: "swatchbook",
-        key: "swatchbook",
-        render: id => <Link to={`/s/${id}`}>{id}</Link>,
-        sorter: (a, b) => {
-          return a.swatchbook.localeCompare(b.swatchbook);
-        }
-      },
-      {
-        title: this.getWord("date"),
-        dataIndex: "date",
-        key: "date",
-        render: date => (
-          <div>{new Date(date).toLocaleString("ES").slice(0, 10)}</div>
-        ),
-        sorter: (a, b) => {
-          return a.date.localeCompare(b.date);
-        }
-      },
-      {
-        title: this.getWord("user"),
-        dataIndex: "user",
-        key: "user",
-        sorter: (a, b) => {
-          return a.user.localeCompare(b.user);
-        }
-      }
-    ];
-  };
 
   locationlist = () => {
     return this.state.locations;
@@ -460,8 +276,6 @@ class Report extends Component {
     }
   };
   getDictionary = () => {
-    this.getStockColumns();
-    this.getOrderColumns();
     fetch(api + "/dictionaries")
       .then(res => res.json())
       .then(dictionary => {
@@ -500,7 +314,127 @@ class Report extends Component {
         ]);
         this.setState({
           data: orders.reverse(),
-          columns: this.getOrderColumns(),
+          columns: [
+            {
+              title: this.getWord("order"),
+              dataIndex: "order_id",
+              key: "order_id",
+              ...this.getColumnSearchProps("order_id"),
+
+              render: id => <Link to={`/o/${id}`}>{id}</Link>,
+              sorter: (a, b) => {
+                return a.order_id - b.order_id;
+              }
+            },
+            {
+              title: this.getWord("date"),
+              dataIndex: "order_date",
+              key: "order_date",
+              render: date => (
+                <div>
+                  {new moment(new Date(date))
+                    .utcOffset("+00:00")
+                    .format("DD/MM/YY HH:mm")}
+                </div>
+              ),
+              sorter: (a, b) => {
+                return a.order_date && b.order_date
+                  ? a.order_date.localeCompare(b.order_date)
+                  : null;
+              }
+            },
+            {
+              title: this.getWord("customer-name"),
+              dataIndex: "customer_name",
+              key: "customer_name",
+              sorter: (a, b) => {
+                return a.customer_name && b.customer_name
+                  ? a.customer_name.localeCompare(b.customer_name)
+                  : null;
+              },
+              ...this.getColumnSearchProps("customer_name")
+            },
+            {
+              title: this.getWord("hotel"),
+              dataIndex: "hotel_name",
+              key: "hotel_name",
+              ...this.getColumnSearchProps("hotel_name"),
+
+              sorter: (a, b) => {
+                return a.hotel_name && b.hotel_name
+                  ? a.hotel_name.localeCompare(b.hotel_name)
+                  : null;
+              }
+            },
+            {
+              title: this.getWord("room"),
+              dataIndex: "hotel_room",
+              key: "hotel_room",
+              sorter: (a, b) => {
+                return a.hotel_room && b.hotel_room
+                  ? a.hotel_room.localeCompare(b.hotel_room)
+                  : null;
+              }
+            },
+            {
+              title: this.getWord("origin"),
+              dataIndex: "order_origin",
+              key: "order_origin",
+              filters: _.sortBy(
+                _.map(_.uniqBy(orders, "order_origin"), i => {
+                  return {
+                    text: i.order_origin,
+                    value: i.order_origin
+                  };
+                })
+              ),
+              onFilter: (order_origin, record) => {
+                return record.order_origin.indexOf(order_origin) === 0;
+              },
+              sorter: (a, b) => {
+                return a.order_origin && b.order_origin
+                  ? a.order_origin.localeCompare(b.order_origin)
+                  : null;
+              }
+            },
+            {
+              title: this.getWord("price-usd") + " [USD]",
+              dataIndex: "total",
+              key: "total",
+              sorter: (a, b) => {
+                return a.total - b.total;
+              }
+            },
+            {
+              title: this.getWord("staff"),
+              dataIndex: "staff_name",
+              key: "staff_name",
+              filters: _.sortBy(
+                _.map(_.uniqBy(orders, "staff_name"), i => {
+                  return {
+                    text: i.staff_name,
+                    value: i.staff_name
+                  };
+                })
+              ),
+              onFilter: (staff_name, record) => {
+                return record.staff_name.indexOf(staff_name) === 0;
+              },
+              sorter: (a, b) => {
+                return a.staff_name && b.staff_name
+                  ? a.staff_name.localeCompare(b.staff_name)
+                  : null;
+              }
+            },
+            {
+              title: this.getWord("total-items"),
+              dataIndex: "num_items",
+              key: "num_items",
+              sorter: (a, b) => {
+                return a.num_items - b.num_items;
+              }
+            }
+          ],
           loading: false
         });
       });
@@ -524,7 +458,68 @@ class Report extends Component {
         ]);
         this.setState({
           data: fabrics.reverse(),
-          columns: this.getFabricColumns(),
+          columns: [
+            {
+              title: this.getWord("fabric-code"),
+              dataIndex: "unique_code",
+              key: "unique_code",
+              ...this.getColumnSearchProps("unique_code"),
+
+              sorter: (a, b) => {
+                return a.unique_code && b.unique_code
+                  ? a.unique_code.localeCompare(b.unique_code)
+                  : null;
+              },
+              render: id => <Link to={`/f/${id}`}>{id}</Link>
+            },
+            {
+              title: this.getWord("swatchbook"),
+              dataIndex: "swatchbook",
+              key: "swatchbook",
+              ...this.getColumnSearchProps("swatchbook"),
+
+              sorter: (a, b) => {
+                return a.swatchbook && b.swatchbook
+                  ? a.swatchbook.localeCompare(b.swatchbook)
+                  : null;
+              },
+              render: id => <Link to={`/s/${id}`}>{id}</Link>
+            },
+            {
+              title: this.getWord("date"),
+              dataIndex: "date",
+              key: "date",
+              render: date => (
+                <div>
+                  {new moment(new Date(date))
+                    .utcOffset("+00:00")
+                    .format("DD/MM/YY HH:mm")}
+                </div>
+              ),
+              sorter: (a, b) => {
+                return a.date && b.date ? a.date.localeCompare(b.date) : null;
+              }
+            },
+            {
+              title: this.getWord("user"),
+              dataIndex: "user",
+              key: "user",
+              filters: _.sortBy(
+                _.map(_.uniqBy(fabrics, "user"), i => {
+                  return {
+                    text: i.user,
+                    value: i.user
+                  };
+                })
+              ),
+              onFilter: (user, record) => {
+                return record.user.indexOf(user) === 0;
+              },
+              sorter: (a, b) => {
+                return a.user && b.user ? a.user.localeCompare(b.user) : null;
+              }
+            }
+          ],
           loading: false
         });
       });
@@ -549,7 +544,112 @@ class Report extends Component {
         ]);
         this.setState({
           data: stocks.reverse(),
-          columns: this.getStockColumns(),
+          columns: [
+            {
+              title: this.getWord("fabric-code"),
+              dataIndex: "unique_code",
+              key: "unique_code",
+              ...this.getColumnSearchProps("unique_code"),
+
+              sorter: (a, b) => {
+                return a.unique_code && b.unique_code
+                  ? a.unique_code.localeCompare(b.unique_code)
+                  : null;
+              },
+              render: id => <Link to={`/f/${id}`}>{id}</Link>
+            },
+            {
+              title: this.getWord("location"),
+              dataIndex: "location",
+              key: "location",
+              filters: _.sortBy(
+                _.map(_.uniqBy(stocks, "location"), i => {
+                  return {
+                    text: i.location,
+                    value: i.location
+                  };
+                })
+              ),
+              onFilter: (location, record) => {
+                return record.location.indexOf(location) === 0;
+              },
+              sorter: (a, b) => {
+                return a.location && b.location
+                  ? a.location.localeCompare(b.location)
+                  : null;
+              }
+            },
+            {
+              title: this.getWord("quantity") + " [m]",
+              dataIndex: "quantity",
+              key: "quantity",
+              render: (quantity, record) => (
+                <span
+                  style={{color: record.operation === "add" ? "green" : "red"}}
+                >
+                  {quantity}
+                </span>
+              ),
+              sorter: (a, b) => {
+                return a.quantity - b.quantity;
+              }
+            },
+            {
+              title: this.getWord("action"),
+              dataIndex: "action",
+              key: "action",
+              filters: _.sortBy(
+                _.map(_.uniqBy(stocks, "action"), i => {
+                  return {
+                    text: i.action,
+                    value: i.action
+                  };
+                })
+              ),
+              onFilter: (action, record) => {
+                return record.action.indexOf(action) === 0;
+              },
+              sorter: (a, b) => {
+                return a.action && b.action
+                  ? a.action.localeCompare(b.action)
+                  : null;
+              }
+            },
+            {
+              title: this.getWord("user"),
+              dataIndex: "user",
+              key: "user",
+              filters: _.sortBy(
+                _.map(_.uniqBy(stocks, "user"), i => {
+                  return {
+                    text: i.user,
+                    value: i.user
+                  };
+                })
+              ),
+              onFilter: (user, record) => {
+                return record.user.indexOf(user) === 0;
+              },
+              sorter: (a, b) => {
+                return a.user && b.user ? a.user.localeCompare(b.user) : null;
+              }
+            },
+            {
+              title: this.getWord("date"),
+              dataIndex: "date",
+              key: "date",
+              render: date => (
+                <div>
+                  {new moment(new Date(date))
+                    .utcOffset("+00:00")
+                    .format("DD/MM/YY HH:mm")}
+                </div>
+              ),
+              sorter: (a, b) => {
+                return a.date && b.date ? a.date.localeCompare(b.date) : null;
+              }
+            }
+          ],
           loading: false
         });
       });
@@ -589,23 +689,36 @@ class Report extends Component {
               title: this.getWord("order"),
               dataIndex: "order_id",
               key: "order_id",
+              ...this.getColumnSearchProps("order_id"),
+
               sorter: (a, b) => {
                 return a.order_id - b.order_id;
               },
               render: id => <Link to={`/o/${id}`}>{id}</Link>
             },
             {
+              title: this.getWord("customer-name"),
+              dataIndex: "customer_name",
+              key: "customer_name",
+              sorter: (a, b) => {
+                return a.customer_name && b.customer_name
+                  ? a.customer_name.localeCompare(b.customer_name)
+                  : null;
+              },
+              ...this.getColumnSearchProps("customer_name")
+            },
+            {
               title: this.getWord("date"),
               dataIndex: "date",
               key: "date",
               sorter: (a, b) => {
-                return a.date.localeCompare(b.date);
+                return a.date && b.date ? a.date.localeCompare(b.date) : null;
               },
               render: date => (
                 <div>
                   {new moment(new Date(date))
                     .utcOffset("+00:00")
-                    .format("DD/MM, HH:mm")}
+                    .format("DD/MM/YY HH:mm")}
                 </div>
               )
             },
@@ -614,7 +727,7 @@ class Report extends Component {
               dataIndex: "type",
               key: "type",
               sorter: (a, b) => {
-                return a.type.localeCompare(b.type);
+                return a.type && b.type ? a.type.localeCompare(b.type) : null;
               }
             },
             {
@@ -623,6 +736,18 @@ class Report extends Component {
               key: "is_cc",
               sorter: (a, b) => {
                 return a.is_cc - b.is_cc;
+              },
+              filters: _.sortBy(
+                _.map(_.uniqBy(payments, "is_cc"), i => {
+                  console.log(i);
+                  return {
+                    text: i.is_cc === 0 ? "Cash" : "Credit Card",
+                    value: i.is_cc
+                  };
+                })
+              ),
+              onFilter: (is_cc, record) => {
+                return Number(record.is_cc) == Number(is_cc);
               },
               render: is_cc => (
                 <div>
@@ -638,6 +763,17 @@ class Report extends Component {
               title: this.getWord("amount"),
               dataIndex: "alt_amount",
               key: "alt_amount",
+              filters: _.sortBy(
+                _.map(_.uniqBy(summary, "currency"), i => {
+                  return {
+                    text: i.currency,
+                    value: i.currency
+                  };
+                })
+              ),
+              onFilter: (currency, record) => {
+                return record.currency.indexOf(currency) === 0;
+              },
               render: (alt_amount, record) => (
                 <span>
                   <b>{alt_amount + " " + record.currency}</b>
@@ -705,7 +841,9 @@ class Report extends Component {
                 return record.staff.indexOf(staff) === 0;
               },
               sorter: (a, b) => {
-                return a.staff.localeCompare(b.staff);
+                return a.staff && b.staff
+                  ? a.staff.localeCompare(b.staff)
+                  : null;
               }
             }
           ],
@@ -722,12 +860,13 @@ class Report extends Component {
           ? v.currency.toUpperCase() === "USD"
             ? (total = total + v.amount)
             : (total = total + v.alt_amount)
-          : (total = total)
+          : total
     );
     return total;
   };
 
   handleChangeReport = (selectedReport, from, to) => {
+    this.setState({columns: null});
     switch (selectedReport) {
       case 1:
         this.getOrderReport(from, to);
@@ -798,7 +937,8 @@ class Report extends Component {
       selectedReport,
       data,
       columns,
-      summary
+      summary,
+      pageSize
     } = this.state;
     const dateFormat = "YYYY/MM/DD";
 
@@ -870,6 +1010,36 @@ class Report extends Component {
                 columns={columns}
                 rowKey="id"
                 size="small"
+                pagination={{
+                  position: "top",
+                  showSizeChanger: true,
+                  pageSizeOptions: ["10", "20", "100"]
+                }}
+                title={() =>
+                  selectedReport === 4 &&
+                  summary.length && (
+                    <div
+                      title="Cash Summary"
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        justifyContent: "flex-start"
+                      }}
+                    >
+                      <h4 style={{marginRight: 40}}>Cash Summary:</h4>
+                      <div>
+                        {summary.map(
+                          s =>
+                            s.total > 0 && (
+                              <p key={s.currency} style={{marginRight: 30}}>
+                                <b>{s.currency + ": " + s.total}</b>
+                              </p>
+                            )
+                        )}
+                      </div>
+                    </div>
+                  )
+                }
               />
             ) : (
               <div style={{display: "flex", justifyContent: "center"}}>
@@ -880,22 +1050,6 @@ class Report extends Component {
             <div style={{display: "flex", justifyContent: "center"}}>
               <Spin size="large" />
             </div>
-          )}
-          {selectedReport === 4 && summary.length ? (
-            <div style={{display: "flex", justifyContent: "center"}}>
-              <Card
-                title="Cash Summary"
-                style={{width: "100%", marginBottom: 20}}
-              >
-                {summary.map(s => (
-                  <p key={s.currency}>
-                    <b>{s.currency + ": " + s.total}</b>
-                  </p>
-                ))}
-              </Card>
-            </div>
-          ) : (
-            ""
           )}
         </Content>
       </Layout>
