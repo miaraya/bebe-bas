@@ -69,7 +69,8 @@ class HeaderApp extends Component {
             >
               {this.props.getWord("search")}
             </Menu.Item>
-            {localStorage.getItem("role") === "admin" && (
+            {(localStorage.getItem("role") === "admin" ||
+              localStorage.getItem("role") === "cashier") && (
               <Menu.Item
                 key="2"
                 onClick={() =>

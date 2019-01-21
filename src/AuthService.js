@@ -51,6 +51,7 @@ export default class AuthService {
     localStorage.setItem("user_id", token.userId);
     localStorage.setItem("username", token.username);
     localStorage.setItem("language", "vietnamese");
+    localStorage.setItem("store", token.store_id);
   }
 
   getToken() {
@@ -66,6 +67,7 @@ export default class AuthService {
     localStorage.removeItem("user_id");
     localStorage.removeItem("username");
     localStorage.removeItem("language");
+    localStorage.removeItem("store");
   }
 
   getProfile() {

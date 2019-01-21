@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Table, Select, Form, Input, Button, Icon, Divider, Card} from "antd";
+import {Table, Select, Form, Input, Button, Icon, Divider} from "antd";
 
 import PropTypes from "prop-types";
 import _ from "lodash";
@@ -38,16 +38,17 @@ class Report extends Component {
     this.getLanguage = this.getLanguage.bind(this);
     this.types = this.types.bind(this);
     this.locationlist = this.locationlist.bind(this);
-    this.suppliers = this.suppliers.bind(this);
 
     this.state = {
       loading: true,
       isLoading: true,
       language: "vietnamese",
       selectedReport: 1,
+      stores: [],
       data: [],
       columns: [],
-      summary: []
+      summary: [],
+      filter: ""
     };
   }
   handleSearch = (selectedKeys, confirm) => {
@@ -123,29 +124,7 @@ class Report extends Component {
   locationlist = () => {
     return this.state.locations;
   };
-  getSuppliers = () => {
-    fetch(api + "suppliers")
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        } else {
-          throw new Error("Something went wrong ...");
-        }
-      })
-      .then(suppliers => {
-        this.setState({
-          suppliers: _.sortBy(suppliers, [
-            function(o) {
-              return o.name;
-            }
-          ])
-        });
-      })
-      .catch(error => {});
-  };
-  suppliers = () => {
-    return this.state.suppliers;
-  };
+
   getSwatchbookList = () => {
     fetch(api + "swatchbooks")
       .then(res => {
@@ -247,6 +226,38 @@ class Report extends Component {
       })
       .catch(error => {});
   };
+
+  getStores = () => {
+    fetch(api + "stores")
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          throw new Error("Something went wrong ...");
+        }
+      })
+      .then(val => {
+        let stores = [...val, {description: "All", id: -1}];
+        console.log(
+          stores.find(i => i.id === Number(localStorage.getItem("store"))).id
+        );
+        this.setState({
+          stores: _.sortBy(stores, [
+            function(o) {
+              return o.description;
+            }
+          ]),
+          selectedStore:
+            this.state.user.role === "admin"
+              ? stores.find(i => i.id === -1).id
+              : stores.find(i => i.id === Number(localStorage.getItem("store")))
+                  .id
+        });
+      })
+      .catch(error => {});
+
+    //  let role = this.state.prodf
+  };
   componentWillMount = () => {
     if (!Auth.loggedIn()) {
       this.context.router.replace("/");
@@ -256,25 +267,33 @@ class Report extends Component {
         this.setState({
           user: profile
         });
-
+        let store = localStorage.getItem("store");
+        this.setState({language: localStorage.getItem("language")});
+        this.setState({store});
         this.getDictionary();
         this.getTypes();
         this.getSwatchbookList();
         this.getLocations();
-        this.getSuppliers();
         this.getColors();
+        this.getStores();
 
-        this.setState({language: localStorage.getItem("language")});
+        let from = new moment(new Date())
+          .subtract(1, "days")
+          .format("YYYY-MM-DD");
+        let to = new moment(new Date()).add(1, "days").format("YYYY-MM-DD");
 
-        let today = new Date().toISOString().slice(0, 10);
-        this.setState({from: today, to: today});
-        this.getOrderReport(today, today);
+        localStorage.getItem("role") === "admin"
+          ? this.getOrderReport(from, to, "")
+          : this.getOrderReport(from, to, "&filter[where][store_id]=" + store);
+
+        this.setState({from, to});
       } catch (err) {
         Auth.logout();
         this.context.router.replace("/");
       }
     }
   };
+
   getDictionary = () => {
     fetch(api + "/dictionaries")
       .then(res => res.json())
@@ -283,6 +302,7 @@ class Report extends Component {
         this.setState({isLoading: false});
       });
   };
+
   getWord = key => {
     return this.state && this.state.dictionary
       ? this.state.language === "vietnamese"
@@ -295,14 +315,20 @@ class Report extends Component {
       : "";
   };
 
-  getOrderReport = (from, to) => {
-    fetch(
+  getOrderReport = (from, to, filter) => {
+    console.log("GET ORDER REPORT");
+
+    this.setState({filter});
+    let url =
       api +
-        "report_orders?filter[where][order_date][gt]=" +
-        from +
-        "&[where][order_date][lt]=" +
-        to
-    )
+      "report_orders?filter[where][and][0][order_date][gt]=" +
+      from +
+      "&filter[where][and][1][order_date][lt]=" +
+      to +
+      filter;
+
+    console.log(url);
+    fetch(url)
       .then(res => {
         return res.json();
       })
@@ -324,6 +350,17 @@ class Report extends Component {
               render: id => <Link to={`/o/${id}`}>{id}</Link>,
               sorter: (a, b) => {
                 return a.order_id - b.order_id;
+              }
+            },
+            {
+              title: this.getWord("store"),
+              dataIndex: "store",
+              key: "store",
+              ...this.getColumnSearchProps("store"),
+              sorter: (a, b) => {
+                return a.store && b.store
+                  ? a.store.localeCompare(b.store)
+                  : null;
               }
             },
             {
@@ -439,12 +476,13 @@ class Report extends Component {
         });
       });
   };
+
   getFabricReport = (from, to) => {
     fetch(
       api +
-        "report_fabrics?filter[where][date][gt]=" +
+        "report_fabrics?filter[where][and][0][date][gt]=" +
         from +
-        "&[where][date][lt]=" +
+        "&filter[where][and][1][date][lt]=" +
         to
     )
       .then(res => {
@@ -528,9 +566,9 @@ class Report extends Component {
   getStockReport = (from, to) => {
     fetch(
       api +
-        "report_stocks?filter[where][date][gt]=" +
+        "report_stocks?filter[where][and][0][date][gt]=" +
         from +
-        "&[where][date][lt]=" +
+        "&filter[where][and][1][date][lt]=" +
         to
     )
       .then(res => {
@@ -658,9 +696,9 @@ class Report extends Component {
   getPaymentReport = (from, to) => {
     fetch(
       api +
-        "report_payments?filter[where][date][gt]=" +
+        "report_payments?filter[where][and][0][date][gt]=" +
         from +
-        "&[where][date][lt]=" +
+        "&filter[where][and][1][date][lt]=" +
         to
     )
       .then(res => {
@@ -678,8 +716,6 @@ class Report extends Component {
             currency: key
           }))
           .value();
-
-        console.log(summary);
 
         this.setState({
           summary,
@@ -739,7 +775,6 @@ class Report extends Component {
               },
               filters: _.sortBy(
                 _.map(_.uniqBy(payments, "is_cc"), i => {
-                  console.log(i);
                   return {
                     text: i.is_cc === 0 ? "Cash" : "Credit Card",
                     value: i.is_cc
@@ -747,7 +782,7 @@ class Report extends Component {
                 })
               ),
               onFilter: (is_cc, record) => {
-                return Number(record.is_cc) == Number(is_cc);
+                return Number(record.is_cc) === Number(is_cc);
               },
               render: is_cc => (
                 <div>
@@ -865,20 +900,23 @@ class Report extends Component {
     return total;
   };
 
-  handleChangeReport = (selectedReport, from, to) => {
+  handleChangeReport = (selectedReport, from, to, selectedStore) => {
+    let filter =
+      selectedStore > 0 ? "&filter[where][store_id]=" + selectedStore : "";
+
     this.setState({columns: null});
     switch (selectedReport) {
       case 1:
-        this.getOrderReport(from, to);
+        this.getOrderReport(from, to, filter);
         break;
       case 2:
-        this.getStockReport(from, to);
+        this.getStockReport(from, to, filter);
         break;
       case 3:
-        this.getFabricReport(from, to);
+        this.getFabricReport(from, to, filter);
         break;
       case 4:
-        this.getPaymentReport(from, to);
+        this.getPaymentReport(from, to, filter);
         break;
       default:
     }
@@ -897,29 +935,34 @@ class Report extends Component {
 
   onDateChange = date => {
     if (date.length) {
-      let from = new Date(date[0]).toISOString().slice(0, 10);
-      let to = new Date(date[1]).toISOString().slice(0, 10);
+      let from = new moment(date[0]).subtract(1, "days").format("YYYY-MM-DD");
+      let to = new moment(date[1]).add(1, "days").format("YYYY-MM-DD");
+
+      console.log({from, to});
       this.setState({
         from,
         to
       });
+      console.log(date);
+      console.log(this.state.filter);
       switch (this.state.selectedReport) {
         case 1:
-          date.length && this.getOrderReport(from, to);
+          date.length && this.getOrderReport(from, to, this.state.filter);
           break;
         case 2:
-          date.length && this.getStockReport(from, to);
+          date.length && this.getStockReport(from, to, this.state.filter);
           break;
         case 3:
-          date.length && this.getFabricReport(from, to);
+          date.length && this.getFabricReport(from, to, this.state.filter);
           break;
         case 4:
-          date.length && this.getPaymentReport(from, to);
+          date.length && this.getPaymentReport(from, to, this.state.filter);
           break;
         default:
       }
     }
   };
+
   handleLanguage = () => {
     this.state.language === "vietnamese"
       ? this.setState({language: "english"})
@@ -930,18 +973,28 @@ class Report extends Component {
       : localStorage.setItem("language", "vietnamese");
   };
 
+  handleChangeStore = selectedStore => {
+    this.setState({selectedStore});
+    this.handleChangeReport(
+      this.state.selectedReport,
+      this.state.from,
+      this.state.to,
+      selectedStore
+    );
+  };
+
   render() {
     const {
       loading,
       isLoading,
       selectedReport,
+      selectedStore,
       data,
       columns,
       summary,
-      pageSize
+      stores
     } = this.state;
     const dateFormat = "YYYY/MM/DD";
-
     return !isLoading ? (
       <Layout className="wrapper">
         {Auth.loggedIn() && (
@@ -965,6 +1018,31 @@ class Report extends Component {
         <Content className="container">
           <div>
             <FormItem
+              label={this.getWord("select-a-store")}
+              {...formItemLayout}
+            >
+              <Select
+                onChange={value => this.handleChangeStore(value)}
+                style={{width: 200}}
+                value={selectedStore}
+              >
+                {stores.length &&
+                  stores.map(s => (
+                    <Option
+                      key={s.id}
+                      value={s.id}
+                      disabled={
+                        localStorage.getItem("role") === "admin"
+                          ? false
+                          : s.id != Number(localStorage.getItem("store"))
+                      }
+                    >
+                      {s.description}
+                    </Option>
+                  ))}
+              </Select>
+            </FormItem>
+            <FormItem
               label={this.getWord("select-a-report")}
               {...formItemLayout}
             >
@@ -972,7 +1050,12 @@ class Report extends Component {
                 defaultValue={selectedReport}
                 style={{width: 200}}
                 onChange={value =>
-                  this.handleChangeReport(value, this.state.from, this.state.to)
+                  this.handleChangeReport(
+                    value,
+                    this.state.from,
+                    this.state.to,
+                    this.state.selectedStore
+                  )
                 }
               >
                 <Option value={1}>{this.getWord("orders")}</Option>
