@@ -238,9 +238,7 @@ class Report extends Component {
       })
       .then(val => {
         let stores = [...val, {description: "All", id: -1}];
-        console.log(
-          stores.find(i => i.id === Number(localStorage.getItem("store"))).id
-        );
+
         this.setState({
           stores: _.sortBy(stores, [
             function(o) {
@@ -316,8 +314,6 @@ class Report extends Component {
   };
 
   getOrderReport = (from, to, filter) => {
-    console.log("GET ORDER REPORT");
-
     this.setState({filter});
     let url =
       api +
@@ -327,7 +323,6 @@ class Report extends Component {
       to +
       filter;
 
-    console.log(url);
     fetch(url)
       .then(res => {
         return res.json();
@@ -938,13 +933,10 @@ class Report extends Component {
       let from = new moment(date[0]).subtract(1, "days").format("YYYY-MM-DD");
       let to = new moment(date[1]).add(1, "days").format("YYYY-MM-DD");
 
-      console.log({from, to});
       this.setState({
         from,
         to
       });
-      console.log(date);
-      console.log(this.state.filter);
       switch (this.state.selectedReport) {
         case 1:
           date.length && this.getOrderReport(from, to, this.state.filter);
