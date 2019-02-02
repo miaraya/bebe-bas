@@ -181,6 +181,7 @@ class Report extends Component {
       })
       .catch(error => {});
   };
+
   getLocations = () => {
     this.setState({loading: true});
     fetch(api + "locations")
@@ -192,7 +193,7 @@ class Report extends Component {
         }
       })
       .then(locations => {
-        //onsole.log(locations);
+        //console.log(locations);
         this.setState({
           locations: _.sortBy(locations, [
             function(o) {
@@ -204,6 +205,7 @@ class Report extends Component {
       })
       .catch(error => {});
   };
+
   getColors = () => {
     fetch(api + "colors")
       .then(res => {
@@ -256,6 +258,7 @@ class Report extends Component {
 
     //  let role = this.state.prodf
   };
+
   componentWillMount = () => {
     if (!Auth.loggedIn()) {
       this.context.router.replace("/");
@@ -311,6 +314,110 @@ class Report extends Component {
           ? this.state.dictionary.find(i => i.key === key).english
           : ""
       : "";
+  };
+
+  getStatusesReport = (from, to, filter) => {
+    this.setState({filter});
+    let url =
+      api +
+      "report_statuses?filter[where][and][0][creation_date][gt]=" +
+      from +
+      "&filter[where][and][1][creation_date][lt]=" +
+      to +
+      filter;
+
+    fetch(url)
+      .then(response => {
+        return response.json();
+      })
+      .then(statuses => {
+        statuses = _.sortBy(statuses, [
+          function(o) {
+            return o.creation_date;
+          }
+        ]);
+        this.setState({
+          data: statuses.reverse(),
+          columns: [
+            {
+              title: "Order ID",
+              dataIndex: "order_id",
+              key: "order_id",
+
+              render: id => <Link to={`/i/${id}`}>{id}</Link>,
+              sorter: (a, b) => {
+                return a.order_id - b.order_id;
+              }
+            },
+            {
+              title: "Item ID",
+              dataIndex: "item_id",
+              key: "item_id",
+              ...this.getColumnSearchProps("item-id"),
+
+              render: item_id => <div>{item_id}</div>,
+              sorter: (a, b) => {
+                return a.item_id - b.item_id;
+              }
+            },
+            {
+              title: "Entity",
+              dataIndex: "entity",
+              key: "entity",
+              sorter: (a, b) => {
+                return a.entity && b.entity
+                  ? a.entity.localeCompare(b.entity)
+                  : null;
+              }
+            },
+            {
+              title: "From",
+              dataIndex: "from",
+              key: "from",
+              sorter: (a, b) => {
+                return a.from && b.from ? a.from.localeCompare(b.from) : null;
+              }
+            },
+            {
+              title: "To",
+              dataIndex: "to",
+              key: "to",
+              sorter: (a, b) => {
+                return a.to && b.to ? a.to.localeCompare(b.to) : null;
+              }
+            },
+            {
+              title: "Creation Date",
+              dataIndex: "creation_date",
+              key: "creation_date",
+              render: date => (
+                <div>
+                  {new moment(new Date(date))
+                    .utcOffset("+00:00")
+                    .format("DD/MM/YY HH:mm")}
+                </div>
+              ),
+              sorter: (a, b) => {
+                return a.creation_date && b.creation_date
+                  ? a.creation_date.localeCompare(b.creation_date)
+                  : null;
+              }
+            },
+            {
+              title: "Staff",
+              dataIndex: "staff",
+              key: "staff",
+              sorter: (a, b) => {
+                return a.staff && b.staff
+                  ? a.staff.localeCompare(b.staff)
+                  : null;
+              },
+              ...this.getColumnSearchProps("staff")
+            }
+          ],
+          loading: false
+        });
+      });
   };
 
   getOrderReport = (from, to, filter) => {
@@ -913,6 +1020,9 @@ class Report extends Component {
       case 4:
         this.getPaymentReport(from, to, filter);
         break;
+      case 5:
+        this.getStatusesReport(from, to, filter);
+        break;
       default:
     }
     this.setState({selectedReport});
@@ -950,6 +1060,9 @@ class Report extends Component {
         case 4:
           date.length && this.getPaymentReport(from, to, this.state.filter);
           break;
+        case 5:
+          date.length && this.getStatusesReport(from, to, this.state.filter);
+          break;
         default:
       }
     }
@@ -986,7 +1099,9 @@ class Report extends Component {
       summary,
       stores
     } = this.state;
+
     const dateFormat = "YYYY/MM/DD";
+
     return !isLoading ? (
       <Layout className="wrapper">
         {Auth.loggedIn() && (
@@ -997,6 +1112,7 @@ class Report extends Component {
             getLanguage={this.getLanguage}
           />
         )}
+
         <HeaderApp
           index="2"
           getWord={this.getWord}
@@ -1034,6 +1150,7 @@ class Report extends Component {
                   ))}
               </Select>
             </FormItem>
+
             <FormItem
               label={this.getWord("select-a-report")}
               {...formItemLayout}
@@ -1054,6 +1171,7 @@ class Report extends Component {
                 <Option value={2}>{this.getWord("stock-movements")}</Option>
                 <Option value={3}>{this.getWord("fabric-creation")}</Option>
                 <Option value={4}>{this.getWord("order-payments")}</Option>
+                <Option value={5}>Status Report</Option>
               </Select>
             </FormItem>
 
