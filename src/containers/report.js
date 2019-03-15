@@ -545,6 +545,20 @@ class Report extends Component {
               }
             },
             {
+              title: this.getWord("discount") + " [USD]",
+              dataIndex: "discount",
+              key: "discount"
+            },
+            {
+              title: this.getWord("to-pay") + " [USD]",
+              dataIndex: "topay",
+              key: "topay",
+              sorter: (a, b) => {
+                return a.topay - b.topay;
+              },
+              render: (topay, row) => <b>{row.total - row.discount}</b>
+            },
+            {
               title: this.getWord("staff"),
               dataIndex: "staff_name",
               key: "staff_name",
