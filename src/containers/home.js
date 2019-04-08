@@ -32,7 +32,14 @@ class Home extends Component {
       staticContext: PropTypes.object
     }).isRequired
   };
-  componentWillMount = () => {};
+  componentWillMount = () => {
+    if(auth.loggedIn())
+    {
+      this.context.router.push("/search")
+    }
+
+
+  };
 
   doLogin = (username, password) => {
     auth
