@@ -710,7 +710,7 @@ class _Search extends Component {
                           <b>{s.location}</b>
                         </span>
                         <span style={{marginLeft: 10}}>
-                          {this.getWord("stock") + ": " + s.total_stock + "m "}
+                          {this.getWord("stock") + ": " + s.stock + "m "}
                         </span>
                       </div>
                     )
