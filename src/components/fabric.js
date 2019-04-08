@@ -64,7 +64,7 @@ export class FabricForm extends Component {
         swatchbook_id: values.swatchbook,
         price_band_id: values.price_band,
         image: values.code.toUpperCase() + ".jpg",
-        user_id: this.props.user ? Number(this.props.user.user_id) : -1
+        user_id: this.props.user ? Number(this.props.user.staff_id) : -1
       })
     })
       .then(response => response.json())
@@ -94,7 +94,7 @@ export class FabricForm extends Component {
         location_id,
         quantity,
         extra: 0,
-        user_id: this.props.user ? Number(this.props.user.user_id) : -1,
+        user_id: this.props.user ? Number(this.props.user.staff_id) : -1,
         action: "add"
       })
     })
@@ -170,7 +170,7 @@ export class FabricForm extends Component {
             <Select
               showSearch
               style={{width: 200}}
-              placeholder={this.props.getWord("select-a-fabric-type")}
+              placeholder={this.props.getWord("select-a-supplier")}
               optionFilterProp="children"
               filterOption={(input, option) =>
                 option.props.children
@@ -385,7 +385,7 @@ export class SwatchbookForm extends Component {
       body: JSON.stringify({
         unique_code: values.swatchbookcode,
         type_id: values.type,
-        user_id: this.props.user ? Number(this.props.user.user_id) : -1
+        user_id: this.props.user ? Number(this.props.user.staff_id) : -1
       })
     })
       .then(response => response.json())

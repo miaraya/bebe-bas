@@ -64,13 +64,12 @@ class _Search extends Component {
   }
 
   componentWillMount = () => {
-    //console.log(Auth.loggedIn());
     if (!Auth.loggedIn()) {
       this.context.router.replace("/");
     } else {
       try {
         const profile = Auth.getProfile();
-        //console.log(profile);
+        console.log(profile);
         this.setState({
           user: profile
         });
@@ -392,6 +391,7 @@ class _Search extends Component {
   };
 
   setStock = (fabric_id, location_id, quantity, extra, add, action) => {
+    console.log(this.state)
     //add or Remove
     if (add === 1) {
       quantity = quantity * -1;
@@ -408,7 +408,7 @@ class _Search extends Component {
         location_id,
         quantity: quantity ? quantity : 0,
         extra: 0,
-        user_id: Number(this.state.user.user_id),
+        user_id: Number(this.state.user.staff_id),
         action
       })
     })
