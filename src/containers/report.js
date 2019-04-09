@@ -1156,7 +1156,7 @@ class Report extends Component {
                       disabled={
                         localStorage.getItem("role") === "admin"
                           ? false
-                          : s.id != Number(localStorage.getItem("store"))
+                          : s.id !== Number(localStorage.getItem("store"))
                       }
                     >
                       {s.description}
