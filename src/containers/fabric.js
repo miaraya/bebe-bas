@@ -228,8 +228,8 @@ class Fabric extends Component {
                   </div>
                   <div style={{margin: 10}}>
                     {this.getWord("total-stock")}:{" "}
-                    {fabric.stock > 0 ? (
-                      fabric.stock + "m"
+                    {fabric.total_stock > 0 ? (
+                      fabric.total_stock + "m"
                     ) : (
                       <span style={{color: "red"}}>
                         {this.getWord("no-stock")}
