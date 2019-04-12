@@ -190,6 +190,7 @@ class _Search extends Component {
         }
       })
       .then(data => {
+        console.log(data)
         var result = _(data)
           .groupBy(x => x.unique_code)
           .map((value, key) => ({
@@ -200,7 +201,8 @@ class _Search extends Component {
             fabric_image: value[0].fabric_image,
             color: value[0].color,
             fabric_id: value[0].fabric_id,
-            hetvai: true
+            hetvai: true,
+            total:value[0].total_stock
           }))
           .value();
 
@@ -337,7 +339,7 @@ class _Search extends Component {
 
   checkHetVai = data => {
     var total;
-
+console.log(data)
     data.forEach(r => {
       total = 0;
       r.stock.forEach(s => {
@@ -512,8 +514,7 @@ class _Search extends Component {
 
   setHetVai = oldStockLocations => {
     oldStockLocations.forEach(l => {
-      l.total_stock = 0;
-      l.extra_fabric = 0;
+      l.stock = 0;
     });
     this.setState({oldStockLocations});
   };
@@ -698,6 +699,9 @@ class _Search extends Component {
         render: (stock, record) => (
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <div>
+            {record.total >0  &&
+            <div style={{marginBottom:10}}>{this.getWord("total-stock")}: <b>{record.total}m</b></div>
+            }
               {!record.hetvai ? (
                 record.stock.map(
                   (s, i) =>
@@ -883,14 +887,12 @@ class _Search extends Component {
                     .indexOf(input.toLowerCase()) >= 0
                 }
               >
-                {locations ? (
+                {locations && (
                   locations.map(l => (
                     <Option value={l.description} key={l.id}>
                       {l.description}
                     </Option>
                   ))
-                ) : (
-                  <div />
                 )}
               </Select>
             )}
@@ -975,9 +977,9 @@ class _Search extends Component {
                     >
                       <InputNumber
                         min={0}
-                        value={l.total_stock}
+                        value={l.stock}
                         onChange={value => {
-                          l.total_stock = value;
+                          l.stock = value;
                           this.setState({data});
                         }}
                       />
@@ -1049,7 +1051,7 @@ class _Search extends Component {
             <RadioGroup
               onChange={value => {
                 this.setState({add: value.target.value});
-                this.setState({newLocation: null});
+                //this.setState({newLocation: null});
               }}
               buttonStyle="solid"
               value={add}
@@ -1067,15 +1069,14 @@ class _Search extends Component {
                   showSearch
                   style={{width: 200}}
 
-                  value={newLocation && newLocation}
+                  value={newLocation}
                   placeholder={this.getWord("select-a-location")}
                   optionFilterProp="children"
-                  onChange={newLocation => this.setState({newLocation})}
-                  filterOption={(input, option) =>
-                    option.props.children
-                      .toLowerCase()
-                      .indexOf(input.toLowerCase()) >= 0
-                  }
+                  onChange={newLocation => {
+                    console.log(newLocation)
+                    this.setState({newLocation})
+                  }}
+                 
                 >
                   {add === 0
                     ? locations.map(l => (
@@ -1084,7 +1085,7 @@ class _Search extends Component {
                         </Option>
                       ))
                     : record.stock
-                        .filter(i => i.total_stock > 0)
+                        .filter(i => i.stock > 0)
                         .map(l => (
                           <Option value={l.location_id} key={l.location_id}>
                             <div>
@@ -1168,7 +1169,7 @@ class _Search extends Component {
               <FormItem label={this.getWord("from")} {...formItemLayout}>
                 <Select
                   showSearch
-                  value={oldLocation && oldLocation}
+                  value={oldLocation}
                   style={{width: 200}}
                   placeholder={this.getWord("select-a-location")}
                   optionFilterProp="children"
@@ -1183,7 +1184,7 @@ class _Search extends Component {
                   }
                 >
                   {record &&
-                    record.stock.filter(s => s.total_stock > 0).map(l => (
+                    record.stock.filter(s => s.stock > 0).map(l => (
                       <Option value={l.location_id} key={l.location_id}>
                         {l.location + "    max: " + l.total_stock + "m"}
                       </Option>
