@@ -7,7 +7,7 @@ import {Layout, Modal} from "antd";
 
 import {Radio, Button, message} from "antd";
 import {Input} from "antd";
-import {api, fabric_url, fabric_url_full, formItemLayout} from "./constants";
+import {api, formItemLayout} from "./constants";
 import {Table} from "antd";
 import {Link} from "react-router";
 import {Avatar} from "antd";
@@ -69,7 +69,6 @@ class _Search extends Component {
     } else {
       try {
         const profile = Auth.getProfile();
-        console.log(profile);
         this.setState({
           user: profile
         });
@@ -89,7 +88,6 @@ class _Search extends Component {
           }
         });
       } catch (err) {
-        //console.log(err);
         Auth.logout();
         this.context.router.replace("/");
       }
@@ -190,7 +188,6 @@ class _Search extends Component {
         }
       })
       .then(data => {
-        console.log(data)
         var result = _(data)
           .groupBy(x => x.unique_code)
           .map((value, key) => ({
@@ -211,9 +208,6 @@ class _Search extends Component {
         result = this.checkHetVai(result);
 
         this.setState({data: result});
-        //console.log(result);
-
-        //  this.setState({data});
         this.setState({loading: false});
       })
       .catch(error => {});
@@ -335,18 +329,14 @@ class _Search extends Component {
     this.getLocationData(value);
   };
   handleChangeColor = (value, record) => {
-    //console.log(value);
-    //console.log(record);
   };
 
   checkHetVai = data => {
     var total;
-console.log(data)
     data.forEach(r => {
       total = 0;
       r.stock.forEach(s => {
         total = total + Number(s.total_stock);
-        //console.log(total);
       });
       total > 0 ? (r.hetvai = false) : (r.hetvai = true);
       total > 0 ? (r.total_stock = total) : (r.total_stock = 0);
@@ -355,7 +345,6 @@ console.log(data)
   };
 
   getStockData = unique_code => {
-    //console.log(unique_code);
     fetch(
       api + "fabric_location_stocks?filter[where][unique_code]=" + unique_code
     )
@@ -395,7 +384,6 @@ console.log(data)
   };
 
   setStock = (fabric_id, location_id, quantity, extra, add, action) => {
-    console.log(this.state)
     //add or Remove
     if (add === 1) {
       quantity = quantity * -1;
@@ -436,7 +424,6 @@ console.log(data)
             }
           })
           .then(data => {
-            //console.log(data);
 
             let aux = this.state.record;
             aux.stock = _.sortBy(data, [
@@ -448,7 +435,6 @@ console.log(data)
             let total = 0;
             aux.stock.forEach(s => {
               total = total + Number(s.total_stock);
-              //console.log(total);
             });
             total > 0 ? (aux.hetvai = false) : (aux.hetvai = true);
 
@@ -466,23 +452,21 @@ console.log(data)
           });
       });
 
-    //this.setState({record: [0]});
   };
 
   saveAdjustStock = (stock, oldStock) => {
+    console.log({stock, oldStock})
+   
     stock.forEach((s, i) => {
       this.setStock(
         s.fabric_id,
         s.location_id,
-        Number(s.total_stock) + Number(oldStock[i].total_stock) * -1,
-        Number(s.extra_fabric) + Number(oldStock[i].extra_fabric) * -1,
+        Number(s.stock) + Number(oldStock[i].stock) * -1,
+        0,
         1,
-        Number(oldStock[i].total_stock) === 0 ? "het vai" : "adjust"
+        Number(oldStock[i].stock) === 0 ? "het vai" : "adjust"
       );
     });
-    //console.log(this.state.record);
-    //console.log(stock);
-    //console.log(oldStock);
   };
 
   adjustStock = record => {
@@ -506,7 +490,6 @@ console.log(data)
 
   moveStock = record => {
     this.clear();
-    //console.log(record);
     this.setState({moveStockVisible: true});
   };
   saveMoveStock = (fabric_id, from, to, quantity, extra) => {
@@ -631,7 +614,6 @@ console.log(data)
             shape="square"
             src={thumbnail_url}
             onClick={() => {
-              console.log(thumbnail_url)
               this.setState({
                 image:  record.image_url
               });
@@ -702,7 +684,7 @@ console.log(data)
         render: (stock, record) => (
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <div>
-            {record.total >0  &&
+            {!record.hetvai  &&
             <div style={{marginBottom:10}}>{this.getWord("total-stock")}: <b>{record.total}m</b></div>
             }
               {!record.hetvai ? (
@@ -1076,7 +1058,6 @@ console.log(data)
                   placeholder={this.getWord("select-a-location")}
                   optionFilterProp="children"
                   onChange={newLocation => {
-                    console.log(newLocation)
                     this.setState({newLocation})
                   }}
                  
@@ -1178,7 +1159,6 @@ console.log(data)
                   optionFilterProp="children"
                   onChange={oldLocation => {
                     this.setState({oldLocation});
-                    //console.log(record.stock.find(i => i.location_id === oldLocation)  .total_stock  );
                   }}
                   filterOption={(input, option) =>
                     option.props.children
