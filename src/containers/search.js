@@ -201,6 +201,8 @@ class _Search extends Component {
             fabric_image: value[0].fabric_image,
             color: value[0].color,
             fabric_id: value[0].fabric_id,
+            thumbnail_url: value[0].thumbnail_url,
+            image_url: value[0].image_url,
             hetvai: true,
             total:value[0].total_stock
           }))
@@ -621,16 +623,17 @@ console.log(data)
       },
       {
         title: this.getWord("thumbnail"),
-        dataIndex: "fabric_image",
-        key: "fabric_image",
-        render: fabric_image => (
+        dataIndex: "thumbnail_url",
+        key: "thumbnail_url",
+        render: (thumbnail_url,record) => (
           <Avatar
             size={100}
             shape="square"
-            src={fabric_url + fabric_image}
+            src={thumbnail_url}
             onClick={() => {
+              console.log(thumbnail_url)
               this.setState({
-                image: fabric_url_full + fabric_image
+                image:  record.image_url
               });
               this.setState({visible: true});
             }}
