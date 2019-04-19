@@ -7,7 +7,7 @@ import {Divider} from "antd";
 
 import Logo from "../assets/logo_small.png";
 
-import {api, fabric_url, fabric_url_full} from "./constants";
+import {api} from "./constants";
 import {Card} from "antd";
 import {Layout, Modal} from "antd";
 import {Rate} from "antd";
@@ -53,7 +53,10 @@ class Swatchbook extends Component {
             fabric_image: value[0].fabric_image,
             color: value[0].color,
             fabric_id: value[0].fabric_id,
-            hetvai: true
+            hetvai: true,
+            thumbnail_url: value[0].thumbnail_url,
+            image_url: value[0].image_url
+
           }))
           .value();
         result = this.checkHetVai(result);
@@ -143,6 +146,7 @@ class Swatchbook extends Component {
               {fabrics ? (
                 fabrics.map(fabric => (
                   <Card
+                  key={fabric.unique_code}
                     style={{margin: "auto", maxWidth: 300, marginTop: 20}}
                     title={
                       <div
@@ -170,10 +174,10 @@ class Swatchbook extends Component {
                     cover={
                       <img
                         alt={fabric.unique_code}
-                        src={fabric_url + fabric.fabric_image}
+                        src={fabric.thumbnail_url}
                         onClick={() => {
                           this.setState({
-                            image: fabric_url_full + fabric.fabric_image
+                            image: fabric.image_url
                           });
                           this.setState({visible: true});
                         }}
