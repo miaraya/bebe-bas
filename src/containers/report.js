@@ -749,6 +749,14 @@ class Report extends Component {
               }
             },
             {
+              title: this.getWord("total-stock")+ " [m]",
+              dataIndex: "total_stock",
+              key: "total_stock",
+              sorter: (a, b) => {
+                return a.total_stock - b.total_stock;
+              }
+            },
+            {
               title: this.getWord("action"),
               dataIndex: "action",
               key: "action",
