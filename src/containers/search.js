@@ -1169,7 +1169,7 @@ class _Search extends Component {
                   {record &&
                     record.stock.filter(s => s.stock > 0).map(l => (
                       <Option value={l.location_id} key={l.location_id}>
-                        {l.location + "    max: " + l.total_stock + "m"}
+                        {l.location + "    max: " + l.stock + "m"}
                       </Option>
                     ))}
                 </Select>
@@ -1202,7 +1202,7 @@ class _Search extends Component {
                   max={
                     oldLocation &&
                     Number(
-                      record.stock.find(i => i.location_id === oldLocation) ? record.stock.find(i => i.location_id === oldLocation).total_stock:0
+                      record.stock.find(i => i.location_id === oldLocation) ? record.stock.find(i => i.location_id === oldLocation).stock:0
                     )
                   }
                   value={newStock ? newStock : 0}
