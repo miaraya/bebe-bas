@@ -1202,8 +1202,7 @@ class _Search extends Component {
                   max={
                     oldLocation &&
                     Number(
-                      record.stock.find(i => i.location_id === oldLocation)
-                        .total_stock
+                      record.stock.find(i => i.location_id === oldLocation) ? record.stock.find(i => i.location_id === oldLocation).total_stock:0
                     )
                   }
                   value={newStock ? newStock : 0}
@@ -1215,7 +1214,9 @@ class _Search extends Component {
                 <Button
                   style={{marginLeft: 20}}
                   disabled={!oldLocation}
-                  onClick={() =>
+                  onClick={() =>{
+                    console.log(record)
+                    console.log(oldLocation)
                     this.setState({
                       newStock: record.stock.find(
                         i => i.location_id === oldLocation
@@ -1225,6 +1226,7 @@ class _Search extends Component {
                       ).extra_fabric
                     })
                   }
+                }
                 >
                   {this.getWord("all")}
                 </Button>
