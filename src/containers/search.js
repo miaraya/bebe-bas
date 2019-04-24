@@ -406,10 +406,10 @@ class _Search extends Component {
     })
       .then(response => response.json())
       .then(responseData => {
-        console.log(
+        /* console.log(
           "POST Response",
           "Response Body -> " + JSON.stringify(responseData)
-        );
+        ); */
         fetch(
           api +
             "fabricdetails?filter[where][unique_code][like]=" +
@@ -455,7 +455,7 @@ class _Search extends Component {
   };
 
   saveAdjustStock = (stock, oldStock) => {
-    console.log({stock, oldStock})
+    // console.log({stock, oldStock})
    
     stock.forEach((s, i) => {
       this.setStock(
@@ -1215,8 +1215,8 @@ class _Search extends Component {
                   style={{marginLeft: 20}}
                   disabled={!oldLocation}
                   onClick={() =>{
-                    console.log(record)
-                    console.log(oldLocation)
+                    //console.log(record)
+                    //console.log(oldLocation)
                     this.setState({
                       newStock: record.stock.find(
                         i => i.location_id === oldLocation
