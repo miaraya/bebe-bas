@@ -935,7 +935,7 @@ class Report extends Component {
               },
               render: (alt_amount, record) => (
                 <span>
-                  <b>{alt_amount + " " + record.currency}</b>
+                  <b>{this.formatDecimals(alt_amount) + " " + record.currency}</b>
                 </span>
               )
             },
@@ -945,7 +945,9 @@ class Report extends Component {
               key: "usd",
               sorter: (a, b) => {
                 return a.usd - b.usd;
-              }
+              },
+              render: usd => <span>{this.formatDecimals(usd)}</span>
+
             },
             {
               title: this.getWord("fee"),
@@ -962,7 +964,8 @@ class Report extends Component {
               key: "balance",
               sorter: (a, b) => {
                 return a.balance - b.balance;
-              }
+              },
+              render: balance =><span>{this.formatDecimals(balance)}</span>
             },
             {
               title: this.getWord("total-price") + "[USD]",
@@ -971,14 +974,14 @@ class Report extends Component {
               render: (total, record) =>
                 record.balance === 0 ? (
                   <span>
-                    {total}
+                    {this.formatDecimals(total)}
                     <Icon
                       type="check"
                       style={{color: "green", marginLeft: 10}}
                     />
                   </span>
                 ) : (
-                  <span>{total}</span>
+                  <span>{this.formatDecimals(total)}</span>
                 ),
               sorter: (a, b) => {
                 return a.total - b.total;
@@ -1109,6 +1112,11 @@ class Report extends Component {
       selectedStore
     );
   };
+
+  formatDecimals(figure)
+  {
+    return figure.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+  }
 
   render() {
     const {
@@ -1247,7 +1255,7 @@ class Report extends Component {
                           s =>
                             s.total > 0 && (
                               <p key={s.currency} style={{marginRight: 30}}>
-                                <b>{s.currency + ": " + s.total}</b>
+                                <b>{s.currency + ": " + this.formatDecimals(s.total)}</b>
                               </p>
                             )
                         )}
