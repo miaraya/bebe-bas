@@ -922,6 +922,7 @@ class Report extends Component {
               title: this.getWord("amount"),
               dataIndex: "alt_amount",
               key: "alt_amount",
+              className: 'right',
               filters: _.sortBy(
                 _.map(_.uniqBy(summary, "currency"), i => {
                   return {
@@ -934,15 +935,15 @@ class Report extends Component {
                 return record.currency.indexOf(currency) === 0;
               },
               render: (alt_amount, record) => (
-                <span>
                   <b>{this.formatDecimals(alt_amount) + " " + record.currency}</b>
-                </span>
               )
             },
             {
               title: this.getWord("usd"),
               dataIndex: "usd",
               key: "usd",
+              className: 'right',
+
               sorter: (a, b) => {
                 return a.usd - b.usd;
               },
@@ -950,18 +951,22 @@ class Report extends Component {
 
             },
             {
-              title: this.getWord("fee"),
+              title: this.getWord("fee")+"[USD]",
               dataIndex: "fee",
               key: "fee",
+              className: 'right',
+
               sorter: (a, b) => {
                 return a.fee - b.fee;
               },
-              render: fee => <span>{fee > 0 ? fee : "-"}</span>
+              render: fee => <span>{fee > 0 ? this.formatDecimals(fee) : "-"}</span>
             },
             {
               title: this.getWord("balance"),
               dataIndex: "balance",
               key: "balance",
+              className: 'right',
+
               sorter: (a, b) => {
                 return a.balance - b.balance;
               },
@@ -971,18 +976,17 @@ class Report extends Component {
               title: this.getWord("total-price") + "[USD]",
               dataIndex: "total",
               key: "total",
+              className: 'right',
+
               render: (total, record) =>
-                record.balance === 0 ? (
                   <span>
                     {this.formatDecimals(total)}
                     <Icon
-                      type="check"
-                      style={{color: "green", marginLeft: 10}}
+                      type={record.balance=== 0 ? "check" : "exclamation"}
+                      style={record.balance === 0 ? {color: "green", marginLeft: 10}: {color: "orange", marginLeft: 10}}
                     />
                   </span>
-                ) : (
-                  <span>{this.formatDecimals(total)}</span>
-                ),
+                ,
               sorter: (a, b) => {
                 return a.total - b.total;
               }
