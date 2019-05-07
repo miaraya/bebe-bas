@@ -37,7 +37,6 @@ class Order extends Component {
         if (res.ok) {
           return res.json();
         } else {
-          console.log("error");
           this.setState({error: true});
           throw new Error("Something went wrong ...");
         }
@@ -76,7 +75,6 @@ class Order extends Component {
       })
       .then(payments => {
         this.setState({payments});
-        console.log("no errror");
       })
       .catch(error => this.setState({error: true}));
   };
@@ -91,7 +89,6 @@ class Order extends Component {
       order_item,
       payments
     } = this.state;
-    console.log(this.state);
     if (loading) {
       return (
         <Content className="containerHome">
@@ -160,7 +157,9 @@ class Order extends Component {
             <Divider style={{marginTop: 40}}>
               <h2>Items</h2>
             </Divider>
-            <Table dataSource={order_item} pagination={false}>
+            <Table dataSource={order_item} pagination={false}                                 rowKey="id"
+
+>
               <Column
                 title="Item Number"
                 dataIndex="id"
@@ -168,17 +167,17 @@ class Order extends Component {
                 render={id => <Link to={`/i/${id}`}>{id}</Link>}
               />
               <Column
-                title="Garment Type"
+                title="Type"
                 dataIndex="description"
                 key="description"
               />
               <Column
-                title="Customer"
+                title="Customer Name"
                 dataIndex="customer_name"
                 key="customer_name"
               />
               <Column
-                title="Item Status"
+                title="Status"
                 dataIndex="status_id"
                 key="status_id"
               />
@@ -193,22 +192,49 @@ class Order extends Component {
             <Divider style={{marginTop: 40}}>
               <h2>Payments</h2>
             </Divider>
-            <Col style={{margin: 20}}>
-              <h3>Total: {order_customer.total}</h3>
-              <h3>Balance: {order_customer.balance}</h3>
-            </Col>
+            
+            <div style={{display:"flex", flex:1, flexDirection:"row"}}>
+              <div style={{marginRight: 40, marginTop:20}}>
+                      <h4>Total:</h4>
+                      {
+                        order_customer.discount > 0 && (
+                      <span>
+                      <h4>Discount:</h4>
+                      <h4>To Pay:</h4> </span> )
+                      }
+                      <h4>Paid:</h4>
+                      <h4>Balance:</h4>
+              </div>
+              <div style={{marginRight: 40, marginTop:20}}>
+              <h4>${order_customer.total}</h4>
+              {order_customer.discount > 0 && (
+                      <span>
+           <h4>${order_customer.discount}</h4>
+           <h4>${order_customer.to_pay}</h4>
+           </span> ) }
+            <h4>${order_customer.paid}</h4>
+           <h4>${order_customer.balance}</h4>
+              </div>
+                      
+               
 
-            <Table dataSource={payments} pagination={false}>
+          <div style={{flex:1}}>
+          <Table dataSource={payments} pagination={false}                 rowKey="id"
+> 
               <Column
-                title="Payment Date"
+                title="Date"
                 dataIndex="creation_date"
                 key="creation_date"
               />
-              <Column title="Paymen Type" dataIndex="type" key="type" />
-              <Column title="Amount" dataIndex="amount" key="amount" />
-              <Column title="Currency" dataIndex="currency" key="currency" />
+              <Column title="Type" dataIndex="type" key="type" />
+              <Column title="Amount [USD]" dataIndex="amount" key="amount" />
+              <Column title="Cashier" dataIndex="cashier" key="cashier" />
+              <Column title="Store" dataIndex="store" key="store" />ç
               <Column title="Notes" dataIndex="notes" key="notes" />
+
             </Table>
+            </div>
+            </div>
           </Content>
           <Modal
             visible={visible}
