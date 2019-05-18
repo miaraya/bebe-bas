@@ -261,6 +261,9 @@ class Item extends Component {
                   </Link>
                 </Row>
                 <Row>
+                  Order Status: <b>{order_customer.status}</b>
+                </Row>
+                <Row>
                   Customer Name: <b>{order_customer.customer_name}</b>
                 </Row>
                 <Row>
@@ -283,7 +286,7 @@ class Item extends Component {
               </Col>
               <Col>
                 <Row>
-                  Status: <b>{order_customer.status}</b>
+                  Item Status: <b>{details.status_id}</b>
                 </Row>
                 <Row>
                   Hotel: <b>{order_customer.hotel}</b>
