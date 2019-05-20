@@ -1,17 +1,17 @@
-import React, {Component} from "react";
+import React, { Component } from "react";
 import "antd/dist/antd.css";
 import "../css/css.css";
-import {Layout, Row, Col, Modal} from "antd";
-import {Divider} from "antd";
-import {Spin} from "antd";
-import {Table} from "antd";
-import {Link} from "react-router";
+import { Layout, Row, Col, Modal } from "antd";
+import { Divider } from "antd";
+import { Spin } from "antd";
+import { Table } from "antd";
+import { Link } from "react-router";
 
 import Logo from "../assets/logo_small.png";
-import {api} from "./constants";
-const {Column} = Table;
+import { api } from "./constants";
+const { Column } = Table;
 
-const {Content, Header} = Layout;
+const { Content, Header } = Layout;
 
 class Order extends Component {
   constructor(props) {
@@ -21,7 +21,8 @@ class Order extends Component {
       error: true,
       image: "",
       visible: false,
-      order_customer: []
+      order_customer: [],
+      ifus:[]
     };
   }
   componentWillMount = () => {
@@ -29,6 +30,7 @@ class Order extends Component {
     this.getOrderData(id);
     this.getOrderItems(id);
     this.getOrderPayments(id);
+    this.getOrderIFU(id);
   };
 
   getOrderData = id => {
@@ -37,18 +39,18 @@ class Order extends Component {
         if (res.ok) {
           return res.json();
         } else {
-          this.setState({error: true});
+          this.setState({ error: true });
           throw new Error("Something went wrong ...");
         }
       })
       .then(order_customer => {
-        this.setState({order_customer});
-        this.setState({error: false});
-        this.setState({loading: false});
+        this.setState({ order_customer });
+        this.setState({ error: false });
+        this.setState({ loading: false });
       })
       .catch(error => {
-        this.setState({loading: false});
-        this.setState({error: true});
+        this.setState({ loading: false });
+        this.setState({ error: true });
       });
   };
 
@@ -58,8 +60,8 @@ class Order extends Component {
         return res.json();
       })
       .then(order_item => {
-        this.setState({order_item});
-        this.setState({loading: false});
+        this.setState({ order_item });
+        this.setState({ loading: false });
       });
   };
 
@@ -69,17 +71,34 @@ class Order extends Component {
         if (res.ok) {
           return res.json();
         } else {
-          this.setState({error: true});
+          this.setState({ error: true });
           throw new Error("Something went wrong ...");
         }
       })
       .then(payments => {
-        this.setState({payments});
+        this.setState({ payments });
       })
-      .catch(error => this.setState({error: true}));
+      .catch(error => this.setState({ error: true }));
   };
+
+  getOrderIFU = id => {
+    fetch(api + "web_order_ifus?filter[where][order_id]=" + id)
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          this.setState({ error: true });
+          throw new Error("Something went wrong ...");
+        }
+      })
+      .then(ifus => {
+        this.setState({ ifus });
+      })
+      .catch(error => this.setState({ error: true }));
+  };
+  
   render() {
-    const {id} = this.props.params;
+    const { id } = this.props.params;
     const {
       loading,
       error,
@@ -87,7 +106,8 @@ class Order extends Component {
       visible,
       order_customer,
       order_item,
-      payments
+      payments,
+      ifus
     } = this.state;
     if (loading) {
       return (
@@ -154,12 +174,12 @@ class Order extends Component {
                 </Row>
               </Col>
             </Row>
-            <Divider style={{marginTop: 40}}>
+            <Divider style={{ marginTop: 40 }}>
               <h2>Items</h2>
             </Divider>
-            <Table dataSource={order_item} pagination={false}                                 rowKey="id"
+            <Table dataSource={order_item} pagination={false} rowKey="id"
 
->
+            >
               <Column
                 title="Item Number"
                 dataIndex="id"
@@ -189,64 +209,91 @@ class Order extends Component {
                 render={price => <b>{price + " [USD]"}</b>}
               />
             </Table>
-            <Divider style={{marginTop: 40}}>
+            <Divider style={{ marginTop: 40 }}>
               <h2>Payments</h2>
             </Divider>
-            
-            <div style={{display:"flex", flex:1, flexDirection:"row"}}>
-              <div style={{marginRight: 40, marginTop:20}}>
-                      <h4>Total:</h4>
-                      {
-                        order_customer.discount > 0 && (
-                      <span>
-                      <h4>Discount:</h4>
-                      <h4>To Pay:</h4> </span> )
-                      }
-                      <h4>Paid:</h4>
-                      <h4>Balance:</h4>
-              </div>
-              <div style={{marginRight: 40, marginTop:20}}>
-              <h4>${order_customer.total}</h4>
-              {order_customer.discount > 0 && (
-                      <span>
-           <h4>${order_customer.discount}</h4>
-           <h4>${order_customer.to_pay}</h4>
-           </span> ) }
-            <h4>${order_customer.paid}</h4>
-           <h4>${order_customer.balance}</h4>
-              </div>
-                      
-               
 
-          <div style={{flex:1}}>
-          <Table dataSource={payments} pagination={false}                 rowKey="id"
-> 
-              <Column
-                title="Date"
-                dataIndex="creation_date"
-                key="creation_date"
-              />
-              <Column title="Type" dataIndex="type" key="type" />
-              <Column title="Amount [USD]" dataIndex="amount" key="amount" />
-              <Column title="Cashier" dataIndex="cashier" key="cashier" />
-              <Column title="Store" dataIndex="store" key="store" />ç
+            <div style={{ display: "flex", flex: 1, flexDirection: "row" }}>
+              <div style={{ marginRight: 40, marginTop: 20 }}>
+                <h4>Total:</h4>
+                {
+                  order_customer.discount > 0 && (
+                    <span>
+                      <h4>Discount:</h4>
+                      <h4>To Pay:</h4> </span>)
+                }
+                <h4>Paid:</h4>
+                <h4>Balance:</h4>
+              </div>
+
+              <div style={{ marginRight: 40, marginTop: 20 }}>
+                <h4>${order_customer.total}</h4>
+                {order_customer.discount > 0 && (
+                  <span>
+                    <h4>${order_customer.discount}</h4>
+                    <h4>${order_customer.to_pay}</h4>
+                  </span>)}
+                <h4>${order_customer.paid}</h4>
+                <h4>${order_customer.balance}</h4>
+              </div>
+
+
+
+              <div style={{ flex: 1 }}>
+                <Table dataSource={payments} pagination={false} rowKey="id"
+                >
+                  <Column
+                    title="Date"
+                    dataIndex="creation_date"
+                    key="creation_date"
+                  />
+                  <Column title="Type"
+                    dataIndex="type"
+                    key="type" />
+                  <Column title="Amount [USD]" dataIndex="amount" key="amount" />
+                  <Column title="Cashier" dataIndex="cashier" key="cashier" />
+                  <Column title="Store" dataIndex="store" key="store" />ç
               <Column title="Notes" dataIndex="notes" key="notes" />
 
-            </Table>
+                </Table>
+              </div>
             </div>
-            </div>
+{ifus.length >0 && <div>
+            <Divider style={{ marginTop: 40 }}>
+              <h2>IFU</h2>
+            </Divider>
+            <div style={{ flex: 1 }}>
+                <Table dataSource={ifus} pagination={false} rowKey="id"
+                >
+                  <Column
+                    title="Date"
+                    dataIndex="creation_date"
+                    key="creation_date"
+                  />
+                  <Column title="Staff"
+                    dataIndex="staff"
+                    key="staff" />
+                  <Column title="Screen" dataIndex="screen" key="screen" />
+              <Column title="Notes" dataIndex="notes" key="notes" />
+              <Column title="Entity" dataIndex="entity" key="entity" />
+
+
+                </Table>
+              </div>
+              </div>
+}
           </Content>
           <Modal
             visible={visible}
             footer={null}
             maskClosable={true}
-            onCancel={() => this.setState({visible: false})}
+            onCancel={() => this.setState({ visible: false })}
           >
             <img
-              style={{width: "100%"}}
+              style={{ width: "100%" }}
               alt="Bebe Tailor"
               src={image}
-              onClick={() => this.setState({visible: false})}
+              onClick={() => this.setState({ visible: false })}
             />
           </Modal>
         </Layout>
