@@ -49,3 +49,48 @@ th.right,
 td.right {
   text-align: right !important;
 }
+
+.col-1, .col-2 {
+  width: 50%;
+  display: inline;
+  color: black;
+}
+
+.col-1 {
+  float: left;
+}
+
+.col-2 {
+  float: right;
+}
+
+.col-head {
+  text-align: center;
+  font-weight: bold;
+  font-size: 28px;
+}
+
+.divider {
+  clear: both;
+  width: 100%;
+  margin: 3mm;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+@page {
+  size: A4;
+  margin: 0 ;
+}
+
+@media print {
+  body {
+    margin: 0;
+  }
+
+  h2 {
+    margin: 0 auto;
+  }
+    html, body {
+        height: 99%;    
+    }
+}

@@ -2,6 +2,7 @@ import React from "react";
 import {Route, IndexRoute} from "react-router";
 import Home from "../containers/home";
 import Item from "../containers/item";
+import Itemprint from "../containers/itemprint";
 import Order from "../containers/order";
 import Fabric from "../containers/fabric";
 import Swatchbook from "../containers/swatchbook";
@@ -31,6 +32,7 @@ const createRoutes = () => {
 
       <Route path={"/i"} component={Home} />
       <Route path={"/i/:id"} component={Item} />
+      <Route path={"/i/print/:id"} component={Itemprint} />
       <Route path={"/o/:id"} component={Order} />
       <Route path={"/o"} component={Home} />
       <Route path={"/f"} component={Home} />
