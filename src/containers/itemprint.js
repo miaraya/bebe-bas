@@ -249,17 +249,17 @@ class Itemprint extends Component {
       return (
         <Layout className="wrapper">
           <Header className="header">
-				<div class="col-head">Item #{id}</div>
+				<div class="col-head">Mục #{id}</div>
           </Header>
           <Content className="container">
             <Row type="flex" justify="space-between">
               <Col>
                 <Row>
-                  Order Number: <b />
+                  Số thứ tự: <b />
                     {order_customer.order_id}
                 </Row>
                 <Row>
-                  Staff:{" "}
+                  Nhân viên:{" "}
                   <b>
                     {order_customer.staff} - {order_customer.store}
                   </b>
@@ -267,27 +267,39 @@ class Itemprint extends Component {
               </Col>
               <Col>
                 <Row>
-                  Fitting Day: <b>{order_customer.fitting_day}</b>
+                  Ngày thử đồ: <b>{order_customer.fitting_day}</b>
                 </Row>
                 <Row>
-                  Last Day: <b>{order_customer.last_day}</b>
+                    Ngày cuối cùng: <b>{order_customer.last_day}</b>
                 </Row>
               </Col>
             </Row>
 
             <div class="divider"></div>
-            <div class="col-1 col-head">Item</div>
-            <div class="col-2 col-head">Fabric</div>
+            <div class="col-1 col-head">Mục</div>
+            <div class="col-2 col-head">Vải</div>
             <div class="divider"></div>
 
             <div class="col-1">
               <Row>
-                Type: <b>{details.description}</b>
+                  Loại vải: <b>{details.description}</b>
               </Row>
               <Row>
-                Notes:{" "}
+                  Ghi chú:{" "}
                 <b>{details.notes ? details.notes : "No notes"}</b>
               </Row>
+
+              <Divider />
+
+              <div class="col-head">Tùy chọn</div>
+
+              {options.length > 0
+                ? options.map(o => (
+                    <div class="item-half-width">
+                      {o.option_name}: <b>{o.value}</b>
+                    </div>
+                  ))
+                : "No Options"}
             </div>
 
             <div class="col-2">
@@ -313,71 +325,62 @@ class Itemprint extends Component {
             </div>
 
             <div class="divider"></div>
-            <div class="col-1 col-head">Measurements</div>
-            <div class="col-2 col-head">Options</div>
+            <div class="col-1 col-head">Phép Đo</div>
             <div class="divider"></div>
 
-            <div class="col-1">
+            <div class="width-100">
               {measurements.length > 0
                 ? measurements.map(m => (
-                    <Row key={m.id}>
+                    <div class="item-half-width">
                       {m.type_viet + "  /  " + m.type_eng}:{" "}
                       <b>{m.value}</b>
-                    </Row>
+                    </div>
                   ))
-                : "No Measurements"}
+                : "Không có phép đo"}
             </div>
 
-            <div class="col-2">
-              {options.length > 0
-                ? options.map(o => (
-                    <Row key={o.id}>
-                      {o.option_name}: <b>{o.value}</b>
-                    </Row>
-                  ))
-                : "No Options"}
-            </div>
-
-            <div class="divider"></div>
-            <div class="col-1 col-head">Garment Images</div>
-            <div class="col-2 col-head">Fit Images</div>
-            <div class="divider"></div>
+            <div class="page-breaker">
+              <div class="divider"></div>
+              <div class="col-1 col-head">Hình ảnh may mặc</div>
+              <div class="col-2 col-head">Hình ảnh phù hợp</div>
+              <div class="divider"></div>
 
 
-            <div class="col-1">
-                {images.length > 0
-                  ? images.map(m => (
-                      <Card
-                        key={m.id}
-                        style={{width: "40%", margin: 10, display: "inline-block"}}
-                        cover={
-                          <img
-                            alt="Bebe Tailor"
-                            src={item_images + m.image}
-                          />
-                        }
-                      >
-                        <Meta title={m.notes ? m.notes : "No notes"} />
-                      </Card>
-                    ))
-                  : "No Images"}
-            </div>
+              <div class="col-1">
+                  {images.length > 0
+                    ? images.map(m => (
+                        <Card
+                          key={m.id}
+                          style={{width: "40%", margin: 10, display: "inline-block"}}
+                          cover={
+                            <img
+                              alt="Bebe Tailor"
+                              src={item_images + m.image}
+                            />
+                          }
+                        >
+                          <Meta title={m.notes ? m.notes : "Không có ghi chú"} />
+                        </Card>
+                      ))
+                    : "Không có hình ảnh"}
+              </div>
 
-            <div class="col-2">
-	            {measurement_images.length > 0
-	              ? measurement_images.map(mi => (
-	                  <Card
-	                    key={mi.id}
-	                    style={{width: "40%", margin: 10, display: "inline-block"}}
-	                    cover={
-	                      <img
-	                        alt="Bebe Tailor"
-	                        src={item_images + mi.image}
-	                      />
-	                    }
-	                  />
-	                ))
-	              : "No Images"}
+              <div class="col-2">
+  	            {measurement_images.length > 0
+  	              ? measurement_images.map(mi => (
+  	                  <Card
+  	                    key={mi.id}
+  	                    style={{width: "40%", margin: 10, display: "inline-block"}}
+  	                    cover={
+  	                      <img
+  	                        alt="Bebe Tailor"
+  	                        src={item_images + mi.image}
+  	                      />
+  	                    }
+  	                  />
+  	                ))
+  	              : "Không có hình ảnh"}
+              </div>
             </div>
           </Content>
           <Modal
