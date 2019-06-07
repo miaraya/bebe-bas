@@ -101,7 +101,7 @@ class Item extends Component {
 
         measurements
           ? this.setState({
-              measurements: measurements[0] ? measurements[0].measurements : []
+              measurements: measurements[0] ? _.sortBy(measurements[0].measurements, [function (o) {return o.order;}]) : []
             })
           : this.setState({measurements: []});
         this.setState({error: false});
