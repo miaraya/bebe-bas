@@ -250,6 +250,9 @@ class Item extends Component {
           <Content className="container">
             <Divider>
               <h2>Item #{id}</h2>
+              <a href={`/i/print/${id}`} target="_blank">
+                Print
+              </a>
             </Divider>
 
             <Row type="flex" justify="space-between">
