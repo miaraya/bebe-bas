@@ -248,8 +248,16 @@ class Itemprint extends Component {
     } else
       return (
         <Layout className="wrapper">
-          <Header className="header">
-				<div class="col-head">Mục #{id}</div>
+          <Header className="header no-flex">
+            <div class="col-3 ta-left">
+              <img src={Logo} alt="Bebe Tailor" width="150px" />
+            </div>
+            <div class="col-3 ta-center">
+              <h1><b class="big">1</b></h1>
+             </div>
+            <div class="col-3 ta-right">
+              <div class="col-head">Mục #{id}</div>
+            </div>
           </Header>
           <Content className="container">
             <Row type="flex" justify="space-between">
@@ -276,11 +284,9 @@ class Itemprint extends Component {
             </Row>
 
             <div class="divider"></div>
-            <div class="col-1 col-head">Mục</div>
-            <div class="col-2 col-head">Vải</div>
-            <div class="divider"></div>
-
-            <div class="col-1">
+            <div class="box col-1">
+              <div class="col-head">Mục</div>
+              
               <Row>
                   Loại vải: <b>{details.description}</b>
               </Row>
@@ -301,8 +307,8 @@ class Itemprint extends Component {
                   ))
                 : "No Options"}
             </div>
-
-            <div class="col-2">
+            <div class="box col-2">
+              <div class="col-head">Vải</div>
                 {fabrics.length > 0
                   ? fabrics.map(f => (
                       <Card
@@ -322,13 +328,12 @@ class Itemprint extends Component {
                       </Card>
                     ))
                   : "No Fabrics"}
+              
             </div>
 
-            <div class="divider"></div>
-            <div class="col-1 col-head">Phép Đo</div>
-            <div class="divider"></div>
-
-            <div class="width-100">
+            <div class="divider-no-border" />
+            <div class="width-100 box">
+              <div class="col-head ta-center">Phép Đo</div>
               {measurements.length > 0
                 ? measurements.map(m => (
                     <div class="item-half-width">
@@ -339,14 +344,23 @@ class Itemprint extends Component {
                 : "Không có phép đo"}
             </div>
 
+            <div class="always-break"></div>
             <div class="page-breaker">
-              <div class="divider"></div>
-              <div class="col-1 col-head">Hình ảnh may mặc</div>
-              <div class="col-2 col-head">Hình ảnh phù hợp</div>
+              <Header className="header no-flex width-100">
+                <div class="col-3 ta-left">
+                  <img src={Logo} alt="Bebe Tailor" width="150px" />
+                </div>
+                <div class="col-3 ta-center">
+                  <h1><b class="big">2</b></h1>
+                 </div>
+                <div class="col-3 ta-right">
+                  <div class="col-head">Mục #{id}</div>
+                </div>
+              </Header>
               <div class="divider"></div>
 
-
-              <div class="col-1">
+              <div class="col-1 box">
+                <div class="col-head">Hình ảnh may mặc</div>
                   {images.length > 0
                     ? images.map(m => (
                         <Card
@@ -364,8 +378,8 @@ class Itemprint extends Component {
                       ))
                     : "Không có hình ảnh"}
               </div>
-
-              <div class="col-2">
+              <div class="col-2 box">
+                <div class="col-head">Hình ảnh phù hợp</div>
   	            {measurement_images.length > 0
   	              ? measurement_images.map(mi => (
   	                  <Card
@@ -380,6 +394,10 @@ class Itemprint extends Component {
   	                  />
   	                ))
   	              : "Không có hình ảnh"}
+              </div>
+              <div class="divider"></div>
+              <div class="ta-center">
+                 <h1>Kết thúc tài liệu</h1>
               </div>
             </div>
           </Content>
