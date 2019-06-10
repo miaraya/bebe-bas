@@ -92,7 +92,6 @@ class Itemprint extends Component {
         }
       })
       .then(json => {
-        console.log(json);
         json
           ? this.setState({measurement_note: json[0] ? json[0].note : ""})
           : this.setState({measurement_note: ""});
@@ -232,7 +231,6 @@ class Itemprint extends Component {
       measurement_images,
       measurement_note
     } = this.state;
-    console.log(this.state);
     if (loading) {
       return (
         <Content className="containerHome">
@@ -288,7 +286,7 @@ class Itemprint extends Component {
               <div class="col-head">Mục</div>
               
               <Row>
-                  Loại vải: <b>{details.description}</b>
+                  Loại vải: <b>{details.vietnamese}</b>
               </Row>
               <Row>
                   Ghi chú:{" "}
@@ -302,7 +300,7 @@ class Itemprint extends Component {
               {options.length > 0
                 ? options.map(o => (
                     <div class="item-half-width">
-                      {o.option_name}: <b>{o.value}</b>
+                      {o.option_name_viet}: <b>{o.option_value_viet}</b>
                     </div>
                   ))
                 : "No Options"}
