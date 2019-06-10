@@ -290,7 +290,7 @@ class Itemprint extends Component {
               </Row>
               <Row>
                   Ghi chú:{" "}
-                <b>{details.notes ? details.notes : "No notes"}</b>
+                <b>{details.notes ? details.notes : "Không ghi chú"}</b>
               </Row>
 
               <Divider />
@@ -322,7 +322,7 @@ class Itemprint extends Component {
                           />
                         }
                       >
-                        <Meta title={f.notes ? f.notes : "No notes"} />
+                        <Meta title={f.notes ? f.notes : "Không ghi chú"} />
                       </Card>
                     ))
                   : "No Fabrics"}
