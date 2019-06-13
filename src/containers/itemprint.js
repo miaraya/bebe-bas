@@ -1,21 +1,18 @@
 import React, {Component} from "react";
 import "antd/dist/antd.css";
 import "../css/css.css";
-import {Layout, Tabs, Row, Col, Modal} from "antd";
+import {Layout, Row, Col, Modal} from "antd";
 import {Divider} from "antd";
 import {Spin} from "antd";
-import {Timeline, Icon} from "antd";
 import _ from "lodash";
-import {Link} from "react-router";
 
 import Logo from "../assets/logo_small.png";
-import {api, fabric_url, item_images, fabric_url_full} from "./constants";
+import {api, fabric_url, item_images} from "./constants";
 import {Card} from "antd";
 
 const {Meta} = Card;
 
 const {Content, Header} = Layout;
-const TabPane = Tabs.TabPane;
 
 class Itemprint extends Component {
   constructor(props) {
@@ -29,7 +26,6 @@ class Itemprint extends Component {
       image: "",
       visible: false,
       fabrics: [],
-      fittings: [],
       measurements: [],
       measurement_images: []
     };
@@ -41,7 +37,6 @@ class Itemprint extends Component {
     this.getItemImages(id);
     this.getItemOptions(id);
     this.getItemFabrics(id);
-    this.getItemFittings(id);
     this.getMeasurements(id);
     this.getMeasurementImages(id);
   };
@@ -226,10 +221,8 @@ class Itemprint extends Component {
       visible,
       options,
       fabrics,
-      fittings,
       measurements,
       measurement_images,
-      measurement_note
     } = this.state;
     if (loading) {
       return (

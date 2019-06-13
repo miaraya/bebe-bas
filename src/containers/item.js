@@ -11,6 +11,11 @@ import {Link} from "react-router";
 import Logo from "../assets/logo_small.png";
 import {api, fabric_url, item_images, fabric_url_full} from "./constants";
 import {Card} from "antd";
+import Top from "../components/top";
+import AuthService from "../AuthService";
+
+const Auth = new AuthService(null);
+
 
 const {Meta} = Card;
 
@@ -35,7 +40,16 @@ class Item extends Component {
     };
   }
   componentWillMount = () => {
+    this.setState({language: localStorage.getItem("language")});
+    const profile = Auth.getProfile();
+
+    this.setState({
+      user: profile
+    });
+
     let id = this.props.params.id;
+    this.getDictionary();
+
     this.getOrderData(id);
     this.getItemInfo(id);
     this.getItemImages(id);
@@ -45,6 +59,40 @@ class Item extends Component {
     this.getMeasurements(id);
     this.getMeasurementImages(id);
   };
+  getDictionary = () => {
+    fetch(api + "/dictionaries")
+      .then(res => res.json())
+      .then(dictionary => {
+        this.setState({dictionary});
+        this.setState({isLoading: false});
+      });
+  };
+
+
+  handleLanguage = () => {
+    this.state.language === "vietnamese"
+      ? this.setState({language: "english"})
+      : this.setState({language: "vietnamese"});
+
+    this.state.language === "vietnamese"
+      ? localStorage.setItem("language", "english")
+      : localStorage.setItem("language", "vietnamese");
+  };
+  getLanguage = () => {
+    return this.state.language;
+  };
+  getWord = key => {
+    return this.state.dictionary
+      ? this.state.language === "vietnamese"
+        ? this.state.dictionary.find(i => i.key === key)
+          ? this.state.dictionary.find(i => i.key === key).vietnamese
+          : ""
+        : this.state.dictionary.find(i => i.key === key)
+          ? this.state.dictionary.find(i => i.key === key).english
+          : ""
+      : "";
+  };
+
   getMeasurementImages = id => {
     fetch(
       api +
@@ -87,7 +135,6 @@ class Item extends Component {
         }
       })
       .then(json => {
-        console.log(json);
         json
           ? this.setState({measurement_note: json[0] ? json[0].note : ""})
           : this.setState({measurement_note: ""});
@@ -227,7 +274,6 @@ class Item extends Component {
       measurement_images,
       measurement_note
     } = this.state;
-    console.log(this.state);
     if (loading) {
       return (
         <Content className="containerHome">
@@ -243,34 +289,41 @@ class Item extends Component {
     } else
       return (
         <Layout className="wrapper">
+          <Top
+            username={this.state.user.username}
+            handleLanguage={this.handleLanguage}
+            getLanguage={this.getLanguage}
+            getWord={this.getWord}
+
+          />
           <Header className="header">
             <img src={Logo} alt="Bebe Tailor" width="150px" />
           </Header>
 
           <Content className="container">
             <Divider>
-              <h2>Item #{id}</h2>
-              <a href={`/i/print/${id}`} target="_blank">
-                Print
+              <h2>{this.getWord("item")} #{id}</h2>
+              <a href={`/i/print/${id}`} target="_blank" rel="noopener noreferrer">
+              {this.getWord("print")}
               </a>
             </Divider>
 
             <Row type="flex" justify="space-between">
               <Col>
                 <Row>
-                  Order Number: <b />
+                {this.getWord("order")}: <b />
                   <Link to={`/o/${order_customer.order_id}`}>
                     {order_customer.order_id}
                   </Link>
                 </Row>
                 <Row>
-                  Order Status: <b>{order_customer.status}</b>
+                {this.getWord("order-status") }: <b>{this.state.language === "vietnamese" ? order_customer.order_status_viet: order_customer.status}</b>
                 </Row>
                 <Row>
-                  Customer Name: <b>{order_customer.customer_name}</b>
+                {this.getWord("customer-name")}: <b>{order_customer.customer_name}</b>
                 </Row>
                 <Row>
-                  Email:{" "}
+                {this.getWord("email")}:{" "}
                   <b>
                     {order_customer.email
                       ? order_customer.email.toLowerCase()
@@ -278,31 +331,33 @@ class Item extends Component {
                   </b>
                 </Row>
                 <Row>
-                  Staff:{" "}
+                {this.getWord("staff")}:{" "}
                   <b>
                     {order_customer.staff} - {order_customer.store}
                   </b>
                 </Row>
                 <Row>
-                  Date: <b>{order_customer.order_date}</b>
+                {this.getWord("date") }: <b>{this.state.language === "vietnamese" ? order_customer.order_date_viet: order_customer.order_date}</b>
+
                 </Row>
               </Col>
               <Col>
                 <Row>
-                  Item Status: <b>{details.status_id}</b>
+                {this.getWord("item-status")}: <b>{details.status_id}</b>
                 </Row>
                 <Row>
-                  Hotel: <b>{order_customer.hotel}</b>
+                {this.getWord("hotel")}: <b>{order_customer.hotel}</b>
                 </Row>
 
                 <Row>
-                  Room: <b>{order_customer.room}</b>
+                {this.getWord("room")}: <b>{order_customer.room}</b>
                 </Row>
                 <Row>
-                  Fitting Day: <b>{order_customer.fitting_day}</b>
+                {this.getWord("fitting-day") }: <b>{this.state.language === "vietnamese" ? order_customer.fitting_day_viet: order_customer.fitting_day}</b>
+
                 </Row>
                 <Row>
-                  Last Day: <b>{order_customer.last_day}</b>
+                {this.getWord("last-day") }: <b>{this.state.language === "vietnamese" ? order_customer.last_day_viet: order_customer.last_day}</b>
                 </Row>
               </Col>
             </Row>
@@ -311,39 +366,45 @@ class Item extends Component {
 
             <Row>
               <Tabs defaultActiveKey="1" tabPosition="top">
-                <TabPane tab={<h3>Item</h3>} key="1">
-                  <h3>Details</h3>
+                <TabPane tab={<h3>{this.getWord("items")}</h3>} key="1">
+                  <h3>{this.getWord("details")}</h3>
                   <Row type="flex" justify="space-between" style={{margin: 20}}>
                     <Col>
                       <Row>
-                        Sub Customer Name: <b>{details.customer_name}</b>
+                      {this.getWord("customer-name")}: <b>{details.customer_name}</b>
                       </Row>
                       <Row>
-                        Type: <b>{details.description}</b>
+                      {this.getWord("type")}:  <b>{this.state.language === "vietnamese" ? details.vietnamese: details.description}</b>
                       </Row>
 
                       <Row>
-                        Status: <b>{details.status_id}</b>
+                      
+                      {this.getWord("status")}: <b>{this.state.language === "vietnamese" ? details.item_status_viet: details.status_id}</b>
+                      
                       </Row>
                       <Row>
-                        Notes:{" "}
-                        <b>{details.notes ? details.notes : "No notes"}</b>
+                      {this.getWord("notes")}:
+                        <b>{details.notes ? details.notes : this.getWord("no-notes")}</b>
                       </Row>
                     </Col>
                   </Row>
-                  <h3>Options</h3>
+                  <h3>{this.getWord("options")}</h3>
                   <Row type="flex" justify="space-between" style={{margin: 20}}>
                     <Col>
                       {options.length > 0
                         ? options.map(o => (
                             <Row key={o.id}>
-                              {o.option_name}: <b>{o.value}</b>
+                              { this.state.language === "vietnamese" ? 
+                              <div>{o.option_name_viet}:  <b>{o.option_value_viet}</b></div>:
+                              <div>{o.option_name}:  <b>{o.value}</b></div>
+                        }
+
                             </Row>
                           ))
-                        : "No Options"}
+                        : this.getWord("no-options")}
                     </Col>
                   </Row>
-                  <h3>Images</h3>
+                  <h3>{this.getWord("image")}</h3>
 
                   <Row type="flex" justify="space-between" style={{margin: 20}}>
                     {images.length > 0
@@ -352,7 +413,6 @@ class Item extends Component {
                             key={m.id}
                             hoverable
                             onClick={() => {
-                              console.log(m.image);
                               this.setState({image: item_images + m.image});
                               this.setState({visible: true});
                             }}
@@ -364,19 +424,19 @@ class Item extends Component {
                               />
                             }
                           >
-                            <Meta title={m.notes ? m.notes : "No notes"} />
+                            <Meta title={m.notes ? m.notes : this.getWord("no-notes")} />
                           </Card>
                         ))
-                      : "No Images"}
+                      : this.getWord("no-images") }
                   </Row>
-                  <h3>Fabrics</h3>
+                  <h3>{this.getWord("fabric")}</h3>
 
                   <Row type="flex" justify="space-between" style={{margin: 20}}>
                     {fabrics.length > 0
                       ? fabrics.map(f => (
                           <Card
                             title={
-                              f.unique_code + (f.type === 1 ? " - Lining" : "")
+                              f.unique_code + (f.type === 1 ? " - " + this.getWord("lining") : "")
                             }
                             key={f.id}
                             hoverable
@@ -392,14 +452,14 @@ class Item extends Component {
                               />
                             }
                           >
-                            <Meta title={f.notes ? f.notes : "No notes"} />
+                            <Meta title={f.notes ? f.notes : this.getWord("no-notes")} />
                           </Card>
                         ))
-                      : "No Fabrics"}
+                      : this.getWord("no-fabrics")}
                   </Row>
                 </TabPane>
-                <TabPane tab={<h3>Fittings</h3>} key="2">
-                  <h3>History</h3>
+                <TabPane tab={<h3>{this.getWord("fitting-")}</h3>} key="2">
+                  <h3>{this.getWord("history")}</h3>
                   <Timeline mode="left" style={{margin: 20}}>
                     {fittings.length > 0 ? (
                       fittings.map(f => (
@@ -417,20 +477,20 @@ class Item extends Component {
                           <Row>
                             <b>{f.creation_date}</b>
                           </Row>
-                          <Row>Alteration: {f.alteration}</Row>
-                          <Row>Changes Needed: {f.changes_needed}</Row>
-                          <Row>Status: {f.status}</Row>
+                          <Row>{this.getWord("alteration")}: {f.alteration}</Row>
+                          <Row>{this.getWord("changes-needed")}: {f.changes_needed}</Row>
+                          <Row>{this.getWord("status")}: {f.status}</Row>
                         </Timeline.Item>
                       ))
                     ) : (
-                      <div>No History</div>
+                      <div>{this.getWord("no-history")}</div>
                     )}
                   </Timeline>
                 </TabPane>
-                <TabPane tab={<h3>Measuremets</h3>} key="3">
-                  <h3>Notes</h3>
+                <TabPane tab={<h3>{this.getWord("measurements")}</h3>} key="3">
+                  <h3>{this.getWord("notes")}</h3>
                   <Row type="flex" style={{margin: 20}}>
-                    {measurement_note ? measurement_note : "No notes"}
+                    {measurement_note ? measurement_note : this.getWord("no-notes")}
                   </Row>
                   <h3>Measurements</h3>
 
@@ -443,11 +503,11 @@ class Item extends Component {
                               <b>{m.value}</b>
                             </Row>
                           ))
-                        : "No Measurements"}
+                        : this.getWord("no-measurements")}
                     </Col>
                   </Row>
 
-                  <h3>Images</h3>
+                  <h3>{this.getWord("images")}</h3>
                   <Row type="flex" justify="space-between" style={{margin: 20}}>
                     {measurement_images.length > 0
                       ? measurement_images.map(mi => (
@@ -467,7 +527,7 @@ class Item extends Component {
                             }
                           />
                         ))
-                      : "No Images"}
+                      : this.getWord("no-images")}
                   </Row>
                 </TabPane>
               </Tabs>
