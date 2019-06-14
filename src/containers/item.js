@@ -280,7 +280,7 @@ class Item extends Component {
           <Spin size="large" />
         </Content>
       );
-    } else if (error) {
+    } else if (error|| !order_customer) {
       return (
         <div>
           <b>ITEM NOT FOUND :(</b>
@@ -312,9 +312,11 @@ class Item extends Component {
               <Col>
                 <Row>
                 {this.getWord("order")}: <b />
+                {order_customer &&
                   <Link to={`/o/${order_customer.order_id}`}>
                     {order_customer.order_id}
                   </Link>
+                }
                 </Row>
                 <Row>
                 {this.getWord("order-status") }: <b>{this.state.language === "vietnamese" ? order_customer.order_status_viet: order_customer.status}</b>
@@ -337,13 +339,15 @@ class Item extends Component {
                   </b>
                 </Row>
                 <Row>
+                  
                 {this.getWord("date") }: <b>{this.state.language === "vietnamese" ? order_customer.order_date_viet: order_customer.order_date}</b>
 
                 </Row>
               </Col>
               <Col>
                 <Row>
-                {this.getWord("item-status")}: <b>{details.status_id}</b>
+                
+                {this.getWord("item-status")}: <b>{this.state.language === "vietnamese" ? details.item_status_viet: details.status_id}</b>
                 </Row>
                 <Row>
                 {this.getWord("hotel")}: <b>{order_customer.hotel}</b>
@@ -472,14 +476,17 @@ class Item extends Component {
                                 ? "green"
                                 : ""
                           }
-                          dot={f.status === "done" ? <Icon type="check" /> : ""}
+                          dot={f.status === "done" && <Icon type="check" />}
                         >
                           <Row>
                             <b>{f.creation_date}</b>
                           </Row>
-                          <Row>{this.getWord("alteration")}: {f.alteration}</Row>
-                          <Row>{this.getWord("changes-needed")}: {f.changes_needed}</Row>
-                          <Row>{this.getWord("status")}: {f.status}</Row>
+                          <Row>{this.getWord("alteration")}: <b>{this.state.language === "vietnamese" ? f.fitting_alteration_viet: f.alteration}</b></Row>
+                          
+                          {f.changes_needed !== "" &&
+                          <Row>{this.getWord("changes-needed")}: <b>{f.changes_needed}</b></Row>   
+                        }
+                          <Row>{this.getWord("status")}:  <b>{this.state.language === "vietnamese" ? f.fitting_status_viet: f.status}</b></Row>
                         </Timeline.Item>
                       ))
                     ) : (
@@ -492,7 +499,7 @@ class Item extends Component {
                   <Row type="flex" style={{margin: 20}}>
                     {measurement_note ? measurement_note : this.getWord("no-notes")}
                   </Row>
-                  <h3>Measurements</h3>
+                  <h3>{this.getWord("measurements")}</h3>
 
                   <Row type="flex" justify="space-between" style={{margin: 20}}>
                     <Col>

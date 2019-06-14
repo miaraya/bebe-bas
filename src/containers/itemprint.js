@@ -324,7 +324,7 @@ class Itemprint extends Component {
 
             <div class="divider-no-border" />
             <div class="width-100 box">
-              <div class="col-head ta-center">Phép Đo</div>
+              <div class="col-head ta-center">Số đo</div>
               {measurements.length > 0
                 ? measurements.map(m => (
                     <div class="item-half-width">
