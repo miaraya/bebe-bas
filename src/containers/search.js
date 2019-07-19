@@ -685,7 +685,7 @@ class _Search extends Component {
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <div>
             {!record.hetvai  &&
-            <div style={{marginBottom:10}}>{this.getWord("total-stock")}: <b>{record.total}m</b></div>
+            <div style={{marginBottom:10}}>{this.getWord("total-stock")}: <b>{record.stock[0].total_stock}m</b></div>
             }
               {!record.hetvai ? (
                 record.stock.map(
