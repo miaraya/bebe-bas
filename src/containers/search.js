@@ -936,7 +936,10 @@ class _Search extends Component {
               type="primary"
               loading={creatingLoading}
               onClick={() =>
-                this.saveAdjustStock(stockLocations, oldStockLocations)
+                {
+                this.setState({creatingLoading: true});
+                this.saveAdjustStock(stockLocations, oldStockLocations);
+                }
               }
             >
               {this.getWord("save")}
