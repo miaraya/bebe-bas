@@ -1,8 +1,9 @@
 import React, {Component} from "react";
 import PropTypes from "prop-types";
 import AuthService from "../AuthService";
-import {Icon} from "antd";
 import {Link} from "react-router";
+import {Row, Col, Icon} from "antd";
+
 
 const Auth = new AuthService(null);
 
@@ -19,27 +20,11 @@ class Top extends Component {
 
   render() {
     return (
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingRight: 50,
-          paddingLeft: 50,
-          paddingTop: 10
-        }}
-      >
-        <div>
-          {Auth.loggedIn() && (
-            <span>
-              <Icon type="user" style={{marginRight: 10}} />
-              {this.props.username}
-            </span>
-          )}
-
-          <Link
-            style={{marginLeft: 20}}
+      <Row>
+        
+        <Col span={4} justify="center"
+                        align="middle">
+        <Link
             onClick={() => {
               this.props.handleLanguage();
             }}
@@ -47,7 +32,17 @@ class Top extends Component {
             <Icon type="global" style={{marginRight: 10}} />
             {this.props.getWord("to" + this.props.getLanguage())}
           </Link>
-        </div>
+        </Col>
+        <Col span={4} justify="center"
+                        align="middle">
+        {Auth.loggedIn() && (
+            <span>
+              <Icon type="user" style={{marginRight: 10}} />
+              {this.props.username}
+            </span>
+          )}
+        </Col>
+        <Col span={4} offset={12}>
         {Auth.loggedIn() && (
           <Link
             onClick={() => {
@@ -59,7 +54,8 @@ class Top extends Component {
             <Icon type="logout" style={{marginLeft: 10}} />
           </Link>
         )}
-      </div>
+        </Col>
+      </Row>     
     );
   }
 }

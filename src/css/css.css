@@ -12,12 +12,11 @@
   background: white;
   margin:0px;
   display: flex;
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
   flex:1;
   flex-wrap: wrap;
-  height: 100%
+  padding:20px;
 
 }
 .container {
@@ -30,10 +29,11 @@
 }
 .wrapper
 {
-  max-width: 1920px;
+  max-width: 1024px;
    margin: 0 auto;
    background: white;
-   margin-top:10px;
+   padding:20px;
+   min-width:375px;
 
 }
 .login-form {
