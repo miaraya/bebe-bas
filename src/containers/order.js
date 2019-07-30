@@ -423,7 +423,7 @@ class Order extends Component {
                 this.setState({loading: false});
 
                 switch (order_customer.status) {
-                    case "to_deliver":
+                    case "for_delivery":
                         this.setState({status_id: 2});
                         break;
                     case "completed":
