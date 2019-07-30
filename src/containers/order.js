@@ -430,7 +430,7 @@ class Order extends Component {
                         this.setState({status_id: 3});
                         break;
 
-                    case "pending":
+                    case "unpaid":
                         this.setState({status_id: -1});
                         break;
                     default:
