@@ -1,6 +1,5 @@
 import React, {Component} from "react";
 import {Layout, Menu, Icon, Dropdown, Modal} from "antd";
-import Logo from "../assets/logo_small.png";
 import {Link} from "react-router";
 import PropTypes from "prop-types";
 import {FabricForm, SwatchbookForm} from "../components/fabric.js";
@@ -44,9 +43,7 @@ class HeaderApp extends Component {
 
     return (
       <Header className="header">
-        <Link to={`/search`}>
-          <img src={Logo} alt="Bebe Tailor" width="150px" />
-        </Link>
+
 
         <div
           style={{

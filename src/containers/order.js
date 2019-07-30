@@ -28,7 +28,7 @@ const Auth = new AuthService(null);
 
 const {Column} = Table;
 
-const {Content, Header} = Layout;
+const {Content, Footer} = Layout;
 
 class Order extends Component {
     constructor(props) {
@@ -53,7 +53,6 @@ class Order extends Component {
             payments,
             ifus,
             items,
-            language,
             status_id
         } = this.state;
         if (loading) {
@@ -331,6 +330,15 @@ class Order extends Component {
                             src={image}
                             onClick={() => this.setState({visible: false})}/>
                     </Modal>
+                    <Footer
+                        style={{
+                            textAlign: "center",
+                            flex: 1
+                        }}>Bebe Tailor {
+                            (new Date())
+                                .getFullYear()
+                                .toString()
+                        }, Hoi An, Vietnam.</Footer>
                 </Layout>
             );
         }
@@ -464,7 +472,6 @@ class Order extends Component {
                             staff_thumbnail: value[0].staff_thumbnail
                     }))
                     .value();
-                console.log(items)
                 this.setState({items})
                 this.setState({order_item});
                 this.setState({loading: false});

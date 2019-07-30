@@ -5,7 +5,7 @@ import "antd/dist/antd.css";
 import "../css/css.css";
 import {Layout, Modal} from "antd";
 
-import {Radio, Button, message} from "antd";
+import {Radio, Button, message, Row} from "antd";
 import {Input} from "antd";
 import {api, formItemLayout} from "./constants";
 import {Table} from "antd";
@@ -18,6 +18,8 @@ import HeaderApp from "../components/header";
 import Top from "../components/top";
 import {Form, Icon, InputNumber, Dropdown, Menu} from "antd";
 import AuthService from "../AuthService";
+import Logo from "../assets/logo_small.png";
+
 
 const Auth = new AuthService(null);
 const FormItem = Form.Item;
@@ -780,6 +782,17 @@ class _Search extends Component {
             getLanguage={this.getLanguage}
           />
         )}
+         <Row
+                        type="flex"
+                        justify="center"
+                        align="middle"
+                        gutter={16}
+                        span={24}
+                        style={{
+                            marginBottom: 20
+                        }}>
+                        <img src={Logo} alt="Bebe Tailor" width="150px"/>
+                    </Row>
         <HeaderApp
           index="1"
           getWord={this.getWord}

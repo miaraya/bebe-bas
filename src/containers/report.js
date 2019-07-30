@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Table, Select, Form, Input, Button, Icon, Divider} from "antd";
+import {Table, Select, Form, Input, Button, Icon, Divider,Row} from "antd";
 
 import PropTypes from "prop-types";
 import _ from "lodash";
@@ -21,6 +21,8 @@ import {Spin} from "antd";
 import locale from "antd/lib/date-picker/locale/vi_VN";
 import moment from "moment";
 import Highlighter from "react-highlight-words";
+import Logo from "../assets/logo_small.png";
+
 
 const Auth = new AuthService(null);
 const Option = Select.Option;
@@ -1146,6 +1148,17 @@ class Report extends Component {
             getLanguage={this.getLanguage}
           />
         )}
+        <Row
+                        type="flex"
+                        justify="center"
+                        align="middle"
+                        gutter={16}
+                        span={24}
+                        style={{
+                            marginBottom: 20
+                        }}>
+                        <img src={Logo} alt="Bebe Tailor" width="150px"/>
+                    </Row>
 
         <HeaderApp
           index="2"
@@ -1157,7 +1170,7 @@ class Report extends Component {
           locationlist={this.locationlist}
         />
 
-        <Content className="container">
+        <Content>
           <div>
             <FormItem
               label={this.getWord("select-a-store")}
@@ -1228,63 +1241,67 @@ class Report extends Component {
               />
             </FormItem>
           </div>
-
-          {!loading ? (
-            data.length > 0 ? (
-              <Table
-                style={{paddingTop: 30}}
-                dataSource={data}
-                columns={columns}
-                rowKey="id"
-                size="small"
-                pagination={{
-                  position: "top",
-                  showSizeChanger: true,
-                  pageSizeOptions: ["10", "20", "100"]
-                }}
-                title={() =>
-                  selectedReport === 4 &&
-                  summary.length && (
-                    <div
-                      title="Cash Summary"
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        justifyContent: "flex-start"
-                      }}
-                    >
-                      <h4 style={{marginRight: 40}}>Cash Summary:</h4>
-                      <div>
-                        {summary.map(
-                          s =>
-                            s.total > 0 && (
-                              <p key={s.currency} style={{marginRight: 30}}>
-                                <b>{s.currency + ": " + this.formatDecimals(s.total)}</b>
-                              </p>
-                            )
-                        )}
-                      </div>
-                    </div>
+{!loading ? (
+  data.length > 0 ? (
+    <Table
+      style={{paddingTop: 30}}
+      dataSource={data}
+      columns={columns}
+      rowKey="id"
+      size="small"
+      pagination={{
+        position: "top",
+        showSizeChanger: true,
+        pageSizeOptions: ["10", "20", "100"]
+      }}
+      title={() =>
+        selectedReport === 4 &&
+        summary.length && (
+          <div
+            title="Cash Summary"
+            style={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "flex-start"
+            }}
+          >
+            <h4 style={{marginRight: 40}}>Cash Summary:</h4>
+            <div>
+              {summary.map(
+                s =>
+                  s.total > 0 && (
+                    <p key={s.currency} style={{marginRight: 30}}>
+                      <b>{s.currency + ": " + this.formatDecimals(s.total)}</b>
+                    </p>
                   )
-                }
-              />
-            ) : (
-              <div style={{display: "flex", justifyContent: "center"}}>
-                <Divider style={{marginTop: 0}} />
-              </div>
-            )
-          ) : (
-            <div style={{display: "flex", justifyContent: "center"}}>
-              <Spin size="large" />
+              )}
             </div>
-          )}
+          </div>
+        )
+      }
+    />
+  ) : (
+    <div style={{display: "flex", justifyContent: "center"}}>
+      <Divider style={{marginTop: 0}} />
+    </div>
+  )
+) : (
+  <div style={{display: "flex", justifyContent: "center"}}>
+    <Spin size="large" />
+  </div>
+)}
+         
         </Content>
+        
+
       </Layout>
+
     ) : (
       <Content className="containerHome">
         <Spin size="large" />
       </Content>
     );
+    
   }
 }
 
