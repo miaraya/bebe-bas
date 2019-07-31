@@ -22,13 +22,22 @@
   background: white;
   justify-content: center;
   align-items: center;
-  padding: 50px;
+  margin-bottom: 50px;
   padding-top: 20px;
 
 }
 .wrapper
 {
   max-width: 1024px;
+   margin: 0 auto;
+   background: white;
+   padding:20px;
+   min-width:375px;
+
+}
+.swrapper
+{
+  max-width: 1920px;
    margin: 0 auto;
    background: white;
    padding:20px;

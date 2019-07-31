@@ -2,21 +2,20 @@ import React, {Component} from "react";
 import {Link} from "react-router";
 import "antd/dist/antd.css";
 import "../css/css.css";
-import {Spin} from "antd";
+import {Spin, Descriptions, Divider} from "antd";
 import _ from "lodash";
 import Top from "../components/top";
 
 import Logo from "../assets/logo_small.png";
 
-import {api, fabric_url, fabric_url_full, location_url} from "./constants";
-import {Card} from "antd";
-import {Layout, Modal} from "antd";
+import {api, location_url} from "./constants";
+import {Layout, Modal,Row, Col} from "antd";
 import {Rate} from "antd";
 import AuthService from "../AuthService";
 
 const Auth = new AuthService(null);
 
-const {Content, Header} = Layout;
+const {Content} = Layout;
 
 class Fabric extends Component {
   constructor(props) {
@@ -135,143 +134,90 @@ class Fabric extends Component {
             getWord={this.getWord}
             getLanguage={this.getLanguage}
           />
-          <Header className="header">
-            <Link to={`/search`}>
-              <img src={Logo} alt="Bebe Tailor" width="150px" />
-            </Link>
-          </Header>
+           <Row
+                        type="flex"
+                        justify="center"
+                        align="middle"
+                        gutter={16}
+                        span={24}
+                        style={{
+                            marginBottom: 20
+                        }}>
+                        <img src={Logo} alt="Bebe Tailor" width="150px"/>
+                    </Row>
+          
           <Content className="container">
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                flexWrap: "wrap",
-                justifyContent: "space-between",
-                flex: 1
-              }}
-            >
-              <div
-                style={{
-                  margin: 20,
-                  flex: 1
-                }}
-              >
-                <Card
-                  title={
-                    <div
-                      style={{
-                        display: "flex",
-                        flex: 1,
-                        justifyContent: "space-between"
-                      }}
-                    >
-                      <h2>{fabric.unique_code}</h2>
+          <Row type="flex" justify="center" align="top" gutter={40} span={24}>
+            <Col xm={24} sm={24} md={8}> 
 
-                      {fabric.price_band > 0 ? (
-                        <Rate
-                          disabled
-                          defaultValue={Number(fabric.price_band)}
-                        />
-                      ) : (
-                        <div />
-                      )}
-                    </div>
-                  }
-                  bordered={true}
-                  cover={
-                    <img
-                      style={{margin: "auto", maxWidth: 400}}
+            <Descriptions >
+                <Descriptions.Item>
+                <img
+                      style={{maxWidth: 300}}
                       alt={fabric.unique_code}
-                      src={fabric_url + fabric.fabric_image}
+                      src={fabric.thumbnail_url}
                       onClick={() => {
                         this.setState({
-                          image: fabric_url_full + fabric.fabric_image
+                          image: fabric.image_url
                         });
                         this.setState({visible: true});
                       }}
                     />
-                  }
-                >
-                  <div style={{margin: 10}}>
-                    {this.getWord("old-code")}: {fabric.old_code}
-                  </div>
-                  <div style={{margin: 10}}>
-                    {this.getWord("supplier")}: {fabric.supplier}
-                  </div>
-                </Card>
-              </div>
+                </Descriptions.Item>
+            </Descriptions>
+            
+            
+            </Col>
+            <Col xs={24} sm={24} md={16} style={{paddingTop:16}}>
+              <Descriptions title={this.getWord("fabric-details")} column={2}>
+              <Descriptions.Item label={this.getWord("fabric-code")}><b>{fabric.unique_code}</b></Descriptions.Item>
 
-              <div
-                style={{
-                  margin: 20,
-                  display: "flex",
-                  flexDirection: "column",
-                  minWidth: 300,
-                  flex: 2
-                }}
-              >
-                <Card
-                  title={<h2>{this.getWord("fabric-details")}</h2>}
-                  bordered={true}
-                >
-                  <div style={{margin: 10}}>
-                    {this.getWord("type")}: {fabric.type}
-                  </div>
-                  <div style={{margin: 10}}>
-                    {this.getWord("color")}: {fabric.color}
-                  </div>
-                  <div style={{margin: 10}}>
-                    {this.getWord("swatchbook")}:{" "}
-                    <Link to={`/s/${fabric.swatchbook}`}>
+                <Descriptions.Item label={this.getWord("type")}>{fabric.type}</Descriptions.Item>
+                {fabric.price_band > 0 && (
+                  <Descriptions.Item label={this.getWord("price-band")}><Rate disabled="disabled" defaultValue={Number(fabric.price_band)}/></Descriptions.Item>
+                ) }
+                <Descriptions.Item label={this.getWord("swatchbook")}>
+                  <Link to={`/s/${fabric.swatchbook}`}>
                       {fabric.swatchbook}
-                    </Link>
-                  </div>
-                  <div style={{margin: 10}}>
-                    {this.getWord("total-stock")}:{" "}
-                    {fabric.total_stock > 0 ? (
+                  </Link>
+                </Descriptions.Item>
+                <Descriptions.Item label={this.getWord("old-code")}>{fabric.old_code}</Descriptions.Item>
+                <Descriptions.Item label={this.getWord("supplier")}>{fabric.supplier}</Descriptions.Item>
+                <Descriptions.Item label={this.getWord("total-stock")}>{fabric.total_stock > 0 ? (
                       fabric.total_stock + "m"
                     ) : (
                       <span style={{color: "red"}}>
                         {this.getWord("no-stock")}
                       </span>
+                    )}</Descriptions.Item>
+
+              </Descriptions>
+
+              {locations.length > 0 && (
+                <span>
+                  <Divider/>
+                  <Descriptions title={this.getWord("stock-fabric-location")} column={2}>
+                    {locations.map(l=>                 
+                    <Descriptions.Item key={l.id} label={
+                      <Link
+                      style={{
+                        borderColor: "transparent",
+                        padding: 0
+                      }}
+                      onClick={() => {
+                        this.setState({
+                          image: location_url + l.image
+                        });
+                        this.setState({visible: true});
+                      }}
+                    >
+                      <span>{l.location + ": "}</span>
+                    </Link>}>{l.quantity}m</Descriptions.Item>
                     )}
-                  </div>
-                </Card>
-                {locations.length > 0 ? (
-                  <Card
-                    style={{
-                      marginTop: 20,
-                      flex: 1
-                    }}
-                    title={<h2>{this.getWord("stock-fabric-location")}</h2>}
-                    bordered={true}
-                  >
-                    {locations.length > 0 &&
-                      locations.map((l, i) => (
-                        <div key={l.location} style={{margin: 10}}>
-                          <Link
-                            style={{
-                              borderColor: "transparent",
-                              padding: 0
-                            }}
-                            onClick={() => {
-                              this.setState({
-                                image: location_url + l.image
-                              });
-                              this.setState({visible: true});
-                            }}
-                          >
-                            <span>{l.location + ": "}</span>
-                          </Link>
-                          <span> {l.quantity + "m"}</span>
-                        </div>
-                      ))}
-                  </Card>
-                ) : (
-                  <div />
-                )}
-              </div>
-            </div>
+                  </Descriptions>
+                </span>)}
+            </Col>
+          </Row>
           </Content>
           <Modal
             visible={visible}
