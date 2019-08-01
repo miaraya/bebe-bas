@@ -2,7 +2,7 @@ import React, {Component} from "react";
 import {Link} from "react-router";
 import "antd/dist/antd.css";
 import "../css/css.css";
-import {Spin, Descriptions, Divider} from "antd";
+import {Spin, Descriptions, Divider, Table} from "antd";
 import _ from "lodash";
 import Top from "../components/top";
 
@@ -12,6 +12,8 @@ import {api, location_url} from "./constants";
 import {Layout, Modal,Row, Col} from "antd";
 import {Rate} from "antd";
 import AuthService from "../AuthService";
+const {Column} = Table;
+
 
 const Auth = new AuthService(null);
 
@@ -30,16 +32,23 @@ class Fabric extends Component {
   }
   componentWillMount = () => {
     let id = this.props.params.id;
+    this.checkLanguage();
     this.getFabricData(id);
+    this.getDictionary();    
     this.getStockData(id);
-    this.getDictionary();
+    Auth.loggedIn() &&
+    this.getFabricStock(id)
     const profile = Auth.getProfile();
-    //console.log(profile);
     this.setState({
       user: profile
     });
-    this.setState({language: localStorage.getItem("language")});
   };
+
+  checkLanguage = () => {
+    localStorage.getItem("language")
+        ? this.setState({language: localStorage.getItem("language")})
+        : this.setState({language: "vietnamese"})
+}
   getDictionary = () => {
     fetch(api + "/dictionaries")
       .then(res => res.json())
@@ -62,6 +71,24 @@ class Fabric extends Component {
       .then(locations => {
         this.setState({
           locations: _.filter(locations, i => i.quantity > 0 || i.extra > 0)
+        });
+      })
+      .catch(error => {});
+  };
+
+  getFabricStock = id => {
+    fetch(api + "report_fabric_stocks?filter[where][unique_code]=" + id)
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          this.setState({error: true});
+          throw new Error("Something went wrong ...");
+        }
+      })
+      .then(history => {
+        this.setState({
+          history: _.reverse(_.sortBy(history,i=>i.id))
         });
       })
       .catch(error => {});
@@ -111,7 +138,7 @@ class Fabric extends Component {
       : "";
   };
   render() {
-    const {loading, error, fabric, image, visible, locations} = this.state;
+    const {loading, error, fabric, image, visible, locations,history} = this.state;
 
     if (loading) {
       return (
@@ -174,7 +201,7 @@ class Fabric extends Component {
 
                 <Descriptions.Item label={this.getWord("type")}>{fabric.type}</Descriptions.Item>
                 {fabric.price_band > 0 && (
-                  <Descriptions.Item label={this.getWord("price-band")}><Rate disabled="disabled" defaultValue={Number(fabric.price_band)}/></Descriptions.Item>
+                  <Descriptions.Item label={this.getWord("price-band")}><Rate disabled={true} defaultValue={Number(fabric.price_band)}/></Descriptions.Item>
                 ) }
                 <Descriptions.Item label={this.getWord("swatchbook")}>
                   <Link to={`/s/${fabric.swatchbook}`}>
@@ -183,6 +210,9 @@ class Fabric extends Component {
                 </Descriptions.Item>
                 <Descriptions.Item label={this.getWord("old-code")}>{fabric.old_code}</Descriptions.Item>
                 <Descriptions.Item label={this.getWord("supplier")}>{fabric.supplier}</Descriptions.Item>
+                <Descriptions.Item label={this.getWord("created")}>{fabric.creation_date}</Descriptions.Item>
+                <Descriptions.Item label={this.getWord("last-stock-update")}>{fabric.last_stock_update}</Descriptions.Item>
+
                 <Descriptions.Item label={this.getWord("total-stock")}>{fabric.total_stock > 0 ? (
                       fabric.total_stock + "m"
                     ) : (
@@ -195,7 +225,6 @@ class Fabric extends Component {
 
               {locations.length > 0 && (
                 <span>
-                  <Divider/>
                   <Descriptions title={this.getWord("stock-fabric-location")} column={2}>
                     {locations.map(l=>                 
                     <Descriptions.Item key={l.id} label={
@@ -211,13 +240,38 @@ class Fabric extends Component {
                         this.setState({visible: true});
                       }}
                     >
-                      <span>{l.location + ": "}</span>
+                      <span>{l.location}</span>
                     </Link>}>{l.quantity}m</Descriptions.Item>
                     )}
                   </Descriptions>
                 </span>)}
             </Col>
           </Row>
+          
+          {Auth.loggedIn() &&
+          <span>
+          <Divider />
+          <Row>
+              <Col span={24}>
+              <Descriptions title={this.getWord("history")}>
+                <Descriptions.Item>
+              <Table dataSource={history} pagination={{ position: "bottom", showSizeChanger: true, pageSizeOptions: ["10", "20", "100"]}} rowKey="id" size="small">
+                <Column title={this.getWord("item")} dataIndex="item" key="item"
+                  render={(item => <Link to={`/i/${item}`}>{item}</Link>)}/>
+                <Column title={this.getWord("type")} dataIndex="garment" key="garment" />
+
+                <Column title={this.getWord("length")} dataIndex="length" key="length" />
+                <Column title={this.getWord("location")} dataIndex="location" key="location" />
+                <Column title={this.getWord("cutter")} dataIndex="staff" key="staff" />
+                <Column title={this.getWord("date")} dataIndex="cut_date" key="cut_date" />
+
+
+              </Table>
+              </Descriptions.Item>
+              </Descriptions>
+              </Col>
+          </Row></span>
+          }
           </Content>
           <Modal
             visible={visible}

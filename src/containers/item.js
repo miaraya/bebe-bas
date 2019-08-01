@@ -242,7 +242,7 @@ class Item extends Component {
                                                 {
                                                     fabrics.length > 0 && fabrics.map(
                                                         o => 
-                                                        <Descriptions.Item>
+                                                        <Descriptions.Item key={o.id}>
                                                             <Card
                                                             size={"small"}
                                                         key={o.id}
@@ -280,7 +280,7 @@ class Item extends Component {
                                                     images.length > 0
                                                         ? images.map(
                                                             o => 
-                                                        <Descriptions.Item>
+                                                        <Descriptions.Item key={o.id}>
                                                             <Card title={o.unique_code}
                                                             size={"small"}
                                                         key={o.id}
@@ -378,7 +378,7 @@ class Item extends Component {
                                                 {
                                                     measurements.length > 0
                                                         ? measurements.map(
-                                                            o => <Descriptions.Item
+                                                            o => <Descriptions.Item key={o.id}
                                                                 label={language === "vietnamese"
                                                                     ? o.type_viet
                                                                     : o.type_eng}>{
