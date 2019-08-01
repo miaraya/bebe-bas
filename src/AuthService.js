@@ -67,7 +67,7 @@ export default class AuthService {
 
 		localStorage.removeItem("user_id")
 		localStorage.removeItem("username")
-		localStorage.removeItem("language")
+		//localStorage.removeItem("language")
 		localStorage.removeItem("store")
 	}
 
