@@ -458,7 +458,7 @@ class Order extends Component {
                         garments: value,
                         garment: value[0].garment,
                         customer_name: value[0].customer_name,
-                        price: value[0].price,
+                        price: value[0].price ==="0" ? value[1].price: value[0].price  ,
                         detail: value[0].is_suit
                             ? "(" + value[0].num_jackets + " Jackets, " + value[0].num_pants + " Trousers)"
                             : "",
@@ -472,6 +472,7 @@ class Order extends Component {
                             staff_thumbnail: value[0].staff_thumbnail
                     }))
                     .value();
+                console.log(items)
                 this.setState({items})
                 this.setState({order_item});
                 this.setState({loading: false});
