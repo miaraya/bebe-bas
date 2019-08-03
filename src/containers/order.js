@@ -183,7 +183,7 @@ class Order extends Component {
                             pagination={false}
                             rowKey="id"
                             expandedRowRender={record =>< Table dataSource = {
-                                _.toArray(_.sortBy(record.garments, x => x.item_alias))
+                                _.toArray(_.sortBy(record.garments, x => x.index))
                             }
                             pagination = {
                                 false
@@ -461,7 +461,8 @@ class Order extends Component {
             })
             .then(order_item => {
                 let items = _(order_item)
-                    .groupBy(x => x.group)
+                    .groupBy(x => x.group + x.customer_name)
+                    
                     .map((value, key) => ({
                         group: key,
                         garments: value,
