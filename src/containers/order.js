@@ -199,7 +199,16 @@ class Order extends Component {
                                 record.is_suit && <Column
                                         title={this.getWord("description-")}
                                         dataIndex="description"
-                                        key="_description"/>
+                                        key="_description"
+                                        render=
+                                {(description,record) => <span>{
+                                  this.state.language === "vietnamese"
+                                        ? record.vietnamese
+                                        : description}
+                                        </span>
+                                
+                              }
+                                        />
                             }
                             <Column
                                 title={this.getWord("status")}
@@ -221,7 +230,7 @@ class Order extends Component {
                                 render=
                                 {(garment,record) => <span>{
                                   this.state.language === "vietnamese"
-                                        ? record.vietnamese + " " + record.detail_viet
+                                        ? record.garment_viet + " " + record.detail_viet
                                         : garment + " "+ record.detail}
                                         </span>
                                 
@@ -456,23 +465,23 @@ class Order extends Component {
                     .map((value, key) => ({
                         group: key,
                         garments: value,
-                        garment: value[0].price ==="0" ? value[1].garment: value[0].garment,
+                        garment: value[0].garment,
                         customer_name: value[0].customer_name,
-                        price: value[0].price ==="0" ? value[1].price: value[0].price  ,
+                        price: value[0].price,
                         detail: value[0].is_suit
                             ? "(" + value[0].num_jackets + " Jackets, " + value[0].num_pants + " Trousers)"
                             : "",
                         is_suit: value[0].is_suit,
                         id: value[0].id,
-                        vietnamese:  value[0].price ==="0" ? value[1].vietnamese: value[0].vietnamese,
+                        vietnamese: value[0].vietnamese,
                         detail_viet: value[0].is_suit
                             ? "(" + value[0].num_jackets + " Áo vét-tông, " + value[0].num_pants +
                                     " Quần tây)"
                             : "",
-                            staff_thumbnail: value[0].staff_thumbnail
+                        staff_thumbnail: value[0].staff_thumbnail,
+                        garment_viet: value[0].garment_viet
                     }))
                     .value();
-                console.log(items)
                 this.setState({items})
                 this.setState({order_item});
                 this.setState({loading: false});
