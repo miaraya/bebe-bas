@@ -64,8 +64,9 @@ class Order extends Component {
         } else if (error) {
             return (
                 <div>
-                    <b>Order NOT FOUND :( {error}
-                    </b>
+                    <div>
+                    ORDER <b>{(this.props.params.id).toUpperCase()}</b> NOT FOUND :(
+                </div>
                 </div>
             );
         } else 

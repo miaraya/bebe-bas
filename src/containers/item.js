@@ -72,7 +72,7 @@ class Item extends Component {
             );
         } else if (error || !order_customer) {
             return (<div>
-                <b>ITEM NOT FOUND :(</b>
+                    ITEM <b>{(this.props.params.id).toUpperCase()}</b> NOT FOUND :(
             </div>);
         } else 
             return (
