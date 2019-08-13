@@ -61,7 +61,7 @@ class Order extends Component {
                     <Spin size="large"/>
                 </Content>
             );
-        } else if (error) {
+        } else if (error && !loading) {
             return (
                 <div>
                     <div>
@@ -367,9 +367,7 @@ class Order extends Component {
         fetch(api + "/dictionaries")
             .then(res => res.json())
             .then(dictionary => {
-                this.setState({dictionary});
-                this.setState({isLoading: false});
-            });
+                this.setState({dictionary});            });
     };
 
     checkLanguage = () => {
@@ -486,7 +484,6 @@ class Order extends Component {
                     .value();
                 this.setState({items})
                 this.setState({order_item});
-                this.setState({loading: false});
             });
     };
 
