@@ -79,7 +79,7 @@ class Swatchbook extends Component {
     
     getSwatchbookData = id => {
         fetch(
-            api + "web_swatchbooks?filter[where][unique_code]=" + id
+            api + "web_swatchbooks/" + id
         )
             .then(res => {
                 if (res.ok) {
@@ -90,8 +90,9 @@ class Swatchbook extends Component {
                 }
             })
             .then(swatchbook => {
-                if (swatchbook.length) {
-                    this.setState({swatchbook: swatchbook[0]});
+                console.log(swatchbook)
+                if (swatchbook) {
+                    this.setState({swatchbook});
                     this.setState({loading: false});
                     this.setState({error: false});
                 } else {

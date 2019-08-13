@@ -751,6 +751,14 @@ class Report extends Component {
               }
             },
             {
+              title: this.getWord("current-stock")+ " [m]",
+              dataIndex: "current_stock",
+              key: "current_stock",
+              sorter: (a, b) => {
+                return Number(a.current_stock) - Number(b.current_stock);
+              }
+            },
+            {
               title: this.getWord("total-stock")+ " [m]",
               dataIndex: "total_stock",
               key: "total_stock",
