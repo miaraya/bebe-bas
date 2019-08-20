@@ -214,7 +214,7 @@ class Order extends Component {
                             <Column
                                 title={this.getWord("status")}
                                 dataIndex="status_id"
-                                key="_status_id"
+                                key="status_id"
                                 render=
                                 {(status,record) => <span>{
                               this.state.language === "vietnamese"
@@ -479,11 +479,12 @@ class Order extends Component {
                                     " Quần tây)"
                             : "",
                         staff_thumbnail: value[0].staff_thumbnail,
-                        garment_viet: value[0].garment_viet
+                        garment_viet: value[0].garment_viet,
+                        index:value[0].index
                     }))
                     .value();
-                this.setState({items})
-                this.setState({order_item});
+                this.setState({items: _.sortBy(items, x => x.index)})
+                this.setState({order_item: _.sortBy(order_item, x => x.index)})
             });
     };
 

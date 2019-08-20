@@ -88,7 +88,7 @@ class Fabric extends Component {
       })
       .then(history => {
         this.setState({
-          history: _.reverse(_.sortBy(history,i=>i.id))
+          history: _.reverse(_.sortBy(history,i=>i.cut_date_raw))
         });
       })
       .catch(error => {});
