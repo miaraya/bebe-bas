@@ -29,7 +29,7 @@ export class FabricForm extends Component {
   };
 
   componentWillMount = () => {
-    console.log(this.props);
+    //console.log(this.props);
   };
   clear = () => {
     this.props.form.setFieldsValue({
@@ -64,7 +64,8 @@ export class FabricForm extends Component {
         swatchbook_id: values.swatchbook,
         price_band_id: values.price_band,
         image: values.code.toUpperCase() + ".jpg",
-        user_id: this.props.user ? Number(this.props.user.staff_id) : -1
+        user_id: this.props.user ? Number(this.props.user.staff_id) : -1,
+        total_stock: values.quantity
       })
     })
       .then(response => response.json())
@@ -95,7 +96,8 @@ export class FabricForm extends Component {
         quantity,
         extra: 0,
         user_id: this.props.user ? Number(this.props.user.staff_id) : -1,
-        action: "add"
+        action: "created",
+        current_stock: Number(quantity)
       })
     })
       .then(response => response.json())

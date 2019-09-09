@@ -5,9 +5,9 @@ import "antd/dist/antd.css";
 import "../css/css.css";
 import {Layout, Modal} from "antd";
 
-import {Radio, Button, message, Row} from "antd";
+import {Radio, message, Row} from "antd";
 import {Input} from "antd";
-import {api, formItemLayout} from "./constants";
+import {api} from "./constants";
 import {Table} from "antd";
 import {Link} from "react-router";
 import {Avatar} from "antd";
@@ -16,16 +16,18 @@ import {Select} from "antd";
 import _ from "lodash";
 import HeaderApp from "../components/header";
 import Top from "../components/top";
-import {Form, Icon, InputNumber, Dropdown, Menu} from "antd";
+import {Icon, Dropdown, Menu} from "antd";
 import AuthService from "../AuthService";
 import Logo from "../assets/logo_small.png";
 
+import {AddModal} from "../components/addRemoveStock"
+import {AdjustModal}  from "../components/adjustStock"
+import {MoveModal}  from "../components/moveStock"
+
+
 
 const Auth = new AuthService(null);
-const FormItem = Form.Item;
 
-const RadioButton = Radio.Button;
-const RadioGroup = Radio.Group;
 const Option = Select.Option;
 const Search = Input.Search;
 const {Content} = Layout;
@@ -96,6 +98,149 @@ class _Search extends Component {
     }
   };
 
+
+  addStock = record => {
+    const { form } = this.addForm.props;
+    form.resetFields();
+    this.clear();
+    this.setState({record});
+    this.setState({addStockVisible: true});
+  };
+
+
+  adjustStock = record => {
+    const { form } = this.adjustForm.props;
+
+    form.resetFields();
+    this.clear();
+    this.setState({record});
+    this.setState({adjustStockVisible: true});
+    let stock = this.state.data.find(i => i.unique_code === record.unique_code)
+      .stock;
+    this.setState({
+      stockLocations: stock.filter(
+        i => Number(i.total_stock) > 0
+      )
+    });
+
+
+    this.setState({
+      oldStockLocations: JSON.parse(
+        JSON.stringify(
+          stock.filter(i => Number(i.total_stock) > 0)
+        )
+      )
+    });
+   
+    this.setState({adjustStockVisible: true});
+  };
+
+  moveStock = record => {
+    const { form } = this.moveForm.props;
+    form.resetFields();
+    this.clear();
+    this.setState({moveStockVisible: true});
+  };
+
+  async saveMoveStock(fabric_id, from, to, quantity) {
+    this.setState({creatingLoading:true})
+    await this.setStock(Number(fabric_id), from, quantity, 1, "move remove")
+    await this.setStock(Number(fabric_id), to, quantity, 0, "move add")
+  };
+
+  
+
+  handleMoveStock = () => {
+    const { form } = this.moveForm.props;
+    form.validateFields((err, values) => {
+      if (err) {
+        return;
+      }
+       this.saveMoveStock(this.state.record.fabric_id, values.fromLocation, values.toLocation, values.quantity);
+      form.resetFields();
+
+    })
+
+  }
+
+   handleAdjustStock = (oldStockLocations) => {
+    const { form } = this.adjustForm.props;
+    form.validateFields((err, values) => {
+      if (err) {
+        return;
+      }
+      this.saveAdjustStock(oldStockLocations, this.state.record.stock)
+      form.resetFields();
+     
+    });
+
+  }
+
+   async saveAdjustStock(newStock, stock){
+     this.setState({creatingLoading:true})
+      for(let i = 0; i < newStock.length; i++)
+        {
+          let oldStock = stock.find(j => j.location_id === newStock[i].location_id).stock
+          if(oldStock !== newStock[i].stock)
+          {
+            if(oldStock !== 0)
+              await this.setStock(newStock[i].fabric_id, newStock[i].location_id, oldStock, 1,"adjust remove")
+            if(newStock[i] !== 0)
+              await this.setStock(newStock[i].fabric_id, newStock[i].location_id, newStock[i].stock, 0,"adjust add")
+          }
+        }
+  }
+
+  handleAddRemoveStock = () => {
+    const { form } = this.addForm.props;
+    form.validateFields((err, values) => {
+      if (err) {
+        return;
+      }
+
+      if(values.quantity !== 0){
+        this.setState({creatingLoading:true})
+        this.setStock(
+          this.state.record.fabric_id,
+          values.location,
+          values.quantity,
+          values.add,
+          values.add === 0 ? "add" : "remove"
+          );
+          form.resetFields();
+
+      }
+     
+    });
+  };
+
+  saveFormRef = addForm => {
+    this.addForm = addForm;
+  };
+
+  adjustFormRef = adjustForm => {
+    this.adjustForm = adjustForm;
+  }
+
+  moveFormRef = moveForm => {
+    this.moveForm = moveForm;
+  }
+
+  showModal = () => {
+    this.setState({add:0})
+
+    this.setState({ addStockVisible: true });
+  };
+
+  handleCancel = (form) => {
+    form.resetFields();
+    this.setState({add:0})
+    this.setState({ addStockVisible: false });
+    this.setState({ adjustStockVisible: false });
+    this.setState({ moveStockVisible: false });
+  };
+
+
   locationlist = () => {
     return this.state.locations;
   };
@@ -152,11 +297,6 @@ class _Search extends Component {
   getLanguage = () => {
     return this.state.language;
   };
-  addStock = record => {
-    this.clear();
-    this.setState({record});
-    this.setState({addStockVisible: true});
-  };
 
   getDictionary = () => {
     fetch(api + "/dictionaries")
@@ -178,6 +318,7 @@ class _Search extends Component {
           : ""
       : "";
   };
+
   doSearch = (url, query) => {
     this.setState({loading: true});
     fetch(api + url + "%" + query + "%")
@@ -202,12 +343,12 @@ class _Search extends Component {
             fabric_id: value[0].fabric_id,
             thumbnail_url: value[0].thumbnail_url,
             image_url: value[0].image_url,
-            hetvai: true,
-            total:value[0].total_stock
+            total:value[0].total_stock,
+            hetvai: value[0].total_stock <= 0
           }))
           .value();
 
-        result = this.checkHetVai(result);
+        //result = this.checkHetVai(result);
 
         this.setState({data: result});
         this.setState({loading: false});
@@ -368,11 +509,11 @@ class _Search extends Component {
     this.setState({
       newLocation: undefined,
       newStock: undefined,
-      newExtra: undefined,
       oldLocation: undefined,
-      add: 0,
+      add: undefined,
       creatingLoading: false
     });
+    this.forceUpdate()
   };
 
   static contextTypes = {
@@ -385,13 +526,18 @@ class _Search extends Component {
     }).isRequired
   };
 
-  setStock = (fabric_id, location_id, quantity, extra, add, action) => {
+  setStock = (fabric_id, location_id, quantity, add, action) => {
+
+    return new Promise(resolve => {
+ 
     //add or Remove
     if (add === 1) {
       quantity = quantity * -1;
-      extra = extra * -1;
     }
-    fetch(api + "stocks", {
+
+
+    const fetchPromise = 
+     fetch(api + "stocks", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -401,17 +547,17 @@ class _Search extends Component {
         fabric_id,
         location_id,
         quantity: quantity ? quantity : 0,
-        extra: 0,
         user_id: Number(this.state.user.staff_id),
         action
       })
-    })
-      .then(response => response.json())
-      .then(responseData => {
-        /* console.log(
-          "POST Response",
-          "Response Body -> " + JSON.stringify(responseData)
-        ); */
+    });
+      fetchPromise
+      .then(response => {
+        return response.json();
+      }).then(responseData => {
+        this.setState({creatingLoading: false});
+        this.setState({addStockVisible:false});
+        resolve('resolvedd');
         fetch(
           api +
             "fabricdetails?filter[where][unique_code][like]=" +
@@ -424,9 +570,7 @@ class _Search extends Component {
               this.setState({error: true});
               throw new Error("Something went wrong ...");
             }
-          })
-          .then(data => {
-
+          }).then(data => {
             let aux = this.state.record;
             aux.stock = _.sortBy(data, [
               function(o) {
@@ -435,13 +579,12 @@ class _Search extends Component {
             ]);
 
             let total = 0;
-            aux.stock.forEach(s => {
-              total = total + Number(s.total_stock);
+           aux.stock.forEach(s => {
+              total = total + Number(s.stock);
             });
             total > 0 ? (aux.hetvai = false) : (aux.hetvai = true);
 
             this.setState({record: aux});
-
             this.setState({addStockVisible: false});
             this.setState({adjustStockVisible: false});
             this.setState({moveStockVisible: false});
@@ -451,58 +594,25 @@ class _Search extends Component {
               : message.success(quantity * -1 + " meters removed");
 
             this.clear();
-          });
-      });
+          })
+      })
 
-  };
 
-  saveAdjustStock = (stock, oldStock) => {
-    // console.log({stock, oldStock})
-   
-    stock.forEach((s, i) => {
-      this.setStock(
-        s.fabric_id,
-        s.location_id,
-        Number(s.stock) + Number(oldStock[i].stock) * -1,
-        0,
-        1,
-        Number(oldStock[i].stock) === 0 ? "het vai" : "adjust"
-      );
-    });
-  };
 
-  adjustStock = record => {
-    this.setState({record});
-    let stock = this.state.data.find(i => i.unique_code === record.unique_code)
-      .stock;
-    this.setState({
-      stockLocations: stock.filter(
-        i => Number(i.total_stock) + Number(i.extra_fabric) > 0
-      )
-    });
-    this.setState({
-      oldStockLocations: JSON.parse(
-        JSON.stringify(
-          stock.filter(i => Number(i.total_stock) + Number(i.extra_fabric) > 0)
-        )
-      )
-    });
-    this.setState({adjustStockVisible: true});
-  };
+    })
+  }
 
-  moveStock = record => {
-    this.clear();
-    this.setState({moveStockVisible: true});
-  };
-  saveMoveStock = (fabric_id, from, to, quantity, extra) => {
-    this.setStock(fabric_id, from, quantity, extra, 1, "move");
-    this.setStock(fabric_id, to, quantity, extra, 0, "move");
-  };
+
+
+
+  
+
 
   setHetVai = oldStockLocations => {
     oldStockLocations.forEach(l => {
-      l.stock = 0;
+      l.stock=0
     });
+    this.forceUpdate()
     this.setState({oldStockLocations});
   };
 
@@ -519,8 +629,6 @@ class _Search extends Component {
   render() {
     const {
       isLoading,
-      newStock,
-      stockLocations,
       selectedOption,
       data,
       visible,
@@ -534,13 +642,8 @@ class _Search extends Component {
       adjustStockVisible,
       record,
       addStockVisible,
-      add,
-      newLocation,
       creatingLoading,
-      oldStockLocations,
       moveStockVisible,
-      oldLocation,
-      newExtra
     } = this.state;
 
     const options = [
@@ -714,25 +817,25 @@ class _Search extends Component {
                 <Dropdown
                   overlay={
                     <Menu>
-                      {this.state.record && (
+                      {record && (
                         <Menu.Item
-                          onClick={() => this.addStock(this.state.record)}
+                          onClick={() => this.addStock(record)}
                         >
                           {this.getWord("add-remove-stock")}
                         </Menu.Item>
                       )}
-                      {this.state.record &&
-                        (!this.state.record.hetvai && (
+                      {record &&
+                        (!record.hetvai && (
                           <Menu.Item
-                            onClick={() => this.adjustStock(this.state.record)}
+                            onClick={() => this.adjustStock(record)}
                           >
                             {this.getWord("het-vai-adjust")}
                           </Menu.Item>
                         ))}
-                      {this.state.record &&
-                        (!this.state.record.hetvai && (
+                      {record &&
+                        (!record.hetvai && (
                           <Menu.Item
-                            onClick={() => this.moveStock(this.state.record)}
+                            onClick={() => this.moveStock(record)}
                           >
                             {this.getWord("move-fabric")}
                           </Menu.Item>
@@ -927,329 +1030,69 @@ class _Search extends Component {
             <div />
           )}
         </Content>
-        <Modal
-          title={
-            record
-              ? this.getWord("adjust-stock-for") + " " + record.unique_code
-              : ""
-          }
-          centered
-          visible={adjustStockVisible}
-          onOk={() => this.setState({adjustStockVisible: false})}
-          onCancel={() => this.setState({adjustStockVisible: false})}
-          footer={[
-            <Button
-              key="back"
-              onClick={() => this.setState({adjustStockVisible: false})}
-            >
-              {this.getWord("cancel")}
-            </Button>,
-            <Button
-              key="submit"
-              type="primary"
-              loading={creatingLoading}
-              onClick={() =>
-                {
-                this.setState({creatingLoading: true});
-                this.saveAdjustStock(stockLocations, oldStockLocations);
-                }
-              }
-            >
-              {this.getWord("save")}
-            </Button>
-          ]}
-        >
-          <div style={{display: "flex", flexDirection: "column"}}>
-            <Button
-              type="danger"
-              style={{alignSelf: "flex-end"}}
-              onClick={() => this.setHetVai(oldStockLocations)}
-            >
-              {this.getWord("mark-as-het-vai")}
-            </Button>
-            <Form>
-              {oldStockLocations &&
-                oldStockLocations.map((l, i) => (
-                  <div key={i}>
-                    <h3>{l.location}</h3>
-                    <FormItem
-                      label={this.getWord("quantity")}
-                      {...formItemLayout}
-                    >
-                      <InputNumber
-                        min={0}
-                        value={l.stock}
-                        onChange={value => {
-                          l.stock = value;
-                          this.setState({data});
-                        }}
-                      />
-                      <span>{" m"}</span>
-                    </FormItem>
-                  </div>
-                ))}
-            </Form>
-          </div>
-        </Modal>
-        <Modal
-          visible={visible}
-          footer={null}
-          maskClosable={true}
-          onCancel={() => {
-            this.setState({visible: false});
-            this.setState({image: null});
-          }}
-          width="100%"
-        >
-          <img
-            style={{width: "100%"}}
-            alt="Bebe Tailor"
-            src={image}
-            onClick={() => {
-              this.setState({visible: false});
-              this.setState({image: null});
-            }}
-          />
-        </Modal>
-        <Modal
-          title={
-            record
-              ? this.getWord("add-remove-stock-for") + " " + record.unique_code
-              : ""
-          }
-          centered
+        
+        <AddModal
           visible={addStockVisible}
-          onOk={() => this.setState({addStockVisible: false})}
-          onCancel={() => this.setState({addStockVisible: false})}
-          footer={[
-            <Button
-              key="back"
-              onClick={() => this.setState({addStockVisible: false})}
-            >
-              {this.getWord("cancel")}
-            </Button>,
-            <Button
-              key="submit"
-              type="primary"
-              loading={creatingLoading}
-              onClick={() => {
-                this.setState({creatingLoading: true});
-                this.setStock(
-                  record.fabric_id,
-                  this.state.newLocation,
-                  this.state.newStock,
-                  this.state.newExtra,
-                  add,
-                  add === 0 ? "add" : "remove"
-                );
-              }}
-            >
-              {this.getWord("save")}
-            </Button>
-          ]}
-        >
-          <div style={{display: "flex", flexDirection: "column"}}>
-            <RadioGroup
-              onChange={value => {
-                this.setState({add: value.target.value});
-                //this.setState({newLocation: null});
-              }}
-              buttonStyle="solid"
-              value={add}
-              style={{alignSelf: "center", paddingBottom: 30}}
-            >
-              <RadioButton value={0}>{this.getWord("add")}</RadioButton>
-              {record &&
-                (!record.hetvai && (
-                  <RadioButton value={1}>{this.getWord("remove")}</RadioButton>
-                ))}
-            </RadioGroup>
-            <Form>
-              <FormItem label={this.getWord("location")} {...formItemLayout}>
-                <Select
-                  showSearch
-                  style={{width: 200}}
+          onCancel={this.handleCancel}
+          onOk={this.handleAddRemoveStock}
+          wrappedComponentRef={this.saveFormRef}
+          locations={this.state.locations}
+          record={record}
+          getWord={this.getWord}
+          creatingLoading={creatingLoading}
+          add={this.state.add}
+          />
 
-                  value={newLocation}
-                  placeholder={this.getWord("select-a-location")}
-                  optionFilterProp="children"
-                  onChange={newLocation => {
-                    this.setState({newLocation})
-                  }}
-                 
-                >
-                  {add === 0
-                    ? locations.map(l => (
-                        <Option value={l.id} key={l.id}>
-                          {l.description }
-                        </Option>
-                      ))
-                    : record.stock
-                        .filter(i => i.stock > 0)
-                        .map(l => (
-                          <Option value={l.location_id} key={l.location_id}>
-                            <div>
-                              {l.location + ": "}
-                              <b>{ l.stock }</b>
-                            </div>
-                           
-                          </Option>
-                        ))}
-                </Select>
-              </FormItem>
-              <FormItem label={this.getWord("quantity")} {...formItemLayout}>
-                <InputNumber
-                  min={0}
-                  max={500}
-                  value={this.state.newStock ? this.state.newStock : null}
-                  onChange={newStock => {
-                    this.setState({newStock});
-                  }}
-                />
-                <span>{" m"}</span>
-                {add === 1 && (
-                  <Button
-                    onClick={() => {
-                      this.setState({
-                        newStock: Number(
-                          record.stock.find(i => i.location_id === newLocation)
-                            .stock
-                        )
-                      });
-                    }}
-                    style={{marginLeft: 20}}
-                    disabled={!newLocation}
-                  >
-                    {this.getWord("all")}
-                  </Button>
-                )}
-              </FormItem>
-            </Form>
-          </div>
-        </Modal>
+          <AdjustModal
+            visible={adjustStockVisible}
+            onCancel={this.handleCancel}
+            onOk={this.handleAdjustStock}
+            getWord={this.getWord}
+            record={record}
+            oldStockLocations={this.state.oldStockLocations}
+            setHetVai={this.setHetVai}
+            wrappedComponentRef={this.adjustFormRef}
+            creatingLoading={creatingLoading}
+          />
+          <MoveModal visible={moveStockVisible}
+                      getWord={this.getWord}
+                      newStock={this.state.newStock}
+                      locations={this.state.locations}
+                      onCancel={this.handleCancel}
+                      record={record}
+                      creatingLoading={creatingLoading}
+                      onOk={this.handleMoveStock}
+                      wrappedComponentRef={this.moveFormRef}
 
-        <Modal
-          title={
-            record
-              ? this.getWord("move-stock-for") + " " + record.unique_code
-              : ""
-          }
-          centered
-          visible={moveStockVisible}
-          onOk={() => this.setState({moveStockVisible: false})}
-          onCancel={() => this.setState({moveStockVisible: false})}
-          footer={[
-            <Button
-              key="back"
-              onClick={() => this.setState({moveStockVisible: false})}
-            >
-              {this.getWord("cancel")}
-            </Button>,
-            <Button
-              key="submit"
-              type="primary"
-              loading={creatingLoading}
-              onClick={() => {
-                this.setState({creatingLoading: true});
-                this.saveMoveStock(
-                  record.fabric_id,
-                  oldLocation,
-                  newLocation,
-                  Number(newStock),
-                  Number(newExtra)
-                );
-              }}
-            >
-              {this.getWord("save")}
-            </Button>
-          ]}
-        >
-          <div>
-            <Form>
-              <FormItem label={this.getWord("from")} {...formItemLayout}>
-                <Select
-                  showSearch
-                  value={oldLocation}
-                  style={{width: 200}}
-                  placeholder={this.getWord("select-a-location")}
-                  optionFilterProp="children"
-                  onChange={oldLocation => {
-                    this.setState({oldLocation});
-                  }}
-                  filterOption={(input, option) =>
-                    option.props.children
-                      .toLowerCase()
-                      .indexOf(input.toLowerCase()) >= 0
-                  }
-                >
-                  {record &&
-                    record.stock.filter(s => s.stock > 0).map(l => (
-                      <Option value={l.location_id} key={l.location_id}>
-                        {l.location + "    max: " + l.stock + "m"}
-                      </Option>
-                    ))}
-                </Select>
-              </FormItem>
-              <FormItem label={this.getWord("to")} {...formItemLayout}>
-                <Select
-                  showSearch
-                  value={newLocation && newLocation}
-                  style={{width: 200}}
-                  placeholder={this.getWord("select-a-location")}
-                  optionFilterProp="children"
-                  onChange={newLocation => this.setState({newLocation})}
-                  filterOption={(input, option) =>
-                    option.props.children
-                      .toLowerCase()
-                      .indexOf(input.toLowerCase()) >= 0
-                  }
-                >
-                  {locations &&
-                    locations.map(l => (
-                      <Option value={l.id} key={l.id}>
-                        {l.description}
-                      </Option>
-                    ))}
-                </Select>
-              </FormItem>
-              <FormItem label={this.getWord("quantity")} {...formItemLayout}>
-                <InputNumber
-                  min={0}
-                  max={
-                    oldLocation &&
-                    Number(
-                      record.stock.find(i => i.location_id === oldLocation) ? record.stock.find(i => i.location_id === oldLocation).stock:0
-                    )
-                  }
-                  value={newStock ? newStock : 0}
-                  onChange={newStock => {
-                    this.setState({newStock});
-                  }}
-                />
-                <span>{" m"}</span>
-                <Button
-                  style={{marginLeft: 20}}
-                  disabled={!oldLocation}
-                  onClick={() =>{
-                    //console.log(record)
-                    //console.log(oldLocation)
-                    this.setState({
-                      newStock: record.stock.find(
-                        i => i.location_id === oldLocation
-                      ).total_stock,
-                      newExtra: record.stock.find(
-                        i => i.location_id === oldLocation
-                      ).extra_fabric
-                    })
-                  }
-                }
-                >
-                  {this.getWord("all")}
-                </Button>
-              </FormItem>
-            </Form>
-          </div>
-        </Modal>
+
+
+                      />
+
+
+          <Modal
+                        visible={visible}
+                        footer={null}
+                        maskClosable={true}
+                        onCancel={() => {
+                            this.setState({visible: false});
+                            this.setState({image: null});
+                        }}
+                        width="100%">
+                        <img
+                            style={{
+                                width: "100%"
+                            }}
+                            alt="Bebe Tailor"
+                            src={image}
+                            onClick={() => {
+                                this.setState({visible: false});
+                                this.setState({image: null});
+                            }}/>
+                    </Modal>
+
+
+        
+        
       </Layout>
     ) : (
       <Content className="containerHome">
