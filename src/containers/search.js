@@ -183,9 +183,9 @@ class _Search extends Component {
           let oldStock = stock.find(j => j.location_id === newStock[i].location_id).stock
           if(oldStock !== newStock[i].stock)
           {
-            if(oldStock !== 0)
+            if(Number(oldStock) !== 0)
               await this.setStock(newStock[i].fabric_id, newStock[i].location_id, oldStock, 1,"adjust remove")
-            if(newStock[i] !== 0)
+            if(Number(newStock[i].stock) !== 0)
               await this.setStock(newStock[i].fabric_id, newStock[i].location_id, newStock[i].stock, 0,"adjust add")
           }
         }
