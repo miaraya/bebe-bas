@@ -20,7 +20,8 @@ export  class AddModal extends React.Component {
 		this.state = {
 			newLocation: undefined,
 			all: 0,
-			add: this.props.add ? this.props.add : 0
+			//add: this.props.add ? this.props.add : 0
+			add: 0
 		}
 	}
 	render() {
@@ -31,7 +32,7 @@ export  class AddModal extends React.Component {
 		const { newLocation, add} = this.state
 
 		const {record, locations} = this.props
-        
+		this.add=0
 
 
 		return (
@@ -40,6 +41,7 @@ export  class AddModal extends React.Component {
 				onCancel={() => 
 				{
 					this.setState({add:0})
+					this.props.form.setFieldsValue({add:0})
 					onCancel(form)}
 				}
 				title={record && this
@@ -52,7 +54,13 @@ export  class AddModal extends React.Component {
 					? this.props.getWord("add")
 					: this.props.getWord("remove")}
 				cancelText={this.props.getWord("cancel")}
-				onOk={onOk}
+				onOk={()=> 
+				{
+					onOk()
+					this.setState({add:0})
+					this.props.form.setFieldsValue({add:0})
+					
+				}}
 				okButtonProps={{ loading: creatingLoading }}>
 				<div>
 					<Form onSubmit={this.handleSubmitAddRemove}>
@@ -123,7 +131,7 @@ export  class AddModal extends React.Component {
 											this.forceUpdate()
 										}}>
 										{
-											add === 0
+											this.state.add === 0
 												? locations.map(l => (
 													<Option value={l.id} key={l.id}>
 														{l.description}

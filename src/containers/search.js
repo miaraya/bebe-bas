@@ -24,6 +24,8 @@ import {AddModal} from "../components/addRemoveStock"
 import {AdjustModal}  from "../components/adjustStock"
 import {MoveModal}  from "../components/moveStock"
 
+import {FabricForm}  from "../components/fabric"
+
 
 
 const Auth = new AuthService(null);
@@ -53,6 +55,7 @@ class _Search extends Component {
       adjustStockVisible: false,
       addStockVisible: false,
       moveStockVisible: false,
+      editFabricVisible:false,
       colors: [],
       locationData: [],
       locations: [],
@@ -105,8 +108,10 @@ class _Search extends Component {
     this.clear();
     this.setState({record});
     this.setState({addStockVisible: true});
-  };
+    this.forceUpdate()
 
+
+  };
 
   adjustStock = record => {
     const { form } = this.adjustForm.props;
@@ -148,7 +153,38 @@ class _Search extends Component {
     await this.setStock(Number(fabric_id), to, quantity, 0, "move add")
   };
 
-  
+  editFabric = record =>
+  {
+    const { form } = this.editFabricForm.props;
+    form.resetFields();
+    this.clear();
+    this.setState({editFabricVisible:true})
+
+  }
+
+  handleEditFabric = () =>
+  {
+    const { form } = this.editFabricForm.props;
+    form.validateFields((err, values) => {
+      if (err) {
+        return;
+      }
+      this.saveEditFabric(values)
+      form.resetFields();
+    })
+  }
+
+  handleNewFabric = () =>
+  {
+    const { form } = this.newFabricForm.props;
+    form.validateFields((err, values) => {
+      if (err) {
+        return;
+      }
+      this.saveNewFabric(values)
+      form.resetFields();
+    })
+  }
 
   handleMoveStock = () => {
     const { form } = this.moveForm.props;
@@ -163,7 +199,7 @@ class _Search extends Component {
 
   }
 
-   handleAdjustStock = (oldStockLocations) => {
+  handleAdjustStock = (oldStockLocations) => {
     const { form } = this.adjustForm.props;
     form.validateFields((err, values) => {
       if (err) {
@@ -191,6 +227,114 @@ class _Search extends Component {
         }
   }
 
+  saveEditFabric = (values) => {
+    this.setState({creatingLoading: true});
+    fetch(api + "fabrics/update?where[id]=" + this.state.record.fabric_id, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        color_id: values.color,
+        old_code: values.supplier_code,
+        supplier_id: values.supplier,
+        price: values.price,
+        swatchbook_id: values.swatchbook,
+        price_band_id: values.price_band
+      })
+    })
+      .then(response => response.json())
+      .then(responseData => {
+        if (responseData.count > 0) {
+          message.success("Fabric: " + values.code + " edited.");
+
+          this.setState({editFabricVisible:false})
+          fetch(
+            api +
+              "fabricdetails?filter[where][unique_code][like]=" +
+              this.state.record.unique_code
+          )
+            .then(res => {
+              if (res.ok) {
+                return res.json();
+              } else {
+                this.setState({error: true});
+                throw new Error("Something went wrong ...");
+              }
+            }).then(data => {
+              
+              let aux = this.state.record;
+              aux.stock = _.sortBy(data, [
+                function(o) {
+                  return o.location;
+                }
+              ]);
+  
+              let total = 0;
+             aux.stock.forEach(s => {
+                total = total + Number(s.stock);
+              });
+              total > 0 ? (aux.hetvai = false) : (aux.hetvai = true);
+
+              aux.old_code=data[0].old_code
+              aux.swatchbook_id=data[0].swatchbook_id
+              aux.swatchbook=data[0].swatchbook
+              aux.color=data[0].color
+              aux.color_id=data[0].color_id
+              aux.price=data[0].price
+              aux.price_band=data[0].price_band
+              this.setState({record: aux});
+              this.forceUpdate()
+            })
+        } else {
+          message.error("Error: " + responseData.error.message);
+        }
+        console.log(
+          "POST Response",
+          "Response Body -> " + JSON.stringify(responseData)
+        );
+       })
+
+  }
+
+  saveNewFabric = values => {
+    this.setState({creatingLoading: true});
+    fetch(api + "fabrics", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        type_id: values.type,
+        unique_code: values.code,
+        color_id: values.color,
+        old_code: values.supplier_code,
+        supplier_id: values.supplier,
+        price: values.price,
+        swatchbook_id: values.swatchbook,
+        price_band_id: values.price_band,
+        image: values.code.toUpperCase() + ".jpg",
+        user_id: this.props.user ? Number(this.props.user.staff_id) : -1,
+        total_stock: values.quantity
+      })
+    })
+      .then(response => response.json())
+      .then(responseData => {
+        if (responseData.id) {
+          this.setStock(responseData.id, values.location, values.stock,0,"add");
+          message.success("Fabric: " + values.code + " created.");
+        } else {
+          message.error("Error: " + responseData.error.message);
+        }
+        console.log(
+          "POST Response",
+          "Response Body -> " + JSON.stringify(responseData)
+        );
+      });
+  };
+
   handleAddRemoveStock = () => {
     const { form } = this.addForm.props;
     form.validateFields((err, values) => {
@@ -208,8 +352,9 @@ class _Search extends Component {
           values.add === 0 ? "add" : "remove"
           );
           form.resetFields();
-
       }
+      form.setFieldsValue({add:0})
+
      
     });
   };
@@ -224,6 +369,12 @@ class _Search extends Component {
 
   moveFormRef = moveForm => {
     this.moveForm = moveForm;
+  }
+  editFabricFormRef = editFabricForm => {
+    this.editFabricForm = editFabricForm;
+  }
+  newFabricFormRef = newFabricForm => {
+    this.newFabricForm = newFabricForm;
   }
 
   showModal = () => {
@@ -248,8 +399,10 @@ class _Search extends Component {
   colors = () => {
     return this.state.colors;
   };
-  swatchbooklist = () => {
-    return this.state.swatchbooklist;
+  swatchbooklist = (filter) => {
+    
+    return  filter ? this.state.swatchbooklist.filter(i => i.type_id ===filter):this.state.swatchbooklist;
+
   };
   getSwatchbookList = () => {
     fetch(api + "swatchbooks")
@@ -344,11 +497,18 @@ class _Search extends Component {
             thumbnail_url: value[0].thumbnail_url,
             image_url: value[0].image_url,
             total:value[0].total_stock,
-            hetvai: value[0].total_stock <= 0
+            hetvai: value[0].total_stock <= 0,
+            type: value[0].type,
+            supplier: value[0].supplier,
+            supplier_id: value[0].supplier_id,
+            price: value[0].price,
+            price_band: value[0].price_band,
+            color_id: value[0].color_id,
+            type_id: value[0].type_id,
+            swatchbook_id: value[0].swatchbook_id
+
           }))
           .value();
-
-        //result = this.checkHetVai(result);
 
         this.setState({data: result});
         this.setState({loading: false});
@@ -474,18 +634,6 @@ class _Search extends Component {
   handleChangeColor = (value, record) => {
   };
 
-  checkHetVai = data => {
-    var total;
-    data.forEach(r => {
-      total = 0;
-      r.stock.forEach(s => {
-        total = total + Number(s.total_stock);
-      });
-      total > 0 ? (r.hetvai = false) : (r.hetvai = true);
-      total > 0 ? (r.total_stock = total) : (r.total_stock = 0);
-    });
-    return data;
-  };
 
   getStockData = unique_code => {
     fetch(
@@ -558,6 +706,8 @@ class _Search extends Component {
         this.setState({creatingLoading: false});
         this.setState({addStockVisible:false});
         resolve('resolvedd');
+
+        this.state.record &&
         fetch(
           api +
             "fabricdetails?filter[where][unique_code][like]=" +
@@ -644,6 +794,7 @@ class _Search extends Component {
       addStockVisible,
       creatingLoading,
       moveStockVisible,
+      editFabricVisible
     } = this.state;
 
     const options = [
@@ -778,12 +929,20 @@ class _Search extends Component {
         sorter: (a, b) => a.total_stock - b.total_stock,
         filters: [
           {
-            text: "Het Vai",
+            text: "No Stock",
             value: 0
+          },
+          {
+            text: "In Stock",
+            value: 1
           }
         ],
+        filterMultiple: false,
         onFilter: (stock, record) => {
-          return record.total_stock <= 0;
+          if(stock === 0)
+            return  Number(record.total) <= 0;
+          else
+            return Number(record.total) > 0
         },
 
         render: (stock, record) => (
@@ -840,6 +999,13 @@ class _Search extends Component {
                             {this.getWord("move-fabric")}
                           </Menu.Item>
                         ))}
+                        {
+                          record &&
+                          <Menu.Item
+                            onClick={()=>this.editFabric(record)}>
+                              {this.getWord("edit-fabric")}
+                            </Menu.Item>
+                        }
                     </Menu>
                   }
                   onClick={() => this.setState({record})}
@@ -905,6 +1071,8 @@ class _Search extends Component {
           swatchbooklist={this.swatchbooklist}
           locationlist={this.locationlist}
           user={this.state.user}
+          handleNewFabric={this.handleNewFabric}
+          newFabricFormRef={this.newFabricFormRef}
         />
         <Content className="container">
           <div
@@ -1054,45 +1222,61 @@ class _Search extends Component {
             wrappedComponentRef={this.adjustFormRef}
             creatingLoading={creatingLoading}
           />
-          <MoveModal visible={moveStockVisible}
-                      getWord={this.getWord}
-                      newStock={this.state.newStock}
-                      locations={this.state.locations}
-                      onCancel={this.handleCancel}
-                      record={record}
-                      creatingLoading={creatingLoading}
-                      onOk={this.handleMoveStock}
-                      wrappedComponentRef={this.moveFormRef}
+          <MoveModal
+            visible={moveStockVisible}
+            getWord={this.getWord}
+            newStock={this.state.newStock}
+            locations={this.state.locations}
+            onCancel={this.handleCancel}
+            record={record}
+            creatingLoading={creatingLoading}
+            onOk={this.handleMoveStock}
+            wrappedComponentRef={this.moveFormRef}
+          />
+
+          <FabricForm
+            record={record}
+            visible={editFabricVisible}
+            getWord={this.getWord}
+            types={this.types}
+            colors={this.colors}
+            swatchbooklist={()=>this.swatchbooklist(record && record.type_id)}
+            locationlist={this.locationlist}
+            suppliers={this.suppliers}
+            user={this.user}
+            onOk={this.handleEditFabric}
+            edit={true}
+            onCancel={(form)=>{
+              this.setState({editFabricVisible:false})
+              form.resetFields();
+          }}
+          wrappedComponentRef={this.editFabricFormRef}
+          creatingLoading={creatingLoading}
 
 
-
-                      />
+          />
 
 
           <Modal
-                        visible={visible}
-                        footer={null}
-                        maskClosable={true}
-                        onCancel={() => {
-                            this.setState({visible: false});
-                            this.setState({image: null});
-                        }}
-                        width="100%">
-                        <img
-                            style={{
-                                width: "100%"
-                            }}
-                            alt="Bebe Tailor"
-                            src={image}
-                            onClick={() => {
-                                this.setState({visible: false});
-                                this.setState({image: null});
-                            }}/>
-                    </Modal>
-
-
-        
-        
+            visible={visible}
+            footer={null}
+            maskClosable={true}
+            onCancel={() => {
+                this.setState({visible: false});
+                this.setState({image: null});
+            }}
+            width="100%">
+            <img
+                style={{
+                    width: "100%"
+                }}
+                alt="Bebe Tailor"
+                src={image}
+                onClick={() => {
+                    this.setState({visible: false});
+                    this.setState({image: null});
+                }}/>
+                    </Modal>  
       </Layout>
     ) : (
       <Content className="containerHome">

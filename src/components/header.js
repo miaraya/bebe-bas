@@ -24,15 +24,14 @@ class HeaderApp extends Component {
     }).isRequired
   };
 
+
   swatchbookcode = () => {
-    console.log("return: " + this.state.swatchbookcode);
     return this.state.swatchbookcode;
   };
   getSwatchbookCode = () => {
     fetch(api + "/getswatchbookcodes")
       .then(res => res.json())
       .then(swatchbookcode => {
-        console.log(swatchbookcode[0].max);
         this.setState({swatchbookcode: swatchbookcode[0].max});
         this.setState({addSwatchbookVisible: true});
       });
@@ -111,15 +110,14 @@ class HeaderApp extends Component {
             </Dropdown>
           )}
         </div>
-        <Modal
-          title={this.props.getWord("add-fabric")}
-          centered
-          visible={addFabricVisible}
-          onOk={() => this.setState({addFabricVisible: false})}
-          onCancel={() => this.setState({addFabricVisible: false})}
-          footer={null}
-        >
+
+
           <FabricForm
+            onCancel={(form)=>{
+                this.setState({addFabricVisible:false})
+                form.resetFields();
+            }}
+            visible={addFabricVisible}
             getWord={this.props.getWord}
             types={this.props.types}
             suppliers={this.props.suppliers}
@@ -127,8 +125,10 @@ class HeaderApp extends Component {
             swatchbooklist={this.props.swatchbooklist}
             locationlist={this.props.locationlist}
             user={this.props.user}
+            edit={false}
+            onOk={this.props.handleNewFabric}
+            wrappedComponentRef={this.props.newFabricFormRef}
           />
-        </Modal>
         <Modal
           title={this.props.getWord("add-swatchbook")}
           centered
