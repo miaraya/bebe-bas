@@ -9,7 +9,7 @@ import Swatchbook from "../containers/swatchbook"
 import _Search from "../containers/search"
 import Inventory from "../containers/inventory"
 import Report from "../containers/report"
-import Dashboard from "../containers/dashboard"
+//import Dashboard from "../containers/dashboard"
 import Collection from "../containers/collection"
 
 
@@ -44,7 +44,6 @@ const createRoutes = () => {
       <Route path={"/s/:id"} component={Swatchbook} />
       <Route path={"/inventory"} component={Inventory} onEnter={requireAuth} />
       <Route path={"/reports"} component={Report} />
-      <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/c/:id"} component={Collection} />
 
 
