@@ -26,7 +26,8 @@ class Collection extends Component {
             visible: false,
             locations: [],
             colorFilter: [],
-            typeFilter: []
+            typeFilter: [],
+            isLoading: false
         };
     }
     componentWillMount = () => {
@@ -52,7 +53,7 @@ formatDecimals = (figure) =>
                 }
             })
             .then(fabrics => {
-                this.setState({fabrics:_.sortBy(fabrics,f => f.unique_code)})
+                this.setState({fabrics:_.sortBy(fabrics,f => f.price_band).reverse()})
 
                 //GET COLORS
                 let colors =  _(fabrics).groupBy( c=> c.color_id )
@@ -98,39 +99,37 @@ formatDecimals = (figure) =>
     };
     
 
-    onChangeStockFilter(checked, fabricsUnfiltered) {
-        checked
-            ? this.setState({fabrics: fabricsUnfiltered})
-            : this.setState({
-                fabrics: _.filter(fabricsUnfiltered, i => i.total_stock > 0)
-            });
-    }
-
-   
-
     render() {
-       const  handleChangeColor = (values) =>
+       const  handleChangeColor = async(values) =>
         {
+            this.setState({isLoading:true})
+
             let filter = [];
              _.forEach(values, i=> filter.push({color_id:i}))
              this.setState({colorFilter: filter})
-             setFilters(filter, this.state.typeFilter)
+             
+             await setFilters(filter, this.state.typeFilter)
+
         }
-        const  handleChangeType = (values) =>
+        const  handleChangeType = async(values) =>
         {
+            this.setState({isLoading:true})
+
             let filter = [];
             _.forEach(values, i=> filter.push({type_id:i}))
 
             this.setState({typeFilter: filter})
 
-            
-            setFilters(this.state.colorFilter,filter)
+
+            await setFilters(this.state.colorFilter,filter)
+
 
         }
 
 
-        const setFilters = (colorFilter, typeFilter) =>
+        const setFilters =async (colorFilter, typeFilter) =>
         {
+
             let toFilter = []
             toFilter = fabricsUnfiltered.filter(e =>
                 _.find(colorFilter.length > 0 ? colorFilter : colors ,{color_id : e.color_id}))
@@ -138,8 +137,9 @@ formatDecimals = (figure) =>
                 _.find(typeFilter.length > 0 ? typeFilter: types, {type_id:e.type_id}))
 
              toFilter.length > 0 ?  this.setState({fabrics:toFilter}) : this.setState({fabrics:fabricsUnfiltered})
-            this.setState({fabrics:toFilter})
-            
+
+            this.setState({fabrics:_.sortBy(toFilter,s => s.price_band).reverse()}, () => this.setState({isLoading:false}))
+
         }
 
         const {
@@ -149,7 +149,7 @@ formatDecimals = (figure) =>
             image,
             visible,
             fabricsUnfiltered,
-            colors, types
+            colors, types, isLoading
         } = this.state;
 
         if (loading) {
@@ -204,6 +204,9 @@ formatDecimals = (figure) =>
                         <Divider/>
 
                         { /* FILTERS */ }
+
+                                { isLoading && <Row type="flex" justify="center"><Spin /></Row> } 
+
                         <Row type="flex" justify="center" align="top">
                         <Col type="flex" justify="center" align="center" gutter={16} span={8}>
                             <Typography style={{marginBottom:20}}>Type Filter</Typography>
@@ -213,9 +216,9 @@ formatDecimals = (figure) =>
                             <Typography style={{marginBottom:20}}>Color Filter</Typography>
                             <Checkbox.Group options={colors} onChange={handleChangeColor}>
                             {colors.map(c =>  
-                                <Checkbox value={c.value}>{c.label}</Checkbox>  )}
+                                <Checkbox key={c.value} value={c.value}>{c.label}</Checkbox>  )}
                             </Checkbox.Group>
-                        </Col></Row>
+                            </Col></Row> 
                         
                         <Divider
                             style={{
