@@ -2,7 +2,15 @@ import React, { Component } from "react";
 import { Link } from "react-router";
 import "antd/dist/antd.css";
 import "../css/css.css";
-import { Spin, Row, Col, Statistic, Descriptions, Typography } from "antd";
+import {
+  Spin,
+  Row,
+  Col,
+  Statistic,
+  Descriptions,
+  Typography,
+  List
+} from "antd";
 import { Divider } from "antd";
 
 import Logo from "../assets/logo_small.png";
@@ -13,8 +21,6 @@ import { Layout, Modal } from "antd";
 import { Rate } from "antd";
 import _ from "lodash";
 import { Checkbox } from "antd";
-import { Collapse } from "antd";
-const { Panel } = Collapse;
 
 const { Content, Footer } = Layout;
 
@@ -245,7 +251,9 @@ class Collection extends Component {
                 <Checkbox.Group options={colors} onChange={handleChangeColor}>
                   {colors.map(c => (
                     <Checkbox key={c.value} value={c.value}>
-                      {c.label}
+                      <Col type="flex" span={12}>
+                        <Typography>{c.label}</Typography>
+                      </Col>
                     </Checkbox>
                   ))}
                 </Checkbox.Group>
@@ -257,22 +265,31 @@ class Collection extends Component {
                 backgroundColor: "transparent"
               }}
             />
-            <Row
-              type="flex"
-              justify="center"
-              align="middle"
-              gutter={16}
-              span={24}
-            >
-              {fabrics ? (
-                fabrics.map(fabric => (
+
+            <List
+              grid={{
+                gutter: 16,
+                xs: 1,
+                sm: 2,
+                md: 3,
+                lg: 4,
+                xl: 5,
+                xxl: 6
+              }}
+              pagination={{
+                onChange: page => {
+                  console.log(page);
+                },
+                pageSize: 100,
+                showSizeChanger: true,
+                pageSizeOptions: [10, 50, 100, 1000],
+                position: "top"
+              }}
+              title="title"
+              dataSource={fabrics}
+              renderItem={fabric => (
+                <List.Item>
                   <Card
-                    size="small"
-                    style={{
-                      margin: 15,
-                      maxWidth: 280,
-                      alignSelf: "flex-start"
-                    }}
                     bordered={false}
                     key={fabric.unique_code}
                     title={
@@ -285,17 +302,15 @@ class Collection extends Component {
                         }}
                       >
                         {" "}
-                        <h2>
-                          <Link
-                            to={`/f/${fabric.unique_code}`}
-                            style={{
-                              fontWeight: "normal",
-                              color: "black"
-                            }}
-                          >
-                            {fabric.unique_code}
-                          </Link>
-                        </h2>
+                        <Link
+                          to={`/f/${fabric.unique_code}`}
+                          style={{
+                            fontWeight: "normal",
+                            color: "black"
+                          }}
+                        >
+                          {fabric.unique_code}
+                        </Link>
                         {fabric.price_band > 0 && (
                           <Rate
                             style={{
@@ -336,11 +351,9 @@ class Collection extends Component {
                       <Descriptions.Item label="Type">{`${fabric.type}`}</Descriptions.Item>
                     </Descriptions>
                   </Card>
-                ))
-              ) : (
-                <Spin size="medium" />
+                </List.Item>
               )}
-            </Row>
+            />
           </Content>
           <Footer
             style={{
