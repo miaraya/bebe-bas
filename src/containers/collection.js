@@ -3,15 +3,17 @@ import { Link } from "react-router";
 import "antd/dist/antd.css";
 import "../css/css.css";
 import {
-  Spin,
   Row,
   Col,
-  Statistic,
   Descriptions,
-  Typography,
-  List
+  List,
+  Tag,
+  Form,
+  Collapse,
+  PageHeader,
+  Icon,
+  BackTop
 } from "antd";
-import { Divider } from "antd";
 
 import Logo from "../assets/logo_small.png";
 
@@ -21,6 +23,7 @@ import { Layout, Modal } from "antd";
 import { Rate } from "antd";
 import _ from "lodash";
 import { Checkbox } from "antd";
+const { Panel } = Collapse;
 
 const { Content, Footer } = Layout;
 
@@ -35,116 +38,123 @@ class Collection extends Component {
       locations: [],
       colorFilter: [],
       typeFilter: [],
-      isLoading: false
+      isLoading: false,
+      fabrics: [],
+      colors: [],
+      types: [],
+      filterMetadata: [],
+      filter: []
     };
   }
-  componentWillMount = () => {
+  componentWillMount = async () => {
     let id = this.props.params.id;
+    this.setState({ loading: true });
+
     this.getFabrics(id);
+
+    this.setState({ error: false });
   };
 
-  formatDecimals = figure => {
-    return figure && figure.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  };
+  getFabrics = async id => {
+    let request = await fetch(
+      api + "web_collections?filter[where][collection]=" + id
+    );
+    let fabrics = await request.json();
 
-  getFabrics = id => {
-    fetch(api + "web_collections?filter[where][collection]=" + id)
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        } else {
-          this.setState({ error: true });
-          throw new Error("Something went wrong ...");
-        }
-      })
-      .then(fabrics => {
-        this.setState({
-          fabrics: _.sortBy(fabrics, f => f.price_band).reverse()
-        });
+    for (const f of fabrics) {
+      f.metadata.forEach(f =>
+        this.setState(prevState => ({
+          filterMetadata: [...prevState.filterMetadata, f]
+        }))
+      );
+    }
 
-        //GET COLORS
-        let colors = _(fabrics)
-          .groupBy(c => c.color_id)
+    //METADATA
+    let filterMetadata = _(this.state.filterMetadata)
+      .groupBy(c => c.metadata)
+      .map((value, key) => ({
+        metadata: value[0].metadata,
+        key: value[0].value,
+        values: _(value)
+          .groupBy(c => c.value)
           .map((value, key) => ({
-            label: `${value[0].color} (${value.length})`,
-            value: value[0].color_id,
-            color_id: value[0].color_id,
+            value: value[0].value_id,
+            data: value,
+            label: `${key} (${value.length})`,
+
             quantity: value.length
           }))
-          .value();
-        this.setState({ colors: _.sortBy(colors, c => c.quantity).reverse() });
-        console.log(colors);
+          .sortBy(fabrics, f => f.label)
+          .value()
+      }))
+      .value();
 
-        //GET TYPES
-        let types = _(fabrics)
-          .groupBy(c => c.type_id)
-          .map((value, key) => ({
-            label: `${value[0].type} (${value.length})`,
-            value: value[0].type_id,
-            type_id: value[0].type_id,
-            quantity: value.length
-          }))
-          .value();
-        this.setState({ types: _.sortBy(types, c => c.quantity).reverse() });
-        console.log(types);
+    this.setState({
+      filterMetadata: _.sortBy(filterMetadata, f => f.metadata)
+    });
+    this.setState({ loading: false });
 
-        this.setState({
-          fabricsUnfiltered: _.sortBy(fabrics, f => f.unique_code)
-        });
-        this.setState({ loading: false });
-        this.setState({ error: false });
-      })
-      .catch(error => {
-        console.log(error);
-        this.setState({ loading: false });
-
-        this.setState({ error: true });
-      });
+    this.setState({ fabrics: _.sortBy(fabrics, f => f.price_band).reverse() });
+    this.setState({ fabricsUnfiltered: fabrics });
   };
 
   render() {
-    const handleChangeColor = async values => {
-      this.setState({ isLoading: true });
+    const renderContent = (column = 2) => (
+      <Row>
+        <Descriptions size="small" column={column}>
+          <Descriptions.Item label="Number of Fabrics">
+            {fabrics && fabrics.length}
+          </Descriptions.Item>
+        </Descriptions>
+        <Collapse
+          bordered={false}
+          expandIcon={({ isActive }) => (
+            <Icon type="caret-right" rotate={isActive ? 90 : 0} />
+          )}
+        >
+          <Panel header="Filters" key="1" style={customPanelStyle}>
+            <Form onSubmit={this.handleSubmit}>
+              <Checkbox.Group onChange={handleChange}>
+                {filterMetadata &&
+                  filterMetadata.map((x, j) => (
+                    <Col key={j} xs={24} sm={12}>
+                      <Form.Item label={x.metadata} key={x.metadata}>
+                        {x.values &&
+                          x.values.map(v => (
+                            <Col xs={12} sm={12} md={8} key={v.label}>
+                              <Checkbox value={v.value}>{v.label}</Checkbox>
+                            </Col>
+                          ))}
+                      </Form.Item>
+                    </Col>
+                  ))}
+              </Checkbox.Group>
+            </Form>
+          </Panel>
+        </Collapse>
+      </Row>
+    );
+    const handleChange = async values => {
+      this.setState({ filter: values });
 
-      let filter = [];
-      _.forEach(values, i => filter.push({ color_id: i }));
-      this.setState({ colorFilter: filter });
-
-      await setFilters(filter, this.state.typeFilter);
+      await setFilters(values);
     };
-    const handleChangeType = async values => {
-      this.setState({ isLoading: true });
 
-      let filter = [];
-      _.forEach(values, i => filter.push({ type_id: i }));
-
-      this.setState({ typeFilter: filter });
-
-      await setFilters(this.state.colorFilter, filter);
-    };
-
-    const setFilters = async (colorFilter, typeFilter) => {
+    const setFilters = async filter => {
       let toFilter = [];
-      toFilter = fabricsUnfiltered
-        .filter(e =>
-          _.find(colorFilter.length > 0 ? colorFilter : colors, {
-            color_id: e.color_id
-          })
-        )
-        .filter(e =>
-          _.find(typeFilter.length > 0 ? typeFilter : types, {
-            type_id: e.type_id
-          })
+
+      if (filter.length) {
+        toFilter = _.filter(fabricsUnfiltered, e =>
+          _.find(e.metadata, i => _.find(filter, x => x === i.value_id))
         );
 
-      toFilter.length > 0
-        ? this.setState({ fabrics: toFilter })
-        : this.setState({ fabrics: fabricsUnfiltered });
-
-      this.setState(
-        { fabrics: _.sortBy(toFilter, s => s.price_band).reverse() },
-        () => this.setState({ isLoading: false })
-      );
+        this.setState(
+          { fabrics: _.sortBy(toFilter, s => s.price_band).reverse() },
+          () => this.setState({ isLoading: false })
+        );
+      } else {
+        this.setState({ fabrics: fabricsUnfiltered });
+      }
     };
 
     const {
@@ -154,18 +164,18 @@ class Collection extends Component {
       image,
       visible,
       fabricsUnfiltered,
-      colors,
-      types,
-      isLoading
+      filterMetadata
     } = this.state;
 
-    if (loading) {
-      return (
-        <Content className="containerHome">
-          <Spin size="large" />
-        </Content>
-      );
-    } else if (error) {
+    const customPanelStyle = {
+      background: "#f7f7f7",
+      borderRadius: 4,
+      marginBottom: 24,
+      border: 0,
+      overflow: "hidden"
+    };
+
+    if (error) {
       return (
         <div>
           COLLECTION <b>{this.props.params.id.toUpperCase()}</b> NOT FOUND :(
@@ -174,99 +184,34 @@ class Collection extends Component {
     } else
       return (
         <Layout className="swrapper">
-          <Row
-            type="flex"
-            justify="center"
-            align="middle"
-            gutter={16}
-            span={24}
-            style={{
-              marginBottom: 20
-            }}
-          >
-            <img src={Logo} alt="Bebe Tailor" width="150px" />
-          </Row>
+          <BackTop />
           <Content className="container">
             <Row
               type="flex"
               justify="center"
               align="middle"
-              gutter={16}
-              span={24}
-            >
-              <Col xs={24} sm={24} md={4} justify="center">
-                <Statistic
-                  title="Collection"
-                  value={this.props.params.id.toUpperCase()}
-                  style={{
-                    textAlign: "center"
-                  }}
-                />
-              </Col>
-
-              <Col xs={24} sm={24} md={4} justify="center">
-                <Statistic
-                  title="Number of Fabrics"
-                  value={fabrics && fabrics.length}
-                  style={{
-                    textAlign: "center"
-                  }}
-                />
-              </Col>
-            </Row>
-
-            <Divider />
-
-            {/* FILTERS */}
-
-            {isLoading && (
-              <Row type="flex" justify="center">
-                <Spin />
-              </Row>
-            )}
-
-            <Row type="flex" justify="center" align="top">
-              <Col
-                type="flex"
-                justify="center"
-                align="center"
-                gutter={16}
-                span={8}
-              >
-                <Typography style={{ marginBottom: 20 }}>
-                  Type Filter
-                </Typography>
-                <Checkbox.Group options={types} onChange={handleChangeType} />
-              </Col>
-              <Col
-                type="flex"
-                justify="center"
-                align="center"
-                gutter={16}
-                span={8}
-              >
-                <Typography style={{ marginBottom: 20 }}>
-                  Color Filter
-                </Typography>
-                <Checkbox.Group options={colors} onChange={handleChangeColor}>
-                  {colors.map(c => (
-                    <Checkbox key={c.value} value={c.value}>
-                      <Col type="flex" span={12}>
-                        <Typography>{c.label}</Typography>
-                      </Col>
-                    </Checkbox>
-                  ))}
-                </Checkbox.Group>
-              </Col>
-            </Row>
-
-            <Divider
               style={{
-                backgroundColor: "transparent"
+                marginBottom: 20
               }}
-            />
+            >
+              <img src={Logo} alt="Bebe Tailor" width="150px" />
+            </Row>
+
+            <PageHeader
+              ghost={true}
+              style={{
+                border: "1px solid rgb(235, 237, 240)"
+              }}
+              title="Collection"
+              subTitle={this.props.params.id.toUpperCase()}
+            >
+              <Content>{renderContent()}</Content>
+            </PageHeader>
 
             <List
+              loading={loading}
+              split={true}
+              loadMore={true}
               grid={{
                 gutter: 16,
                 xs: 1,
@@ -274,22 +219,19 @@ class Collection extends Component {
                 md: 3,
                 lg: 4,
                 xl: 5,
-                xxl: 6
+                xxl: 5
               }}
               pagination={{
-                onChange: page => {
-                  console.log(page);
-                },
-                pageSize: 100,
                 showSizeChanger: true,
-                pageSizeOptions: [10, 50, 100, 1000],
-                position: "top"
+                pageSizeOptions: ["10", "50", "100", "1000"],
+                position: "both"
               }}
-              title="title"
               dataSource={fabrics}
               renderItem={fabric => (
                 <List.Item>
                   <Card
+                    loading={loading}
+                    bodyStyle={{ padding: 10 }}
                     bordered={false}
                     key={fabric.unique_code}
                     title={
@@ -301,7 +243,6 @@ class Collection extends Component {
                           alignContent: "center"
                         }}
                       >
-                        {" "}
                         <Link
                           to={`/f/${fabric.unique_code}`}
                           style={{
@@ -324,7 +265,10 @@ class Collection extends Component {
                     }
                     cover={
                       <img
-                        style={{ height: 200, overflow: "hidden" }}
+                        style={{
+                          maxHeight: 200,
+                          masoverflow: "hidden"
+                        }}
                         alt={fabric.unique_code}
                         src={fabric.thumbnail_url}
                         onClick={() => {
@@ -333,9 +277,9 @@ class Collection extends Component {
                         }}
                       />
                     }
+                    actions={[]}
                   >
                     <Descriptions size="small" column={1}>
-                      {/*<Descriptions.Item label="Price">{`$${this.formatDecimals(fabric.price)} VND`}</Descriptions.Item>*/}
                       <Descriptions.Item label="Swatchbook">
                         <Link to={`/s/${fabric.swatchbook}`}>
                           {fabric.swatchbook}
@@ -345,10 +289,18 @@ class Collection extends Component {
                         {fabric.old_code}
                       </Descriptions.Item>
 
-                      <Descriptions.Item label="Color">
-                        {fabric.color}
-                      </Descriptions.Item>
                       <Descriptions.Item label="Type">{`${fabric.type}`}</Descriptions.Item>
+
+                      {filterMetadata.map(f => (
+                        <Descriptions.Item label={f.metadata} key={f.metadata}>
+                          {fabric.metadata.map(
+                            m =>
+                              f.metadata === m.metadata && (
+                                <Tag key={m.id}>{m.value}</Tag>
+                              )
+                          )}
+                        </Descriptions.Item>
+                      ))}
                     </Descriptions>
                   </Card>
                 </List.Item>

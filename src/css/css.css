@@ -1,56 +1,49 @@
 .containerHome {
   background: white;
   padding: 0px;
-  margin:0px;
+  margin: 0px;
   display: flex;
   justify-content: center;
   flex-direction: column;
   align-items: center;
-  height:100vh;
+  height: 100vh;
 }
 .header {
   background: white;
-  margin:0px;
+  margin: 0px;
   display: flex;
   justify-content: space-between;
   flex-direction: row;
-  flex:1;
+  flex: 1;
   flex-wrap: wrap;
-
 }
 .container {
   background: white;
   justify-content: center;
   align-items: center;
   margin-bottom: 50px;
-  padding-top: 20px;
-
 }
-.wrapper
-{
+.wrapper {
   max-width: 1024px;
-   margin: 0 auto;
-   background: white;
-   padding:20px;
-   min-width:375px;
-
+  margin: 0 auto;
+  background: white;
+  padding: 20px;
+  min-width: 375px;
 }
-.swrapper
-{
+.swrapper {
   max-width: 1920px;
-   margin: 0 auto;
-   background: white;
-   padding:20px;
-   min-width:375px;
-
+  margin: 0 auto;
+  background: white;
+  padding: 20px;
+  min-width: 375px;
 }
 .login-form {
   max-width: 300px;
 }
- .login-form-forgot {
+.login-form-forgot {
   float: right;
 }
- .login-form-button {
+.login-form-button {
   width: 100%;
 }
 th.right,
@@ -58,7 +51,8 @@ td.right {
   text-align: right !important;
 }
 
-.col-1, .col-2 {
+.col-1,
+.col-2 {
   width: 48%;
   display: inline;
   color: black;
@@ -145,7 +139,7 @@ td.right {
 
 @page {
   size: A4;
-  margin: 0 ;
+  margin: 0;
 }
 
 @media print {
@@ -153,11 +147,12 @@ td.right {
     margin: 0;
   }
 
-  h2, .col-head {
+  h2,
+  .col-head {
     margin: 0 auto;
     font-size: 5mm;
   }
-/*  .header {
+  /*  .header {
     position: fixed;
     top: 0;
     width: 100%;
