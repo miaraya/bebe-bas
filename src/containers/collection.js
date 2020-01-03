@@ -62,11 +62,12 @@ class Collection extends Component {
     let fabrics = await request.json();
 
     for (const f of fabrics) {
-      f.metadata.forEach(f =>
-        this.setState(prevState => ({
-          filterMetadata: [...prevState.filterMetadata, f]
-        }))
-      );
+      f.metadata &&
+        f.metadata.forEach(f =>
+          this.setState(prevState => ({
+            filterMetadata: [...prevState.filterMetadata, f]
+          }))
+        );
     }
 
     //METADATA
