@@ -142,8 +142,22 @@ class Collection extends Component {
     };
 
     const setFilters = async filter => {
-      let toFilter = [];
-
+      if (filter.length) {
+        let aux = fabricsUnfiltered;
+        filter.forEach(
+          x =>
+            (aux = _.filter(aux, e =>
+              _.find(e.metadata, i => i.value_id === x)
+            ))
+        );
+        this.setState(
+          { fabrics: _.sortBy(aux, s => s.price_band).reverse() },
+          () => this.setState({ isLoading: false })
+        );
+      } else {
+        this.setState({ fabrics: fabricsUnfiltered });
+      }
+      /*
       if (filter.length) {
         toFilter = _.filter(fabricsUnfiltered, e =>
           _.find(e.metadata, i => _.find(filter, x => x === i.value_id))
@@ -155,7 +169,7 @@ class Collection extends Component {
         );
       } else {
         this.setState({ fabrics: fabricsUnfiltered });
-      }
+      }*/
     };
 
     const {
