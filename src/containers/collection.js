@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Link } from "react-router";
 import "antd/dist/antd.css";
 import "../css/css.css";
+
 import {
   Row,
   Col,
@@ -12,7 +13,11 @@ import {
   Collapse,
   PageHeader,
   Icon,
-  BackTop
+  BackTop,
+  Typography,
+  Button,
+  Tooltip,
+  message
 } from "antd";
 
 import Logo from "../assets/logo_small.png";
@@ -23,6 +28,9 @@ import { Layout, Modal } from "antd";
 import { Rate } from "antd";
 import _ from "lodash";
 import { Checkbox } from "antd";
+import AuthService from "../AuthService";
+
+const Auth = new AuthService(null);
 const { Panel } = Collapse;
 
 const { Content, Footer } = Layout;
@@ -43,7 +51,8 @@ class Collection extends Component {
       colors: [],
       types: [],
       filterMetadata: [],
-      filter: []
+      filter: [],
+      selectedFabrics: []
     };
   }
   componentWillMount = async () => {
@@ -100,11 +109,44 @@ class Collection extends Component {
   };
 
   render() {
-    const renderContent = (column = 2) => (
+    const handleCopy = e => {
+      this.textArea.select();
+      document.execCommand("copy");
+      // This is just personal preference.
+      // I prefer to not show the the whole text area selected.
+      //e.target.focus();
+      message.info("Selected fabric list copied!");
+
+      //this.setState({ copySuccess: 'Copied!' });
+    };
+    const renderContent = (column = 1) => (
       <Row>
         <Descriptions size="small" column={column}>
           <Descriptions.Item label="Number of Fabrics">
             {fabrics && fabrics.length}
+          </Descriptions.Item>
+          <Descriptions.Item
+            label={
+              selectedFabrics.length > 0
+                ? `Selected Fabrics (${selectedFabrics.length})`
+                : `Selected Fabrics`
+            }
+          >
+            <span>
+              {selectedFabrics.map(f => (
+                <Tag key={f}>{f}</Tag>
+              ))}
+              {selectedFabrics.length > 0 && (
+                <Tooltip title="Copy">
+                  <Button
+                    type="solid"
+                    shape="circle"
+                    icon="copy"
+                    onClick={handleCopy}
+                  />
+                </Tooltip>
+              )}
+            </span>
           </Descriptions.Item>
         </Descriptions>
         <Collapse
@@ -157,19 +199,24 @@ class Collection extends Component {
       } else {
         this.setState({ fabrics: fabricsUnfiltered });
       }
-      /*
-      if (filter.length) {
-        toFilter = _.filter(fabricsUnfiltered, e =>
-          _.find(e.metadata, i => _.find(filter, x => x === i.value_id))
-        );
+    };
 
-        this.setState(
-          { fabrics: _.sortBy(toFilter, s => s.price_band).reverse() },
-          () => this.setState({ isLoading: false })
-        );
+    const handleCheck = e => {
+      let value = e.target.value;
+      let checked = e.target.checked;
+      console.log(value);
+
+      if (checked) {
+        !_.includes(this.state.selectedFabrics, value) &&
+          this.setState(prevState => ({
+            selectedFabrics: [...prevState.selectedFabrics, value]
+          }));
       } else {
-        this.setState({ fabrics: fabricsUnfiltered });
-      }*/
+        this.setState(prevState => ({
+          selectedFabrics: _.filter(prevState.selectedFabrics, x => x !== value)
+        }));
+      }
+      console.log(this.state.selectedFabrics);
     };
 
     const {
@@ -179,7 +226,8 @@ class Collection extends Component {
       image,
       visible,
       fabricsUnfiltered,
-      filterMetadata
+      filterMetadata,
+      selectedFabrics
     } = this.state;
 
     const customPanelStyle = {
@@ -222,105 +270,126 @@ class Collection extends Component {
             >
               <Content>{renderContent()}</Content>
             </PageHeader>
-
-            <List
-              loading={loading}
-              split={true}
-              loadMore={true}
-              grid={{
-                gutter: 16,
-                xs: 1,
-                sm: 2,
-                md: 3,
-                lg: 4,
-                xl: 5,
-                xxl: 5
-              }}
-              pagination={{
-                showSizeChanger: true,
-                pageSizeOptions: ["10", "50", "100", "1000"],
-                position: "both"
-              }}
-              dataSource={fabrics}
-              renderItem={fabric => (
-                <List.Item>
-                  <Card
-                    loading={loading}
-                    bodyStyle={{ padding: 10 }}
-                    bordered={false}
-                    key={fabric.unique_code}
-                    title={
-                      <div
-                        style={{
-                          display: "flex",
-                          flex: 1,
-                          justifyContent: "space-between",
-                          alignContent: "center"
-                        }}
-                      >
-                        <Link
-                          to={`/f/${fabric.unique_code}`}
+            <Checkbox.Group style={{ width: "100%" }}>
+              <List
+                loading={loading}
+                grid={{
+                  gutter: 16,
+                  xs: 1,
+                  sm: 2,
+                  md: 4,
+                  lg: 4,
+                  xl: 4,
+                  xxl: 4
+                }}
+                pagination={{
+                  showSizeChanger: true,
+                  pageSizeOptions: ["10", "50", "100", "1000"],
+                  position: "both",
+                  showTitle: true,
+                  onChange: () => this.forceUpdate(),
+                  style: { marginBottom: 10 }
+                }}
+                dataSource={fabrics}
+                renderItem={fabric => (
+                  <List.Item>
+                    <Card
+                      loading={loading}
+                      bodyStyle={{ padding: 10 }}
+                      headStyle={{
+                        paddingLeft: 10,
+                        paddingRight: 10,
+                        width: "100%"
+                      }}
+                      bordered={true}
+                      key={fabric.unique_code}
+                      title={
+                        <span
                           style={{
-                            fontWeight: "normal",
-                            color: "black"
+                            display: "flex",
+                            flex: 1,
+                            flexDirection: "row",
+                            alignItems: "center"
                           }}
                         >
-                          {fabric.unique_code}
-                        </Link>
-                        {fabric.price_band > 0 && (
-                          <Rate
-                            style={{
-                              fontSize: 14
-                            }}
-                            disabled
-                            defaultValue={Number(fabric.price_band)}
-                          />
-                        )}
-                      </div>
-                    }
-                    cover={
-                      <img
-                        style={{
-                          maxHeight: 200,
-                          masoverflow: "hidden"
-                        }}
-                        alt={fabric.unique_code}
-                        src={fabric.thumbnail_url}
-                        onClick={() => {
-                          this.setState({ image: fabric.image_url });
-                          this.setState({ visible: true });
-                        }}
-                      />
-                    }
-                    actions={[]}
-                  >
-                    <Descriptions size="small" column={1}>
-                      <Descriptions.Item label="Swatchbook">
-                        <Link to={`/s/${fabric.swatchbook}`}>
-                          {fabric.swatchbook}
-                        </Link>
-                      </Descriptions.Item>
-                      <Descriptions.Item label="Old Code">
-                        {fabric.old_code}
-                      </Descriptions.Item>
-
-                      <Descriptions.Item label="Type">{`${fabric.type}`}</Descriptions.Item>
-
-                      {filterMetadata.map(f => (
-                        <Descriptions.Item label={f.metadata} key={f.metadata}>
-                          {fabric.metadata.map(
-                            m =>
-                              f.metadata === m.metadata && (
-                                <Tag key={m.id}>{m.value}</Tag>
-                              )
+                          <Checkbox
+                            value={fabric.unique_code}
+                            onChange={e => handleCheck(e)}
+                          >
+                            {Auth.loggedIn() ? (
+                              <Link
+                                to={`/f/${fabric.unique_code}`}
+                                style={{ color: "black" }}
+                              >
+                                {fabric.swatchbook}
+                              </Link>
+                            ) : (
+                              <span>{fabric.unique_code}</span>
+                            )}
+                          </Checkbox>
+                          {fabric.price_band > 0 && (
+                            <Rate
+                              style={{
+                                width: "100%",
+                                textAlign: "right"
+                              }}
+                              disabled
+                              defaultValue={Number(fabric.price_band)}
+                            />
+                          )}
+                        </span>
+                      }
+                      cover={
+                        <img
+                          style={{
+                            maxHeight: 180,
+                            masoverflow: "hidden"
+                          }}
+                          alt={fabric.unique_code}
+                          src={fabric.thumbnail_url}
+                          onClick={() => {
+                            this.setState({ image: fabric.image_url });
+                            this.setState({ visible: true });
+                          }}
+                        />
+                      }
+                      actions={[]}
+                    >
+                      <Descriptions size="small" column={1}>
+                        <Descriptions.Item label="Swatchbook">
+                          {Auth.loggedIn() ? (
+                            <Link to={`/s/${fabric.swatchbook}`}>
+                              {fabric.swatchbook}
+                            </Link>
+                          ) : (
+                            <Typography> {fabric.swatchbook}</Typography>
                           )}
                         </Descriptions.Item>
-                      ))}
-                    </Descriptions>
-                  </Card>
-                </List.Item>
-              )}
-            />
+                        <Descriptions.Item label="Old Code">
+                          {fabric.old_code}
+                        </Descriptions.Item>
+
+                        <Descriptions.Item label="Type">{`${fabric.type}`}</Descriptions.Item>
+
+                        {filterMetadata.map(f => (
+                          <Descriptions.Item
+                            label={f.metadata}
+                            key={f.metadata}
+                          >
+                            {fabric.metadata.map(
+                              m =>
+                                f.metadata === m.metadata && (
+                                  <Tag key={m.id}>{m.value}</Tag>
+                                )
+                            )}
+                          </Descriptions.Item>
+                        ))}
+                      </Descriptions>
+                    </Card>
+                  </List.Item>
+                )}
+              />
+            </Checkbox.Group>
           </Content>
           <Footer
             style={{
@@ -353,6 +422,13 @@ class Collection extends Component {
               }}
             />
           </Modal>
+          <form>
+            <input
+              style={{ color: "white" }}
+              ref={textarea => (this.textArea = textarea)}
+              value={_.map(selectedFabrics).join(", ")}
+            />
+          </form>
         </Layout>
       );
   }
