@@ -17,17 +17,20 @@ import {
   Typography,
   Button,
   Tooltip,
-  message
+  message,
+  Anchor,
+  Switch,
+  Card,
+  Layout,
+  Modal,
+  Rate,
+  Checkbox
 } from "antd";
 
 import Logo from "../assets/logo_small.png";
 
 import { api } from "./constants";
-import { Card } from "antd";
-import { Layout, Modal } from "antd";
-import { Rate } from "antd";
 import _ from "lodash";
-import { Checkbox } from "antd";
 import AuthService from "../AuthService";
 
 const Auth = new AuthService(null);
@@ -52,15 +55,15 @@ class Collection extends Component {
       types: [],
       filterMetadata: [],
       filter: [],
-      selectedFabrics: []
+      selectedFabrics: [],
+      affix: false,
+      pageSize: 50
     };
   }
   componentWillMount = async () => {
     let id = this.props.params.id;
     this.setState({ loading: true });
-
     this.getFabrics(id);
-
     this.setState({ error: false });
   };
 
@@ -100,7 +103,7 @@ class Collection extends Component {
       .value();
 
     this.setState({
-      filterMetadata: _.sortBy(filterMetadata, f => f.metadata)
+      filterMetadata: _.sortBy(filterMetadata, f => f.order)
     });
     this.setState({ loading: false });
 
@@ -109,15 +112,42 @@ class Collection extends Component {
   };
 
   render() {
-    const handleCopy = e => {
-      this.textArea.select();
-      document.execCommand("copy");
-      // This is just personal preference.
-      // I prefer to not show the the whole text area selected.
-      //e.target.focus();
-      message.info("Selected fabric list copied!");
+    const handleCopy = el => {
+      // resolve the element
+      el = typeof el === "string" ? document.querySelector(el) : el;
 
-      //this.setState({ copySuccess: 'Copied!' });
+      console.log(el);
+
+      // handle iOS as a special case
+      if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
+        // save current contentEditable/readOnly status
+        var editable = el.contentEditable;
+        var readOnly = el.readOnly;
+
+        // convert to editable with readonly to stop iOS keyboard opening
+        el.contentEditable = true;
+        el.readOnly = true;
+
+        // create a selectable range
+        var range = document.createRange();
+        range.selectNodeContents(el);
+
+        // select the range
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        el.setSelectionRange(0, 999999);
+
+        // restore contentEditable/readOnly to original state
+        el.contentEditable = editable;
+        el.readOnly = readOnly;
+      } else {
+        el.select();
+      }
+
+      // execute copy command
+      document.execCommand("copy");
+      message.info("Selected fabric list copied!");
     };
     const renderContent = (column = 1) => (
       <Row>
@@ -142,7 +172,9 @@ class Collection extends Component {
                     type="solid"
                     shape="circle"
                     icon="copy"
-                    onClick={handleCopy}
+                    onClick={() => {
+                      handleCopy(".toCopy");
+                    }}
                   />
                 </Tooltip>
               )}
@@ -218,6 +250,9 @@ class Collection extends Component {
       }
       console.log(this.state.selectedFabrics);
     };
+    const handleSwitch = () => {
+      this.setState({ affix: !this.state.affix });
+    };
 
     const {
       loading,
@@ -227,7 +262,9 @@ class Collection extends Component {
       visible,
       fabricsUnfiltered,
       filterMetadata,
-      selectedFabrics
+      selectedFabrics,
+      affix,
+      pageSize
     } = this.state;
 
     const customPanelStyle = {
@@ -259,17 +296,28 @@ class Collection extends Component {
             >
               <img src={Logo} alt="Bebe Tailor" width="150px" />
             </Row>
-
-            <PageHeader
-              ghost={true}
-              style={{
-                border: "1px solid rgb(235, 237, 240)"
-              }}
-              title="Collection"
-              subTitle={this.props.params.id.toUpperCase()}
-            >
-              <Content>{renderContent()}</Content>
-            </PageHeader>
+            <Anchor style={{ paddingTop: 10, paddingBottom: 10 }} affix={affix}>
+              <PageHeader
+                ghost={true}
+                extra={[
+                  <Tooltip title="Sticky Header" key={"tooltip"}>
+                    <Switch
+                      onChange={handleSwitch}
+                      loading={loading}
+                      checkedChildren="Sticky Header"
+                      checked={affix}
+                    />
+                  </Tooltip>
+                ]}
+                style={{
+                  border: "1px solid rgb(235, 237, 240)"
+                }}
+                title="Collection"
+                subTitle={this.props.params.id.toUpperCase()}
+              >
+                <Content>{renderContent()}</Content>
+              </PageHeader>
+            </Anchor>
             <Checkbox.Group style={{ width: "100%" }}>
               <List
                 loading={loading}
@@ -287,8 +335,11 @@ class Collection extends Component {
                   pageSizeOptions: ["10", "50", "100", "1000"],
                   position: "both",
                   showTitle: true,
-                  onChange: () => this.forceUpdate(),
-                  style: { marginBottom: 10 }
+                  style: { marginBottom: 10 },
+                  pageSize: pageSize,
+                  size: "small",
+                  onShowSizeChange: (page, pageSize) =>
+                    this.setState({ pageSize })
                 }}
                 dataSource={fabrics}
                 renderItem={fabric => (
@@ -422,13 +473,16 @@ class Collection extends Component {
               }}
             />
           </Modal>
-          <form>
-            <input
-              style={{ color: "white" }}
-              ref={textarea => (this.textArea = textarea)}
-              value={_.map(selectedFabrics).join(", ")}
-            />
-          </form>
+
+          <input
+            style={{
+              color: "white",
+              borderColor: "transparent"
+            }}
+            className="toCopy"
+            type="text"
+            defaultValue={_.map(selectedFabrics).join(", ")}
+          />
         </Layout>
       );
   }
