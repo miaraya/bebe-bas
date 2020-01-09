@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Link } from "react-router";
 import "antd/dist/antd.css";
 import "../css/css.css";
+import Top from "../components/top";
 
 import {
   Row,
@@ -68,7 +69,7 @@ class Collection extends Component {
   componentWillMount = async () => {
     if (Auth.loggedIn()) {
       const profile = Auth.getProfile();
-      console.log(profile);
+      this.setState({ user: profile });
     }
 
     let id = this.props.params.id;
@@ -85,7 +86,6 @@ class Collection extends Component {
     let fabrics = await request.json();
 
     for (const f of fabrics) {
-      //console.log(f.metadata);
       f.metadata &&
         f.metadata.forEach(f =>
           this.setState(prevState => ({
@@ -125,7 +125,6 @@ class Collection extends Component {
 
   checkMeta = record => {
     let meta = this.state.metadataClear;
-    console.log(record);
     record.metadata &&
       record.metadata.forEach(
         r =>
@@ -134,7 +133,6 @@ class Collection extends Component {
             m =>
               m.meta &&
               m.meta.forEach(m => {
-                console.log(m);
                 if (r.value_id === m.id) {
                   m.checked = true;
                   m.fabric_metadata_id = r.id;
@@ -161,8 +159,8 @@ class Collection extends Component {
     fetch(api + "web_metadata")
       .then(res => res.json())
       .then(metadata => {
-        this.setState({ metadata });
-        this.setState({ metadataClear: metadata });
+        this.setState({ metadata: _.sortBy(metadata, m => m.value) });
+        this.setState({ metadataClear: _.sortBy(metadata, m => m.value) });
       });
   };
 
@@ -313,14 +311,6 @@ class Collection extends Component {
       checked
     ) => {
       this.setState({ creatingLoading: true });
-      console.log(this.state.user);
-      console.log(
-        value_id,
-        metadata_id,
-        fabric_id,
-        fabric_metadata_id,
-        checked
-      );
 
       fetch(api + "fabric_metadata", {
         method: "PUT",
@@ -343,8 +333,6 @@ class Collection extends Component {
         });
     };
     const handleSaveMetadata = async (metadata, fabric_id) => {
-      console.log(metadata, fabric_id);
-
       metadata.forEach(m =>
         m.meta.forEach(
           m =>
@@ -363,7 +351,6 @@ class Collection extends Component {
         api + "web_collections?filter[where][fabric_id]=" + record.fabric_id
       );
       let aux = await request.json();
-      console.log(aux, record);
       record.metadata = aux[0].metadata;
       this.setState({ record });
       this.getMetadata();
@@ -406,6 +393,14 @@ class Collection extends Component {
     } else
       return (
         <Layout className="swrapper">
+          {Auth.loggedIn() && (
+            <Top
+              username={this.state.user && this.state.user.username}
+              getWord={() => {
+                return "LOGOUT";
+              }}
+            />
+          )}
           <BackTop />
           <Content className="container">
             <Row
@@ -486,13 +481,25 @@ class Collection extends Component {
                             }
                           />
                         </Tooltip>,
-                        <Tooltip title="Edit">
-                          <Icon
-                            type="edit"
-                            key="edit"
-                            onClick={() => this.editFabric(fabric)}
-                          />
-                        </Tooltip>
+                        Auth.loggedIn() && (
+                          <Tooltip title="Fabric Data">
+                            <Link
+                              to={`/f/${fabric.unique_code}`}
+                              target="_blank"
+                            >
+                              <Icon type="eye" />
+                            </Link>
+                          </Tooltip>
+                        ),
+                        Auth.loggedIn() && (
+                          <Tooltip title="Edit">
+                            <Icon
+                              type="edit"
+                              key="edit"
+                              onClick={() => this.editFabric(fabric)}
+                            />
+                          </Tooltip>
+                        )
                       ]}
                       loading={loading}
                       bodyStyle={{ padding: 10 }}
@@ -522,7 +529,8 @@ class Collection extends Component {
                             <Rate
                               style={{
                                 width: "100%",
-                                textAlign: "right"
+                                textAlign: "right",
+                                fontSize: 14
                               }}
                               disabled
                               defaultValue={Number(fabric.price_band)}
@@ -580,7 +588,10 @@ class Collection extends Component {
                           <Descriptions key={1} size="small" column={1}>
                             <Descriptions.Item label="Swatchbook">
                               {Auth.loggedIn() ? (
-                                <Link to={`/s/${fabric.swatchbook}`}>
+                                <Link
+                                  to={`/s/${fabric.swatchbook}`}
+                                  target="_blank"
+                                >
                                   {fabric.swatchbook}
                                 </Link>
                               ) : (
