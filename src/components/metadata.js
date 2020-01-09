@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Form, Modal, Tag } from "antd";
 import { formItemLayout } from "../containers/constants";
+import _ from "lodash";
 
 const { CheckableTag } = Tag;
 const FormItem = Form.Item;
@@ -14,7 +15,6 @@ export class MetadataForm extends Component {
   }
   componentWillMount = () => {};
   handleChange = (checked, m) => {
-    console.log(checked);
     m.checked = checked;
 
     this.forceUpdate();
@@ -48,7 +48,7 @@ export class MetadataForm extends Component {
                 {...formItemLayout}
                 value={m}
               >
-                {m.meta.map(m => (
+                {_.sortBy(m.meta, m => m.value).map(m => (
                   <CheckableTag
                     key={m.id}
                     onChange={checked => this.handleChange(checked, m)}
