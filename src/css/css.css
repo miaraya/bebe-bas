@@ -1,3 +1,36 @@
+.collapse > .ant-collapse-header {
+  display: none;
+}
+.ant-collapse {
+  border-color: transparent;
+  border-bottom-color: transparent;
+  border-top-color: transparent;
+  border-width: 0px;
+}
+
+.ant-collapse-content {
+  padding: 0px;
+  border-bottom-color: transparent;
+  border-top-color: transparent;
+  border-width: 0px;
+}
+.ant-collapse-content-box {
+  padding: 0px;
+}
+
+.ant-collapse > .ant-collapse-item {
+  border-width: 0px;
+}
+
+.ant-collapse > .ant-collapse-item:last-child,
+.ant-collapse > .ant-collapse-item:last-child > .ant-collapse-header {
+  border-color: transparent;
+}
+
+.ant-collapse-content > .ant-collapse-content-box {
+  padding: 0px;
+  padding-left: 10px;
+}
 .containerHome {
   background: white;
   padding: 0px;
@@ -31,7 +64,7 @@
   min-width: 375px;
 }
 .swrapper {
-  max-width: 1920px;
+  max-width: 1336px;
   margin: 0 auto;
   background: white;
   padding: 20px;

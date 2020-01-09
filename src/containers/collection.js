@@ -26,6 +26,7 @@ import {
   Rate,
   Checkbox
 } from "antd";
+import { MetadataForm } from "../components/metadata";
 
 import Logo from "../assets/logo_small.png";
 
@@ -57,12 +58,22 @@ class Collection extends Component {
       filter: [],
       selectedFabrics: [],
       affix: false,
-      pageSize: 50
+      pageSize: 50,
+      activeKey: 0,
+      record: null,
+      editFabricVisible: false,
+      creatingLoading: false
     };
   }
   componentWillMount = async () => {
+    if (Auth.loggedIn()) {
+      const profile = Auth.getProfile();
+      console.log(profile);
+    }
+
     let id = this.props.params.id;
     this.setState({ loading: true });
+    this.getMetadata();
     this.getFabrics(id);
     this.setState({ error: false });
   };
@@ -74,6 +85,7 @@ class Collection extends Component {
     let fabrics = await request.json();
 
     for (const f of fabrics) {
+      //console.log(f.metadata);
       f.metadata &&
         f.metadata.forEach(f =>
           this.setState(prevState => ({
@@ -111,12 +123,53 @@ class Collection extends Component {
     this.setState({ fabricsUnfiltered: fabrics });
   };
 
+  checkMeta = record => {
+    let meta = this.state.metadataClear;
+    console.log(record);
+    record.metadata &&
+      record.metadata.forEach(
+        r =>
+          meta &&
+          meta.forEach(
+            m =>
+              m.meta &&
+              m.meta.forEach(m => {
+                console.log(m);
+                if (r.value_id === m.id) {
+                  m.checked = true;
+                  m.fabric_metadata_id = r.id;
+                }
+              })
+          )
+      );
+    return meta;
+  };
+  editFabric = record => {
+    this.checkMeta(record);
+    this.setState({ record });
+    const { form } = this.editFabricForm.props;
+    form.resetFields();
+    this.setState({ creatingLoading: false });
+    //this.clear();
+    this.setState({ editFabricVisible: true });
+  };
+  editFabricFormRef = editFabricForm => {
+    this.editFabricForm = editFabricForm;
+  };
+
+  getMetadata = () => {
+    fetch(api + "web_metadata")
+      .then(res => res.json())
+      .then(metadata => {
+        this.setState({ metadata });
+        this.setState({ metadataClear: metadata });
+      });
+  };
+
   render() {
     const handleCopy = el => {
       // resolve the element
       el = typeof el === "string" ? document.querySelector(el) : el;
-
-      console.log(el);
 
       // handle iOS as a special case
       if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
@@ -236,7 +289,6 @@ class Collection extends Component {
     const handleCheck = e => {
       let value = e.target.value;
       let checked = e.target.checked;
-      console.log(value);
 
       if (checked) {
         !_.includes(this.state.selectedFabrics, value) &&
@@ -248,10 +300,75 @@ class Collection extends Component {
           selectedFabrics: _.filter(prevState.selectedFabrics, x => x !== value)
         }));
       }
-      console.log(this.state.selectedFabrics);
     };
     const handleSwitch = () => {
       this.setState({ affix: !this.state.affix });
+    };
+
+    const saveMetadata = (
+      value_id,
+      metadata_id,
+      fabric_id,
+      fabric_metadata_id,
+      checked
+    ) => {
+      this.setState({ creatingLoading: true });
+      console.log(this.state.user);
+      console.log(
+        value_id,
+        metadata_id,
+        fabric_id,
+        fabric_metadata_id,
+        checked
+      );
+
+      fetch(api + "fabric_metadata", {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id: fabric_metadata_id ? fabric_metadata_id : null,
+          fabric_id,
+          metadata_id,
+          value_id,
+          user_id: this.state.user ? this.state.user.user_id : -1,
+          active: checked ? 1 : 0
+        })
+      })
+        .then(response => response.json())
+        .then(responseData => {
+          responseData && message.success("Metadata added.");
+        });
+    };
+    const handleSaveMetadata = async (metadata, fabric_id) => {
+      console.log(metadata, fabric_id);
+
+      metadata.forEach(m =>
+        m.meta.forEach(
+          m =>
+            (m.checked === true || m.checked === false) &&
+            saveMetadata(
+              m.id,
+              m.metadata_id,
+              fabric_id,
+              m.fabric_metadata_id,
+              m.checked
+            )
+        )
+      );
+
+      let request = await fetch(
+        api + "web_collections?filter[where][fabric_id]=" + record.fabric_id
+      );
+      let aux = await request.json();
+      console.log(aux, record);
+      record.metadata = aux[0].metadata;
+      this.setState({ record });
+      this.getMetadata();
+      this.setState({ creatingLoading: false });
+      this.setState({ editFabricVisible: false });
     };
 
     const {
@@ -264,7 +381,12 @@ class Collection extends Component {
       filterMetadata,
       selectedFabrics,
       affix,
-      pageSize
+      pageSize,
+      activeKey,
+      record,
+      editFabricVisible,
+      creatingLoading,
+      metadata
     } = this.state;
 
     const customPanelStyle = {
@@ -320,12 +442,13 @@ class Collection extends Component {
             </Anchor>
             <Checkbox.Group style={{ width: "100%" }}>
               <List
+                split={true}
                 loading={loading}
                 grid={{
                   gutter: 16,
                   xs: 1,
                   sm: 2,
-                  md: 4,
+                  md: 3,
                   lg: 4,
                   xl: 4,
                   xxl: 4
@@ -345,6 +468,32 @@ class Collection extends Component {
                 renderItem={fabric => (
                   <List.Item>
                     <Card
+                      actions={[
+                        <Tooltip title="More Info">
+                          <Icon
+                            type="caret-down"
+                            key="more"
+                            rotate={
+                              this.state.activeKey === fabric.id ? 180 : 0
+                            }
+                            onClick={() =>
+                              this.setState({
+                                activeKey:
+                                  this.state.activeKey === fabric.id
+                                    ? 0
+                                    : fabric.id
+                              })
+                            }
+                          />
+                        </Tooltip>,
+                        <Tooltip title="Edit">
+                          <Icon
+                            type="edit"
+                            key="edit"
+                            onClick={() => this.editFabric(fabric)}
+                          />
+                        </Tooltip>
+                      ]}
                       loading={loading}
                       bodyStyle={{ padding: 10 }}
                       headStyle={{
@@ -367,16 +516,7 @@ class Collection extends Component {
                             value={fabric.unique_code}
                             onChange={e => handleCheck(e)}
                           >
-                            {Auth.loggedIn() ? (
-                              <Link
-                                to={`/f/${fabric.unique_code}`}
-                                style={{ color: "black" }}
-                              >
-                                {fabric.swatchbook}
-                              </Link>
-                            ) : (
-                              <span>{fabric.unique_code}</span>
-                            )}
+                            {fabric.unique_code}
                           </Checkbox>
                           {fabric.price_band > 0 && (
                             <Rate
@@ -404,38 +544,57 @@ class Collection extends Component {
                           }}
                         />
                       }
-                      actions={[]}
                     >
-                      <Descriptions size="small" column={1}>
-                        <Descriptions.Item label="Swatchbook">
-                          {Auth.loggedIn() ? (
-                            <Link to={`/s/${fabric.swatchbook}`}>
-                              {fabric.swatchbook}
-                            </Link>
-                          ) : (
-                            <Typography> {fabric.swatchbook}</Typography>
-                          )}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Old Code">
-                          {fabric.old_code}
-                        </Descriptions.Item>
+                      <Collapse accordion={true} activeKey={fabric.id}>
+                        <Panel
+                          key={fabric.id}
+                          header={null}
+                          className="collapse"
+                        >
+                          <Descriptions key={1} size="small" column={1}>
+                            {filterMetadata &&
+                              filterMetadata.map(f => (
+                                <Descriptions.Item
+                                  label={f.metadata}
+                                  key={f.metadata}
+                                >
+                                  {fabric.metadata &&
+                                    fabric.metadata.map(
+                                      m =>
+                                        f.metadata === m.metadata && (
+                                          <Tag key={m.id}>{m.value}</Tag>
+                                        )
+                                    )}
+                                </Descriptions.Item>
+                              ))}
+                          </Descriptions>
+                        </Panel>
+                      </Collapse>
 
-                        <Descriptions.Item label="Type">{`${fabric.type}`}</Descriptions.Item>
+                      <Collapse
+                        accordion={true}
+                        activeKey={activeKey}
+                        className="collapse"
+                      >
+                        <Panel key={fabric.id} className="collapse">
+                          <Descriptions key={1} size="small" column={1}>
+                            <Descriptions.Item label="Swatchbook">
+                              {Auth.loggedIn() ? (
+                                <Link to={`/s/${fabric.swatchbook}`}>
+                                  {fabric.swatchbook}
+                                </Link>
+                              ) : (
+                                <Typography> {fabric.swatchbook}</Typography>
+                              )}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Old Code">
+                              {fabric.old_code}
+                            </Descriptions.Item>
 
-                        {filterMetadata.map(f => (
-                          <Descriptions.Item
-                            label={f.metadata}
-                            key={f.metadata}
-                          >
-                            {fabric.metadata.map(
-                              m =>
-                                f.metadata === m.metadata && (
-                                  <Tag key={m.id}>{m.value}</Tag>
-                                )
-                            )}
-                          </Descriptions.Item>
-                        ))}
-                      </Descriptions>
+                            <Descriptions.Item label="Type">{`${fabric.type}`}</Descriptions.Item>
+                          </Descriptions>
+                        </Panel>
+                      </Collapse>
                     </Card>
                   </List.Item>
                 )}
@@ -483,9 +642,22 @@ class Collection extends Component {
             type="text"
             defaultValue={_.map(selectedFabrics).join(", ")}
           />
+          <MetadataForm
+            record={record}
+            visible={editFabricVisible}
+            creatingLoading={creatingLoading}
+            wrappedComponentRef={this.editFabricFormRef}
+            onOk={this.handleEditFabric}
+            metadata={metadata}
+            onCancel={form => {
+              this.setState({ editFabricVisible: false });
+              this.getMetadata();
+              form.resetFields();
+            }}
+            saveMetadata={(values, id) => handleSaveMetadata(values, id)}
+          />
         </Layout>
       );
   }
 }
-
 export default Collection;
