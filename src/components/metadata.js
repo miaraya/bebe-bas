@@ -39,30 +39,43 @@ export class MetadataForm extends Component {
         okButtonProps={{ loading: creatingLoading }}
         onOk={() => saveMetadata(metadata, record && record.fabric_id)}
       >
-        <Form>
-          {metadata &&
-            metadata.map(m => (
-              <FormItem
-                key={m.id}
-                label={m.metadata}
-                {...formItemLayout}
-                value={m}
-              >
-                {_.sortBy(m.meta, m => m.value).map(m => (
-                  <CheckableTag
-                    key={m.id}
-                    onChange={checked => this.handleChange(checked, m)}
-                    checked={m.checked}
-                  >
-                    {m.value}
-                  </CheckableTag>
-                ))}
-              </FormItem>
-            ))}
-        </Form>
+        <div>
+          {record && (
+            <img
+              style={{
+                overflow: "hidden",
+                width: "100%",
+                marginBottom: 20
+              }}
+              alt={record.unique_code}
+              src={record.image_url}
+            />
+          )}
+          <Form>
+            {metadata &&
+              metadata.map(m => (
+                <FormItem
+                  key={m.id}
+                  label={m.metadata}
+                  {...formItemLayout}
+                  value={m}
+                >
+                  {_.sortBy(m.meta, m => m.value).map(m => (
+                    <CheckableTag
+                      key={m.id}
+                      onChange={checked => this.handleChange(checked, m)}
+                      checked={m.checked}
+                    >
+                      {m.value}
+                    </CheckableTag>
+                  ))}
+                </FormItem>
+              ))}
+          </Form>
+        </div>
       </Modal>
     );
   }
 }
 
-MetadataForm = Form.create({})(MetadataForm);
+//MetadataForm = Form.create({})(MetadataForm);
