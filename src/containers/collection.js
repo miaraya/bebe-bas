@@ -124,7 +124,7 @@ class Collection extends Component {
   };
 
   checkMeta = record => {
-    let meta = this.state.metadataClear;
+    let meta = this.state.metadata;
     record.metadata &&
       record.metadata.forEach(
         r =>
@@ -140,14 +140,15 @@ class Collection extends Component {
               })
           )
       );
-    return meta;
+    return record;
   };
-  editFabric = record => {
-    this.checkMeta(record);
-    this.setState({ record });
-    const { form } = this.editFabricForm.props;
-    form.resetFields();
+  editFabric = async record => {
     this.setState({ creatingLoading: false });
+
+    let aux = this.checkMeta(record);
+    this.setState({ record: aux });
+    //const { form } = this.editFabricForm.props;
+    //form.resetFields();
     //this.clear();
     this.setState({ editFabricVisible: true });
   };
@@ -155,6 +156,16 @@ class Collection extends Component {
     this.editFabricForm = editFabricForm;
   };
 
+  resetMetadata = () => {
+    //this.setState({ metadata: this.state.metadataClear });
+    //this.forceUpdate();
+    /*fetch(api + "web_metadata")
+      .then(res => res.json())
+      .then(metadata => {
+        this.setState({ metadata: _.sortBy(metadata, m => m.value) });
+        this.setState({ metadataClear: _.sortBy(metadata, m => m.value) });
+      });*/
+  };
   getMetadata = () => {
     fetch(api + "web_metadata")
       .then(res => res.json())
@@ -308,7 +319,8 @@ class Collection extends Component {
       metadata_id,
       fabric_id,
       fabric_metadata_id,
-      checked
+      checked,
+      value
     ) => {
       this.setState({ creatingLoading: true });
 
@@ -329,33 +341,45 @@ class Collection extends Component {
       })
         .then(response => response.json())
         .then(responseData => {
-          responseData && message.success("Metadata added.");
+          responseData &&
+            checked === true &&
+            !fabric_metadata_id &&
+            message.success(`Metadata "${value}" added.`);
+          responseData &&
+            checked === false &&
+            message.success(`Metadata "${value}" removed.`);
         });
     };
-    const handleSaveMetadata = async (metadata, fabric_id) => {
-      metadata.forEach(m =>
-        m.meta.forEach(
-          m =>
-            (m.checked === true || m.checked === false) &&
-            saveMetadata(
-              m.id,
-              m.metadata_id,
-              fabric_id,
-              m.fabric_metadata_id,
-              m.checked
-            )
-        )
-      );
 
+    const handleGetInfo = async record => {
       let request = await fetch(
-        api + "web_collections?filter[where][fabric_id]=" + record.fabric_id
+        api + "fabric_data?filter[where][fabric_id]=" + record.fabric_id
       );
       let aux = await request.json();
-      record.metadata = aux[0].metadata;
+      record.metadata = aux;
       this.setState({ record });
-      this.getMetadata();
+      //this.resetMetadata();
       this.setState({ creatingLoading: false });
       this.setState({ editFabricVisible: false });
+    };
+
+    const handleSaveMetadata = async (metadata, fabric_id) => {
+      for (let md = 0; md < metadata.length; md++) {
+        let aux = _.filter(
+          metadata[md].meta,
+          x => x.checked === true || x.checked === false
+        );
+        for (let m = 0; m < aux.length; m++) {
+          saveMetadata(
+            aux[m].id,
+            aux[m].metadata_id,
+            fabric_id,
+            aux[m].fabric_metadata_id,
+            aux[m].checked,
+            aux[m].value
+          );
+        }
+      }
     };
 
     const {
@@ -559,6 +583,18 @@ class Collection extends Component {
                           header={null}
                           className="collapse"
                         >
+                          {Auth.loggedIn() && (
+                            <Row type="flex" justify="end">
+                              <Tooltip title="refresh">
+                                <Button
+                                  type="link"
+                                  onClick={() => handleGetInfo(fabric)}
+                                >
+                                  <Icon type="redo" />
+                                </Button>
+                              </Tooltip>
+                            </Row>
+                          )}
                           <Descriptions key={1} size="small" column={1}>
                             {filterMetadata &&
                               filterMetadata.map(f => (
@@ -663,9 +699,15 @@ class Collection extends Component {
             onCancel={form => {
               this.setState({ editFabricVisible: false });
               this.getMetadata();
-              form.resetFields();
+              this.setState({ image: null });
             }}
-            saveMetadata={(values, id) => handleSaveMetadata(values, id)}
+            saveMetadata={async (metadata, fabric_id) => {
+              await handleSaveMetadata(metadata, fabric_id).then(() => {
+                handleGetInfo(record);
+                this.getMetadata();
+                this.setState({ image: null });
+              });
+            }}
           />
         </Layout>
       );
