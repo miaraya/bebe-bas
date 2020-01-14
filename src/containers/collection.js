@@ -143,6 +143,7 @@ class Collection extends Component {
     return record;
   };
   editFabric = async record => {
+    this.setState({ image: null });
     this.setState({ creatingLoading: false });
 
     let aux = this.checkMeta(record);
@@ -661,11 +662,13 @@ class Collection extends Component {
             visible={visible}
             footer={null}
             maskClosable={true}
+            destroyOnClose={true}
+            centered={true}
             onCancel={() => {
-              this.setState({ visible: false });
               this.setState({ image: null });
+              this.setState({ visible: false });
             }}
-            width="100%"
+            width={520}
           >
             <img
               style={{
@@ -693,13 +696,16 @@ class Collection extends Component {
             record={record}
             visible={editFabricVisible}
             creatingLoading={creatingLoading}
-            wrappedComponentRef={this.editFabricFormRef}
             onOk={this.handleEditFabric}
             metadata={metadata}
+            destroyOnClose={true}
+            centered={true}
+            width={"520"}
             onCancel={form => {
+              this.setState({ image: null });
+
               this.setState({ editFabricVisible: false });
               this.getMetadata();
-              this.setState({ image: null });
             }}
             saveMetadata={async (metadata, fabric_id) => {
               await handleSaveMetadata(metadata, fabric_id).then(() => {
