@@ -315,7 +315,7 @@ class Collection extends Component {
       this.setState({ affix: !this.state.affix });
     };
 
-    const saveMetadata = (
+    const saveMetadata = async (
       value_id,
       metadata_id,
       fabric_id,
@@ -324,8 +324,7 @@ class Collection extends Component {
       value
     ) => {
       this.setState({ creatingLoading: true });
-
-      fetch(api + "fabric_metadata", {
+      let request = await fetch(api + "fabric_metadata", {
         method: "PUT",
         headers: {
           Accept: "application/json",
@@ -339,8 +338,8 @@ class Collection extends Component {
           user_id: this.state.user ? this.state.user.user_id : -1,
           active: checked ? 1 : 0
         })
-      })
-        .then(response => response.json())
+      });
+      /*   .then(response => response.json())
         .then(responseData => {
           responseData &&
             checked === true &&
@@ -349,7 +348,17 @@ class Collection extends Component {
           responseData &&
             checked === false &&
             message.success(`Metadata "${value}" removed.`);
-        });
+
+          this.forceUpdate();
+        });*/
+      let responseData = await request.json();
+      responseData &&
+        checked === true &&
+        !fabric_metadata_id &&
+        message.success(`Metadata "${value}" added.`);
+      responseData &&
+        checked === false &&
+        message.success(`Metadata "${value}" removed.`);
     };
 
     const handleGetInfo = async record => {
@@ -357,9 +366,10 @@ class Collection extends Component {
         api + "fabric_data?filter[where][fabric_id]=" + record.fabric_id
       );
       let aux = await request.json();
+
       record.metadata = aux;
       this.setState({ record });
-      //this.resetMetadata();
+      this.forceUpdate();
       this.setState({ creatingLoading: false });
       this.setState({ editFabricVisible: false });
     };
@@ -371,7 +381,7 @@ class Collection extends Component {
           x => x.checked === true || x.checked === false
         );
         for (let m = 0; m < aux.length; m++) {
-          saveMetadata(
+          await saveMetadata(
             aux[m].id,
             aux[m].metadata_id,
             fabric_id,
@@ -507,6 +517,15 @@ class Collection extends Component {
                           />
                         </Tooltip>,
                         Auth.loggedIn() && (
+                          <Tooltip title="refresh">
+                            <Icon
+                              type="redo"
+                              key="refresh"
+                              onClick={() => handleGetInfo(fabric)}
+                            ></Icon>
+                          </Tooltip>
+                        ),
+                        Auth.loggedIn() && (
                           <Tooltip title="Fabric Data">
                             <Link
                               to={`/f/${fabric.unique_code}`}
@@ -550,17 +569,6 @@ class Collection extends Component {
                           >
                             {fabric.unique_code}
                           </Checkbox>
-                          {fabric.price_band > 0 && (
-                            <Rate
-                              style={{
-                                width: "100%",
-                                textAlign: "right",
-                                fontSize: 14
-                              }}
-                              disabled
-                              defaultValue={Number(fabric.price_band)}
-                            />
-                          )}
                         </span>
                       }
                       cover={
@@ -584,18 +592,6 @@ class Collection extends Component {
                           header={null}
                           className="collapse"
                         >
-                          {Auth.loggedIn() && (
-                            <Row type="flex" justify="end">
-                              <Tooltip title="refresh">
-                                <Button
-                                  type="link"
-                                  onClick={() => handleGetInfo(fabric)}
-                                >
-                                  <Icon type="redo" />
-                                </Button>
-                              </Tooltip>
-                            </Row>
-                          )}
                           <Descriptions key={1} size="small" column={1}>
                             {filterMetadata &&
                               filterMetadata.map(f => (
@@ -604,11 +600,21 @@ class Collection extends Component {
                                   key={f.metadata}
                                 >
                                   {fabric.metadata &&
-                                    fabric.metadata.map(
-                                      m =>
-                                        f.metadata === m.metadata && (
-                                          <Tag key={m.id}>{m.value}</Tag>
+                                    fabric.metadata.map(m =>
+                                      f.metadata === m.metadata &&
+                                      m.metadata_id &&
+                                      m.metadata_id !== 3 ? (
+                                        <Tag key={m.id}>{m.value}</Tag>
+                                      ) : (
+                                        f.metadata === m.metadata &&
+                                        m.metadata_id === 3 && (
+                                          <Rate
+                                            key={m.id}
+                                            disabled
+                                            defaultValue={Number(m.value)}
+                                          />
                                         )
+                                      )
                                     )}
                                 </Descriptions.Item>
                               ))}
@@ -710,7 +716,7 @@ class Collection extends Component {
             saveMetadata={async (metadata, fabric_id) => {
               await handleSaveMetadata(metadata, fabric_id).then(() => {
                 handleGetInfo(record);
-                this.getMetadata();
+                //this.getMetadata();
                 this.setState({ image: null });
               });
             }}

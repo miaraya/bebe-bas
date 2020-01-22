@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Form, Modal, Tag } from "antd";
+import { Form, Modal, Tag, Rate } from "antd";
 import { formItemLayout } from "../containers/constants";
 import _ from "lodash";
 
@@ -16,6 +16,17 @@ export class MetadataForm extends Component {
   componentWillMount = () => {};
   handleChange = (checked, m) => {
     m.checked = checked;
+
+    this.forceUpdate();
+  };
+  handleChangeRate = (value, m) => {
+    m.meta.forEach(e => {
+      if (e.checked) e.checked = false;
+    });
+    _.find(m.meta, e => Number(e.value) === Number(value)).checked = true;
+    _.find(m.meta, e => Number(e.value) === Number(value)).value = value;
+
+    //((_.find(m.meta, e => e.value === value).value = value;
 
     this.forceUpdate();
   };
@@ -37,7 +48,9 @@ export class MetadataForm extends Component {
         visible={visible}
         onCancel={() => onCancel(form)}
         okButtonProps={{ loading: creatingLoading }}
-        onOk={() => saveMetadata(metadata, record && record.fabric_id)}
+        onOk={() => {
+          saveMetadata(metadata, record && record.fabric_id);
+        }}
       >
         <div>
           {record && (
@@ -53,24 +66,44 @@ export class MetadataForm extends Component {
           )}
           <Form>
             {metadata &&
-              metadata.map(m => (
-                <FormItem
-                  key={m.id}
-                  label={m.metadata}
-                  {...formItemLayout}
-                  value={m}
-                >
-                  {_.sortBy(m.meta, m => m.value).map(m => (
-                    <CheckableTag
-                      key={m.id}
-                      onChange={checked => this.handleChange(checked, m)}
+              metadata.map(m =>
+                m.id !== 3 ? (
+                  <FormItem
+                    key={m.id}
+                    label={m.metadata}
+                    {...formItemLayout}
+                    value={m}
+                  >
+                    {_.sortBy(m.meta, m => m.value).map(m => (
+                      <CheckableTag
+                        key={m.id}
+                        onChange={checked => this.handleChange(checked, m)}
+                        checked={m.checked}
+                      >
+                        {m.value}
+                      </CheckableTag>
+                    ))}
+                  </FormItem>
+                ) : (
+                  <FormItem
+                    key={m.id}
+                    label={m.metadata}
+                    {...formItemLayout}
+                    value={m.value}
+                  >
+                    <Rate
+                      value={
+                        _.find(m.meta, x => x.fabric_metadata_id) &&
+                        Number(_.find(m.meta, x => x.checked).value)
+                      }
+                      onChange={checked => {
+                        this.handleChangeRate(checked, m);
+                      }}
                       checked={m.checked}
-                    >
-                      {m.value}
-                    </CheckableTag>
-                  ))}
-                </FormItem>
-              ))}
+                    />
+                  </FormItem>
+                )
+              )}
           </Form>
         </div>
       </Modal>
