@@ -262,7 +262,6 @@ class Collection extends Component {
                         <Form.Item label={x.metadata} key={x.metadata}>
                           {x.values &&
                             x.values.map((v) => {
-                              console.log(v);
                               return (
                                 <Col xs={12} sm={12} md={8} key={v.label}>
                                   <Checkbox value={v.value}>
