@@ -41,7 +41,7 @@ class Item extends Component {
       fabrics: [],
       fittings: [],
       measurements: [],
-      measurement_images: []
+      measurement_images: [],
     };
   }
 
@@ -62,7 +62,7 @@ class Item extends Component {
       measurement_images,
       measurement_note,
       language,
-      status_id
+      status_id,
     } = this.state;
 
     let dateFormat = "MMM DD,YY hh:mm A";
@@ -97,7 +97,7 @@ class Item extends Component {
             gutter={16}
             span={24}
             style={{
-              marginBottom: 20
+              marginBottom: 20,
             }}
           >
             <img src={Logo} alt="Bebe Tailor" width="150px" />
@@ -117,7 +117,7 @@ class Item extends Component {
                 value={id}
                 groupSeparator=""
                 style={{
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               />
             </Col>
@@ -130,7 +130,7 @@ class Item extends Component {
                     : details.description
                 }
                 style={{
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               />
             </Col>
@@ -143,7 +143,7 @@ class Item extends Component {
                     : details.status_id
                 }
                 style={{
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               />
             </Col>
@@ -154,7 +154,7 @@ class Item extends Component {
               sm={16}
               md={18}
               style={{
-                margin: 20
+                margin: 20,
               }}
             >
               <Steps direction="horizontal" size="small" current={status_id}>
@@ -195,9 +195,7 @@ class Item extends Component {
                 </span>
               </Descriptions.Item>
               <Descriptions.Item label={this.getWord("date")}>
-                {moment(order_customer.order_date)
-                  .utc()
-                  .format(dateFormat)}
+                {moment(order_customer.order_date).format(dateFormat)}
               </Descriptions.Item>
               <Descriptions.Item label={this.getWord("item-status")}>
                 {this.state.language === "vietnamese"
@@ -232,7 +230,7 @@ class Item extends Component {
                     <Col span={8}>
                       <Descriptions title={this.getWord("options")} column={1}>
                         {options.length > 0 ? (
-                          options.map(o => (
+                          options.map((o) => (
                             <Descriptions.Item
                               label={
                                 language === "vietnamese"
@@ -265,7 +263,7 @@ class Item extends Component {
                         bordered={false}
                       >
                         {fabrics.length > 0 &&
-                          fabrics.map(o => (
+                          fabrics.map((o) => (
                             <Descriptions.Item key={o.id}>
                               <Card
                                 size={"small"}
@@ -275,7 +273,7 @@ class Item extends Component {
                                   <img
                                     onClick={() => {
                                       this.setState({
-                                        image: o.image_url
+                                        image: o.image_url,
                                       });
                                       this.setState({ visible: true });
                                     }}
@@ -303,7 +301,7 @@ class Item extends Component {
                     <Col span={8}>
                       <Descriptions title={this.getWord("image")} column={1}>
                         {images.length > 0 ? (
-                          images.map(o => (
+                          images.map((o) => (
                             <Descriptions.Item key={o.id}>
                               <Card
                                 title={o.unique_code}
@@ -314,7 +312,7 @@ class Item extends Component {
                                   <img
                                     onClick={() => {
                                       this.setState({
-                                        image: o.image_url
+                                        image: o.image_url,
                                       });
                                       this.setState({ visible: true });
                                     }}
@@ -345,11 +343,11 @@ class Item extends Component {
                   <Timeline
                     mode="left"
                     style={{
-                      margin: 20
+                      margin: 20,
                     }}
                   >
                     {fittings.length > 0 ? (
-                      fittings.map(f => (
+                      fittings.map((f) => (
                         <Timeline.Item
                           key={f.id}
                           color={
@@ -399,7 +397,7 @@ class Item extends Component {
                     <Col span={16}>
                       <Descriptions title={this.getWord("values")} column={2}>
                         {measurements.length > 0 ? (
-                          measurements.map(o => (
+                          measurements.map((o) => (
                             <Descriptions.Item
                               key={o.id}
                               label={
@@ -427,7 +425,7 @@ class Item extends Component {
                     <Col span={8}>
                       <Descriptions title={this.getWord("image")} column={1}>
                         {measurement_images.length > 0 ? (
-                          measurement_images.map(o => (
+                          measurement_images.map((o) => (
                             <Descriptions.Item>
                               <Card
                                 title={o.unique_code}
@@ -438,7 +436,7 @@ class Item extends Component {
                                   <img
                                     onClick={() => {
                                       this.setState({
-                                        image: o.image_url
+                                        image: o.image_url,
                                       });
                                       this.setState({ visible: true });
                                     }}
@@ -476,7 +474,7 @@ class Item extends Component {
           >
             <img
               style={{
-                width: "100%"
+                width: "100%",
               }}
               alt="Bebe Tailor"
               src={image}
@@ -486,7 +484,7 @@ class Item extends Component {
           <Footer
             style={{
               textAlign: "center",
-              flex: 1
+              flex: 1,
             }}
           >
             Bebe Tailor {new Date().getFullYear().toString()}, Hoi An, Vietnam.
@@ -504,11 +502,11 @@ class Item extends Component {
     else this.getData(id);
   };
 
-  getItemId = id => {
+  getItemId = (id) => {
     let aux = id.split("-");
     fetch(api + "/orders/getItem/" + aux[0] + "/" + aux[1])
-      .then(res => res.json())
-      .then(res => {
+      .then((res) => res.json())
+      .then((res) => {
         this.getData(res.id);
       });
   };
@@ -519,7 +517,7 @@ class Item extends Component {
       : this.setState({ language: "vietnamese" });
   };
 
-  getData = id => {
+  getData = (id) => {
     this.getDictionary();
     this.getOrderData(id);
     this.getItemInfo(id);
@@ -533,8 +531,8 @@ class Item extends Component {
 
   getDictionary = () => {
     fetch(api + "/dictionaries")
-      .then(res => res.json())
-      .then(dictionary => {
+      .then((res) => res.json())
+      .then((dictionary) => {
         this.setState({ dictionary });
         this.setState({ isLoading: false });
       });
@@ -552,23 +550,23 @@ class Item extends Component {
   getLanguage = () => {
     return this.state.language;
   };
-  getWord = key => {
+  getWord = (key) => {
     return this.state.dictionary
       ? this.state.language === "vietnamese"
-        ? this.state.dictionary.find(i => i.key === key)
-          ? this.state.dictionary.find(i => i.key === key).vietnamese
+        ? this.state.dictionary.find((i) => i.key === key)
+          ? this.state.dictionary.find((i) => i.key === key).vietnamese
           : ""
-        : this.state.dictionary.find(i => i.key === key)
-        ? this.state.dictionary.find(i => i.key === key).english
+        : this.state.dictionary.find((i) => i.key === key)
+        ? this.state.dictionary.find((i) => i.key === key).english
         : ""
       : "";
   };
 
-  getMeasurementImages = id => {
+  getMeasurementImages = (id) => {
     fetch(
       api + "web_order_measurement_image_items?filter[where][item_id]=" + id
     )
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
@@ -576,23 +574,23 @@ class Item extends Component {
           throw new Error("Something went wrong ...");
         }
       })
-      .then(json => {
+      .then((json) => {
         var measurement_images = _(json)
-          .groupBy(x => x.customer_name)
+          .groupBy((x) => x.customer_name)
           .map((value, key) => ({ measurements: value, name: key }))
           .value();
         measurement_images
           ? this.setState({
               measurement_images: measurement_images[0]
                 ? measurement_images[0].measurements
-                : []
+                : [],
             })
           : this.setState({ measurement_images: [] });
       });
   };
-  getMeasurements = id => {
+  getMeasurements = (id) => {
     fetch(api + "web_order_measurement_items?filter[where][item_id]=" + id)
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
@@ -600,14 +598,14 @@ class Item extends Component {
           throw new Error("Something went wrong ...");
         }
       })
-      .then(json => {
+      .then((json) => {
         json
           ? this.setState({
-              measurement_note: json[0] ? json[0].note : ""
+              measurement_note: json[0] ? json[0].note : "",
             })
           : this.setState({ measurement_note: "" });
         var measurements = _(json)
-          .groupBy(x => x.customer_name)
+          .groupBy((x) => x.customer_name)
           .map((value, key) => ({ measurements: value, name: key }))
           .value();
 
@@ -615,20 +613,20 @@ class Item extends Component {
           ? this.setState({
               measurements: measurements[0]
                 ? _.sortBy(measurements[0].measurements, [
-                    function(o) {
+                    function (o) {
                       return o.order;
-                    }
+                    },
                   ])
-                : []
+                : [],
             })
           : this.setState({ measurements: [] });
         this.setState({ error: false });
       });
   };
 
-  getItemFittings = id => {
+  getItemFittings = (id) => {
     fetch(api + "web_order_fittings?filter[where][item_id]=" + id)
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
@@ -636,13 +634,13 @@ class Item extends Component {
           throw new Error("Something went wrong ...");
         }
       })
-      .then(fittings => {
+      .then((fittings) => {
         this.setState({ fittings });
       });
   };
-  getItemFabrics = id => {
+  getItemFabrics = (id) => {
     fetch(api + "web_order_fabrics?filter[where][item_id]=" + id)
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
@@ -650,13 +648,13 @@ class Item extends Component {
           throw new Error("Something went wrong ...");
         }
       })
-      .then(fabrics => {
+      .then((fabrics) => {
         this.setState({ fabrics });
       });
   };
-  getItemOptions = id => {
+  getItemOptions = (id) => {
     fetch(api + "web_order_options?filter[where][item_id]=" + id)
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
@@ -664,14 +662,14 @@ class Item extends Component {
           throw new Error("Something went wrong ...");
         }
       })
-      .then(options => {
+      .then((options) => {
         this.setState({ options });
       });
   };
 
-  getItemImages = id => {
+  getItemImages = (id) => {
     fetch(api + "web_order_images?filter[where][item_id]=" + id)
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
@@ -679,14 +677,14 @@ class Item extends Component {
           throw new Error("Something went wrong ...");
         }
       })
-      .then(images => {
+      .then((images) => {
         this.setState({ images });
       });
   };
 
-  getItemInfo = id => {
+  getItemInfo = (id) => {
     fetch(api + "web_order_items?filter[where][item_id]=" + id)
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
@@ -694,7 +692,7 @@ class Item extends Component {
           throw new Error("Something went wrong ...");
         }
       })
-      .then(details => {
+      .then((details) => {
         details
           ? this.setState({ details: details[0] })
           : this.setState({ details: [] });
@@ -711,12 +709,12 @@ class Item extends Component {
             this.setState({ status_id: 1 });
         }
       })
-      .catch(error => this.setState({ error: true }));
+      .catch((error) => this.setState({ error: true }));
   };
 
-  getOrderData = id => {
+  getOrderData = (id) => {
     fetch(api + "web_item_customers/" + id)
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
@@ -724,12 +722,12 @@ class Item extends Component {
           throw new Error("Something went wrong ...");
         }
       })
-      .then(order_customer => {
+      .then((order_customer) => {
         this.setState({ order_customer });
         this.setState({ error: false });
         this.setState({ loading: false });
       })
-      .catch(error => {
+      .catch((error) => {
         this.setState({ loading: false });
 
         this.setState({ error: true });

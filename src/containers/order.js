@@ -10,7 +10,7 @@ import {
   Steps,
   Descriptions,
   Icon,
-  Avatar
+  Avatar,
 } from "antd";
 import { Divider } from "antd";
 import { Spin } from "antd";
@@ -41,7 +41,7 @@ class Order extends Component {
       image: "",
       visible: false,
       order_customer: [],
-      ifus: []
+      ifus: [],
     };
   }
   render() {
@@ -56,7 +56,7 @@ class Order extends Component {
       ifus,
       items,
       status_id,
-      language
+      language,
     } = this.state;
 
     let dateFormat = "MMM DD,YY hh:mm A";
@@ -91,7 +91,7 @@ class Order extends Component {
             gutter={16}
             span={24}
             style={{
-              marginBottom: 20
+              marginBottom: 20,
             }}
           >
             <img src={Logo} alt="Bebe Tailor" width="150px" />
@@ -109,7 +109,7 @@ class Order extends Component {
                 prefix="#"
                 value={id}
                 style={{
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
                 groupSeparator=""
               />
@@ -124,7 +124,7 @@ class Order extends Component {
                     : order_customer.status
                 }
                 style={{
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               />
             </Col>
@@ -135,7 +135,7 @@ class Order extends Component {
               sm={12}
               md={18}
               style={{
-                margin: 20
+                margin: 20,
               }}
             >
               <Steps direction="horizontal" size="small" current={status_id}>
@@ -166,9 +166,7 @@ class Order extends Component {
                 </span>
               </Descriptions.Item>
               <Descriptions.Item label={this.getWord("date")}>
-                {moment(order_customer.order_date)
-                  .utc()
-                  .format(dateFormat)}
+                {moment(order_customer.order_date).format(dateFormat)}
               </Descriptions.Item>
               <Descriptions.Item label={this.getWord("status")}>
                 {order_customer.status}
@@ -194,7 +192,7 @@ class Order extends Component {
             <Row type="flex" justify="space-between"></Row>
             <Divider
               style={{
-                marginTop: 40
+                marginTop: 40,
               }}
             >
               <h2>{this.getWord("items")}</h2>
@@ -203,10 +201,10 @@ class Order extends Component {
               dataSource={items}
               pagination={false}
               rowKey="id"
-              expandedRowRender={record => (
+              expandedRowRender={(record) => (
                 <Table
                   dataSource={_.toArray(
-                    _.sortBy(record.garments, x => x.index)
+                    _.sortBy(record.garments, (x) => x.index)
                   )}
                   pagination={false}
                   rowKey="id"
@@ -275,12 +273,12 @@ class Order extends Component {
                 title={this.getWord("price")}
                 dataIndex="price"
                 key="price"
-                render={price => <b>{price + " [USD]"}</b>}
+                render={(price) => <b>{price + " [USD]"}</b>}
               />
             </Table>
             <Divider
               style={{
-                marginTop: 40
+                marginTop: 40,
               }}
             >
               <h2>{this.getWord("order-payments")}</h2>
@@ -310,7 +308,7 @@ class Order extends Component {
                   <Descriptions.Item label={this.getWord("balance")}>
                     <span
                       style={{
-                        color: order_customer.balance === "0" ? "green" : "red"
+                        color: order_customer.balance === "0" ? "green" : "red",
                       }}
                     >
                       ${order_customer.balance}
@@ -344,7 +342,7 @@ class Order extends Component {
                     title="Type"
                     dataIndex="is_cc"
                     key="is_cc"
-                    render={is_cc =>
+                    render={(is_cc) =>
                       is_cc === 0 ? (
                         <Icon type="dollar" style={{ color: "green" }} />
                       ) : (
@@ -377,14 +375,14 @@ class Order extends Component {
                   <div>
                     <Divider
                       style={{
-                        marginTop: 40
+                        marginTop: 40,
                       }}
                     >
                       <h2>IFU</h2>
                     </Divider>
                     <div
                       style={{
-                        flex: 1
+                        flex: 1,
                       }}
                     >
                       <Table dataSource={ifus} pagination={false} rowKey="id">
@@ -428,7 +426,7 @@ class Order extends Component {
           >
             <img
               style={{
-                width: "100%"
+                width: "100%",
               }}
               alt="Bebe Tailor"
               src={image}
@@ -438,7 +436,7 @@ class Order extends Component {
           <Footer
             style={{
               textAlign: "center",
-              flex: 1
+              flex: 1,
             }}
           >
             Bebe Tailor {new Date().getFullYear().toString()}, Hoi An, Vietnam.
@@ -459,8 +457,8 @@ class Order extends Component {
   };
   getDictionary = () => {
     fetch(api + "/dictionaries")
-      .then(res => res.json())
-      .then(dictionary => {
+      .then((res) => res.json())
+      .then((dictionary) => {
         this.setState({ dictionary });
       });
   };
@@ -483,21 +481,21 @@ class Order extends Component {
   getLanguage = () => {
     return this.state.language;
   };
-  getWord = key => {
+  getWord = (key) => {
     return this.state.dictionary
       ? this.state.language === "vietnamese"
-        ? this.state.dictionary.find(i => i.key === key)
-          ? this.state.dictionary.find(i => i.key === key).vietnamese
+        ? this.state.dictionary.find((i) => i.key === key)
+          ? this.state.dictionary.find((i) => i.key === key).vietnamese
           : ""
-        : this.state.dictionary.find(i => i.key === key)
-        ? this.state.dictionary.find(i => i.key === key).english
+        : this.state.dictionary.find((i) => i.key === key)
+        ? this.state.dictionary.find((i) => i.key === key).english
         : ""
       : "";
   };
 
-  getOrderData = id => {
+  getOrderData = (id) => {
     fetch(api + "web_order_customers/" + id)
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
@@ -505,7 +503,7 @@ class Order extends Component {
           throw new Error("Something went wrong ...");
         }
       })
-      .then(order_customer => {
+      .then((order_customer) => {
         this.setState({ order_customer });
         this.setState({ error: false });
         this.setState({ loading: false });
@@ -525,20 +523,20 @@ class Order extends Component {
             this.setState({ status_id: 1 });
         }
       })
-      .catch(error => {
+      .catch((error) => {
         this.setState({ loading: false });
         this.setState({ error: true });
       });
   };
 
-  getOrderItems = id => {
+  getOrderItems = (id) => {
     fetch(api + "web_order_items?filter[where][order_id]=" + id)
-      .then(res => {
+      .then((res) => {
         return res.json();
       })
-      .then(order_item => {
+      .then((order_item) => {
         let items = _(order_item)
-          .groupBy(x => x.group + x.customer_name)
+          .groupBy((x) => x.group + x.customer_name)
 
           .map((value, key) => ({
             group: key,
@@ -565,17 +563,17 @@ class Order extends Component {
               : "",
             staff_thumbnail: value[0].staff_thumbnail,
             garment_viet: value[0].garment_viet,
-            index: value[0].index
+            index: value[0].index,
           }))
           .value();
-        this.setState({ items: _.sortBy(items, x => x.index) });
-        this.setState({ order_item: _.sortBy(order_item, x => x.index) });
+        this.setState({ items: _.sortBy(items, (x) => x.index) });
+        this.setState({ order_item: _.sortBy(order_item, (x) => x.index) });
       });
   };
 
-  getOrderPayments = id => {
+  getOrderPayments = (id) => {
     fetch(api + "web_order_payments?filter[where][order_id]=" + id)
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
@@ -583,15 +581,15 @@ class Order extends Component {
           throw new Error("Something went wrong ...");
         }
       })
-      .then(payments => {
+      .then((payments) => {
         this.setState({ payments });
       })
-      .catch(error => this.setState({ error: true }));
+      .catch((error) => this.setState({ error: true }));
   };
 
-  getOrderIFU = id => {
+  getOrderIFU = (id) => {
     fetch(api + "web_order_ifus?filter[where][order_id]=" + id)
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
@@ -599,10 +597,10 @@ class Order extends Component {
           throw new Error("Something went wrong ...");
         }
       })
-      .then(ifus => {
+      .then((ifus) => {
         this.setState({ ifus });
       })
-      .catch(error => this.setState({ error: true }));
+      .catch((error) => this.setState({ error: true }));
   };
 }
 
