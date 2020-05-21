@@ -25,7 +25,7 @@ import { AdjustModal } from "../components/adjustStock";
 import { MoveModal } from "../components/moveStock";
 
 import { FabricForm } from "../components/fabric";
-import Dashboard from "./dashboard";
+//import Dashboard from "./dashboard";
 
 const Auth = new AuthService(null);
 
@@ -94,6 +94,7 @@ class _Search extends Component {
             url: "fabricdetails?filter[where][unique_code][like]=",
           },
         });
+        this.showSearch();
       } catch (err) {
         Auth.logout();
         this.context.router.replace("/");
@@ -766,11 +767,12 @@ class _Search extends Component {
       ? localStorage.setItem("language", "english")
       : localStorage.setItem("language", "vietnamese");
   };
-
+  /*
   showDashboard = () => {
     this.setState({ dashboardVisible: true });
     this.setState({ searchVisible: false });
   };
+  */
   showSearch = () => {
     this.setState({ dashboardVisible: false });
     this.setState({ searchVisible: true });
@@ -1072,10 +1074,10 @@ class _Search extends Component {
           user={this.state.user}
           handleNewFabric={this.handleNewFabric}
           newFabricFormRef={this.newFabricFormRef}
-          showDashboard={this.showDashboard}
+          // showDashboard={this.showDashboard}
           showSearch={this.showSearch}
         />
-        {dashboardVisible && <Dashboard />}
+        {/* dashboardVisible && <Dashboard /> */}
         {searchVisible && (
           <Content className="container">
             <div
