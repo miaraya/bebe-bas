@@ -1,7 +1,21 @@
-import React, {Component} from "react";
-import {Form, Input, Select, Button, InputNumber, Rate, message, Modal,Icon } from "antd";
+import React, { Component } from "react";
+import {
+  Form,
+  Input,
+  Select,
+  Button,
+  InputNumber,
+  Rate,
+  message,
+  Modal,
+  Icon
+} from "antd";
 
-import {api, formItemLayout, tailFormItemLayout} from "../containers/constants";
+import {
+  api,
+  formItemLayout,
+  tailFormItemLayout
+} from "../containers/constants";
 
 const FormItem = Form.Item;
 const Option = Select.Option;
@@ -16,7 +30,7 @@ export class FabricForm extends Component {
   }
 
   handleChangeType = id => {
-    this.setState({typeId: id});
+    this.setState({ typeId: id });
     this.getCode(id);
   };
 
@@ -30,9 +44,7 @@ export class FabricForm extends Component {
       });
   };
 
-  componentWillMount = () => {
-
-  };
+  componentWillMount = () => {};
   clear = () => {
     this.props.form.setFieldsValue({
       code: undefined,
@@ -48,34 +60,45 @@ export class FabricForm extends Component {
     });
   };
 
-  
-
-  
-
-  
-
   render() {
-    const {getFieldDecorator} = this.props.form;
-    const {visible, onCancel,form, edit, record,onOk,creatingLoading} = this.props;
+    const { getFieldDecorator } = this.props.form;
+    const {
+      visible,
+      onCancel,
+      form,
+      edit,
+      record,
+      onOk,
+      creatingLoading
+    } = this.props;
 
     return (
       <Modal
-          title={edit===true ? this.props.getWord("edit-fabric") +' '+ 
-          (record && record.unique_code) : this.props.getWord("add-fabric")}
-          centered
-          visible={visible}
-          onOk={onOk}
-          onCancel={() => onCancel(form)}
-          okButtonProps={{ loading: creatingLoading }}>
+        title={
+          edit === true
+            ? this.props.getWord("edit-fabric") +
+              " " +
+              (record && record.unique_code)
+            : this.props.getWord("add-fabric")
+        }
+        centered
+        visible={visible}
+        onOk={onOk}
+        onCancel={() => onCancel(form)}
+        okButtonProps={{ loading: creatingLoading }}
+      >
         <Form>
           <FormItem label={this.props.getWord("type")} {...formItemLayout}>
             {getFieldDecorator("type", {
-              initialValue: record && record.type_id, rules: [{required: true, message: "Please select a Fabric Type"}]
+              initialValue: record && record.type_id,
+              rules: [
+                { required: true, message: "Please select a Fabric Type" }
+              ]
             })(
               <Select
                 disabled={edit}
                 showSearch
-                style={{width: 200}}
+                style={{ width: 200 }}
                 placeholder={this.props.getWord("select-a-fabric-type")}
                 optionFilterProp="children"
                 onChange={value => this.handleChangeType(value)}
@@ -94,9 +117,12 @@ export class FabricForm extends Component {
               </Select>
             )}
           </FormItem>
-          <FormItem {...formItemLayout} label={this.props.getWord("fabric-code")}>
+          <FormItem
+            {...formItemLayout}
+            label={this.props.getWord("fabric-code")}
+          >
             {getFieldDecorator("code", {
-              initialValue:record && record.unique_code,
+              initialValue: record && record.unique_code,
               rules: [
                 {
                   required: true,
@@ -106,21 +132,20 @@ export class FabricForm extends Component {
               ]
             })(
               <Input
-
                 disabled={true}
-                style={{width: 200}}
+                style={{ width: 200 }}
                 placeholder={this.props.getWord("add-fabric-code")}
               />
             )}
           </FormItem>
           <FormItem label={this.props.getWord("supplier")} {...formItemLayout}>
             {getFieldDecorator("supplier", {
-              initialValue: record &&  record.supplier_id,
-              rules: [{required: true, message: "Please select a Supplier"}]
+              initialValue: record && record.supplier_id,
+              rules: [{ required: true, message: "Please select a Supplier" }]
             })(
               <Select
                 showSearch
-                style={{width: 200}}
+                style={{ width: 200 }}
                 placeholder={this.props.getWord("select-a-supplier")}
                 optionFilterProp="children"
                 filterOption={(input, option) =>
@@ -143,7 +168,7 @@ export class FabricForm extends Component {
             label={this.props.getWord("supplier-code")}
           >
             {getFieldDecorator("supplier_code", {
-              initialValue: record &&  record.old_code,
+              initialValue: record && record.old_code,
               rules: [
                 {
                   required: true,
@@ -153,48 +178,57 @@ export class FabricForm extends Component {
               ]
             })(
               <Input
-                style={{width: 200}}
+                style={{ width: 200 }}
                 placeholder={this.props.getWord("add-supplier-code")}
               />
             )}
           </FormItem>
           <FormItem label={this.props.getWord("color")} {...formItemLayout}>
             {getFieldDecorator("color", {
-              initialValue: record &&  record.color_id,
-              rules: [{required: true, message: "Please select a Color"}]
+              initialValue: record && record.color_id,
+              rules: [{ required: true, message: "Please select a Color" }]
             })(
               <Select
                 showSearch
-                style={{width: 200}}
+                style={{ width: 200 }}
                 placeholder={this.props.getWord("select-a-color")}
                 optionFilterProp="children"
                 filterOption={(input, option) =>
+                  option.props.children &&
                   option.props.children
-                    .toLowerCase()
+                    //.toLowerCase()
                     .indexOf(input.toLowerCase()) >= 0
                 }
               >
                 {this.props.colors() &&
                   this.props.colors().map(t => (
-                    <Option  value={t.id} key={t.id}>
-                      <Icon type="border" style={{backgroundColor:t.hex_code, color:"transparent", marginRight:20}}/>
+                    <Option value={t.id} key={t.id}>
+                      <Icon
+                        type="border"
+                        style={{
+                          backgroundColor: t.hex_code,
+                          color: "transparent",
+                          marginRight: 20
+                        }}
+                      />
                       {t.description}
-                      
-
                     </Option>
                   ))}
               </Select>
             )}
           </FormItem>
-          <FormItem label={this.props.getWord("swatchbook")} {...formItemLayout}>
+          <FormItem
+            label={this.props.getWord("swatchbook")}
+            {...formItemLayout}
+          >
             {getFieldDecorator("swatchbook", {
-              initialValue: record &&  record.swatchbook_id,
+              initialValue: record && record.swatchbook_id,
 
-              rules: [{required: true, message: "Please select a Swatchbook"}]
+              rules: [{ required: true, message: "Please select a Swatchbook" }]
             })(
               <Select
                 showSearch
-                style={{width: 200}}
+                style={{ width: 200 }}
                 placeholder={this.props.getWord("select-a-swatchbook")}
                 optionFilterProp="children"
                 filterOption={(input, option) =>
@@ -203,16 +237,16 @@ export class FabricForm extends Component {
                     .indexOf(input.toLowerCase()) >= 0
                 }
               >
-                {this.props.swatchbooklist(null) && !this.state.typeId 
+                {this.props.swatchbooklist(null) && !this.state.typeId
                   ? this.props.swatchbooklist(null).map(t => (
                       <Option value={t.id} key={t.id}>
                         {t.unique_code}
                       </Option>
                     ))
-                  : this.props
-                      .swatchbooklist(null) &&this.props
+                  : this.props.swatchbooklist(null) &&
+                    this.props
                       .swatchbooklist(null)
-                      .filter(i => i.type_id ===this.state.typeId)
+                      .filter(i => i.type_id === this.state.typeId)
                       .map(t => (
                         <Option value={t.id} key={t.id}>
                           {t.unique_code}
@@ -223,7 +257,7 @@ export class FabricForm extends Component {
           </FormItem>
           <FormItem {...formItemLayout} label={this.props.getWord("price")}>
             {getFieldDecorator("price", {
-              initialValue: record &&  record.price,
+              initialValue: record && record.price,
               rules: [
                 {
                   required: true,
@@ -233,62 +267,70 @@ export class FabricForm extends Component {
             })(
               <InputNumber
                 min={0}
-                style={{width: 200}}
+                style={{ width: 200 }}
                 placeholder={this.props.getWord("add-price")}
               />
             )}
             <span className="ant-form-text"> ₫</span>
           </FormItem>
-          <FormItem {...formItemLayout} label={this.props.getWord("price-band")}>
+          <FormItem
+            {...formItemLayout}
+            label={this.props.getWord("price-band")}
+          >
             {getFieldDecorator("price_band", {
-             initialValue: record ?  Number(record.price_band) : -1
-
+              initialValue: record ? Number(record.price_band) : -1
             })(<Rate />)}
           </FormItem>
-          {edit===false &&
-          <div>
-          <FormItem {...formItemLayout} label={this.props.getWord("stock")}>
-            {getFieldDecorator("stock", {
-              rules: [
-                {
-                  required: true,
-                  message: "Please input a Stock"
-                }
-              ]
-            })(
-              <InputNumber
-                min={0}
-                style={{width: 200}}
-                placeholder={this.props.getWord("add-stock")}
-              />
-            )}
-            <span className="ant-form-text"> meters</span>
-          </FormItem>
-          <FormItem label={this.props.getWord("location")} {...formItemLayout}>
-            {getFieldDecorator("location", {
-              rules: [{required: true, message: "Please select a Location"}]
-            })(
-              <Select
-                showSearch
-                style={{width: 200}}
-                placeholder={this.props.getWord("select-a-location")}
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  option.props.children
-                    .toLowerCase()
-                    .indexOf(input.toLowerCase()) >= 0
-                }
+          {edit === false && (
+            <div>
+              <FormItem {...formItemLayout} label={this.props.getWord("stock")}>
+                {getFieldDecorator("stock", {
+                  rules: [
+                    {
+                      required: true,
+                      message: "Please input a Stock"
+                    }
+                  ]
+                })(
+                  <InputNumber
+                    min={0}
+                    style={{ width: 200 }}
+                    placeholder={this.props.getWord("add-stock")}
+                  />
+                )}
+                <span className="ant-form-text"> meters</span>
+              </FormItem>
+              <FormItem
+                label={this.props.getWord("location")}
+                {...formItemLayout}
               >
-                {this.props.locationlist() &&
-                  this.props.locationlist().map(t => (
-                    <Option value={t.id} key={t.id}>
-                      {t.description}
-                    </Option>
-                  ))}
-              </Select>
-            )}
-          </FormItem>
-          </div>}
+                {getFieldDecorator("location", {
+                  rules: [
+                    { required: true, message: "Please select a Location" }
+                  ]
+                })(
+                  <Select
+                    showSearch
+                    style={{ width: 200 }}
+                    placeholder={this.props.getWord("select-a-location")}
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      option.props.children
+                        .toLowerCase()
+                        .indexOf(input.toLowerCase()) >= 0
+                    }
+                  >
+                    {this.props.locationlist() &&
+                      this.props.locationlist().map(t => (
+                        <Option value={t.id} key={t.id}>
+                          {t.description}
+                        </Option>
+                      ))}
+                  </Select>
+                )}
+              </FormItem>
+            </div>
+          )}
         </Form>
       </Modal>
     );
@@ -298,7 +340,7 @@ export class FabricForm extends Component {
 export class SwatchbookForm extends Component {
   constructor(props) {
     super(props);
-    this.state = {creatingLoading: false};
+    this.state = { creatingLoading: false };
   }
   getSwatchbookCode = () => {
     fetch(api + "/getswatchbookcodes")
@@ -328,7 +370,7 @@ export class SwatchbookForm extends Component {
   };
 
   saveSwatchbook = values => {
-    this.setState({creatingLoading: true});
+    this.setState({ creatingLoading: true });
     fetch(api + "swatchbooks", {
       method: "POST",
       headers: {
@@ -343,7 +385,7 @@ export class SwatchbookForm extends Component {
     })
       .then(response => response.json())
       .then(responseData => {
-        this.setState({creatingLoading: false});
+        this.setState({ creatingLoading: false });
 
         if (responseData.id) {
           message.success("Swatchbook: " + values.swatchbookcode + " created.");
@@ -358,18 +400,18 @@ export class SwatchbookForm extends Component {
   };
 
   render() {
-    const {getFieldDecorator} = this.props.form;
-    const {creatingLoading} = this.state;
+    const { getFieldDecorator } = this.props.form;
+    const { creatingLoading } = this.state;
 
     return (
       <Form onSubmit={this.handleSubmit} className="login-form">
         <FormItem label={this.props.getWord("type")} {...formItemLayout}>
           {getFieldDecorator("type", {
-            rules: [{required: true, message: "Please select a Fabric Type"}]
+            rules: [{ required: true, message: "Please select a Fabric Type" }]
           })(
             <Select
               showSearch
-              style={{width: 200}}
+              style={{ width: 200 }}
               placeholder={this.props.getWord("select-a-fabric-type")}
               optionFilterProp="children"
               onChange={() => this.getSwatchbookCode()}
@@ -399,7 +441,7 @@ export class SwatchbookForm extends Component {
             ]
           })(
             <Input
-              style={{width: 200}}
+              style={{ width: 200 }}
               placeholder={this.props.getWord("swatchbook")}
             />
           )}
