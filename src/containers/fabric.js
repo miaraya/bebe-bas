@@ -104,8 +104,6 @@ class Fabric extends Component {
         }
       })
       .then((fabric) => {
-        console.log(fabric);
-        console.log(fabric.swatchbook.unique_code);
 
         this.setState({ fabric });
         this.setState({ loading: false });
@@ -199,11 +197,10 @@ class Fabric extends Component {
                   <Descriptions.Item label={this.getWord("type")}>
                     {fabric.type}
                   </Descriptions.Item>
-                  {fabric.price_band > 0 && (
+                  {fabric.price_band_id > 0 && (
                     <Descriptions.Item label={this.getWord("price-band")}>
                       <Rate
-                        disabled={true}
-                        defaultValue={Number(fabric.price_band)}
+                        defaultValue={Number(fabric.price_band_id)}
                       />
                     </Descriptions.Item>
                   )}
