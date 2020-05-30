@@ -797,7 +797,7 @@ class _Search extends Component {
       creatingLoading,
       moveStockVisible,
       editFabricVisible,
-      dashboardVisible,
+      //dashboardVisible,
       searchVisible,
     } = this.state;
 
@@ -999,11 +999,13 @@ class _Search extends Component {
                           {this.getWord("move-fabric")}
                         </Menu.Item>
                       )}
-                      {record && (
+                      {/*
+                      record && (
                         <Menu.Item onClick={() => this.editFabric(record)}>
                           {this.getWord("edit-fabric")}
                         </Menu.Item>
-                      )}
+                      )
+                      */}
                     </Menu>
                   }
                   onClick={() => this.setState({ record })}
