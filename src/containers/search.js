@@ -75,7 +75,6 @@ class _Search extends Component {
     } else {
       try {
         const profile = Auth.getProfile();
-        console.log(profile);
         this.setState({
           user: profile,
         });
@@ -160,7 +159,7 @@ class _Search extends Component {
       if (err) {
         return;
       }
-      this.saveEditFabric(values);
+      this.state.record.fabric_id && this.saveEditFabric(values);
       form.resetFields();
     });
   };
@@ -232,72 +231,75 @@ class _Search extends Component {
 
   saveEditFabric = (values) => {
     this.setState({ creatingLoading: true });
-    fetch(api + "fabrics/update?where[id]=" + this.state.record.fabric_id, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        color_id: values.color,
-        old_code: values.supplier_code,
-        supplier_id: values.supplier,
-        price: values.price,
-        swatchbook_id: values.swatchbook,
-        price_band_id: values.price_band,
-      }),
-    })
-      .then((response) => response.json())
-      .then((responseData) => {
-        if (responseData.count > 0) {
-          message.success("Fabric: " + values.code + " edited.");
 
-          this.setState({ editFabricVisible: false });
-          fetch(
-            api +
-              "fabricdetails?filter[where][unique_code][like]=" +
-              this.state.record.unique_code
-          )
-            .then((res) => {
-              if (res.ok) {
-                return res.json();
-              } else {
-                this.setState({ error: true });
-                throw new Error("Something went wrong ...");
-              }
-            })
-            .then((data) => {
-              let aux = this.state.record;
-              aux.stock = _.sortBy(data, [
-                function (o) {
-                  return o.location;
-                },
-              ]);
+    values &&
+      this.state.record.fabric_id &&
+      fetch(api + "fabrics/update?where[id]=" + this.state.record.fabric_id, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          color_id: values.color,
+          old_code: values.supplier_code,
+          supplier_id: values.supplier,
+          price: values.price,
+          swatchbook_id: values.swatchbook,
+          sprice_band_id: values.price_band,
+        }),
+      })
+        .then((response) => response.json())
+        .then((responseData) => {
+          if (responseData.count > 0) {
+            message.success("Fabric: " + values.code + " edited.");
 
-              let total = 0;
-              aux.stock.forEach((s) => {
-                total = total + Number(s.stock);
+            this.setState({ editFabricVisible: false });
+            fetch(
+              api +
+                "fabricdetails?filter[where][unique_code][like]=" +
+                this.state.record.unique_code
+            )
+              .then((res) => {
+                if (res.ok) {
+                  return res.json();
+                } else {
+                  this.setState({ error: true });
+                  throw new Error("Something went wrong ...");
+                }
+              })
+              .then((data) => {
+                let aux = this.state.record;
+                aux.stock = _.sortBy(data, [
+                  function (o) {
+                    return o.location;
+                  },
+                ]);
+
+                let total = 0;
+                aux.stock.forEach((s) => {
+                  total = total + Number(s.stock);
+                });
+                total > 0 ? (aux.hetvai = false) : (aux.hetvai = true);
+
+                aux.old_code = data[0].old_code;
+                aux.swatchbook_id = data[0].swatchbook_id;
+                aux.swatchbook = data[0].swatchbook;
+                aux.color = data[0].color;
+                aux.color_id = data[0].color_id;
+                aux.price = data[0].price;
+                aux.price_band = data[0].price_band;
+                this.setState({ record: aux });
+                this.forceUpdate();
               });
-              total > 0 ? (aux.hetvai = false) : (aux.hetvai = true);
-
-              aux.old_code = data[0].old_code;
-              aux.swatchbook_id = data[0].swatchbook_id;
-              aux.swatchbook = data[0].swatchbook;
-              aux.color = data[0].color;
-              aux.color_id = data[0].color_id;
-              aux.price = data[0].price;
-              aux.price_band = data[0].price_band;
-              this.setState({ record: aux });
-              this.forceUpdate();
-            });
-        } else {
-          message.error("Error: " + responseData.error.message);
-        }
-        console.log(
-          "POST Response",
-          "Response Body -> " + JSON.stringify(responseData)
-        );
-      });
+          } else {
+            message.error("Error: " + responseData.error.message);
+          }
+          console.log(
+            "POST Response",
+            "Response Body -> " + JSON.stringify(responseData)
+          );
+        });
   };
 
   saveNewFabric = (values) => {
@@ -462,7 +464,7 @@ class _Search extends Component {
       .then((dictionary) => {
         this.setState({ dictionary });
         this.setState({ isLoading: false });
-        console.log(dictionary);
+        //console.log(dictionary);
       });
   };
 
@@ -620,8 +622,14 @@ class _Search extends Component {
         });
 
         let colorFilter = [];
-        colors.map((c) =>
-          colorFilter.push({ text: c.description, value: c.description })
+        colors.map(
+          (c) =>
+            c.description &&
+            colorFilter.push({
+              text: c.description,
+              value: c.description,
+              id: c.id,
+            })
         );
 
         this.setState({ colorFilter });
@@ -999,13 +1007,11 @@ class _Search extends Component {
                           {this.getWord("move-fabric")}
                         </Menu.Item>
                       )}
-                      {/*
-                      record && (
+                      {record && (
                         <Menu.Item onClick={() => this.editFabric(record)}>
                           {this.getWord("edit-fabric")}
                         </Menu.Item>
-                      )
-                      */}
+                      )}
                     </Menu>
                   }
                   onClick={() => this.setState({ record })}
