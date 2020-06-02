@@ -505,7 +505,7 @@ class _Search extends Component {
             fabric_id: value[0].fabric_id,
             thumbnail_url: value[0].thumbnail_url,
             image_url: value[0].image_url,
-            total: value[0].total_stock,
+            total: Number(value[0].total_stock),
             hetvai: value[0].total_stock <= 0,
             type: value[0].type,
             supplier: value[0].supplier,
@@ -516,9 +516,15 @@ class _Search extends Component {
             type_id: value[0].type_id,
             swatchbook_id: value[0].swatchbook_id,
           }))
+          //.sortBy(result, ["unique_code", "old_code"])
           .value();
+        console.log(result);
 
-        this.setState({ data: result });
+        console.log();
+
+        this.setState({
+          data: _.orderBy(result, ["total", "unique_code"], ["desc", "asc"]),
+        });
         this.setState({ loading: false });
       })
       .catch((error) => {});
