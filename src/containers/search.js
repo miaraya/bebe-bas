@@ -518,12 +518,9 @@ class _Search extends Component {
           }))
           //.sortBy(result, ["unique_code", "old_code"])
           .value();
-        console.log(result);
-
-        console.log();
 
         this.setState({
-          data: _.orderBy(result, ["total", "unique_code"], ["desc", "asc"]),
+          data: _.orderBy(result, ["hetvai", "unique_code"], ["asc", "asc"]),
         });
         this.setState({ loading: false });
       })
