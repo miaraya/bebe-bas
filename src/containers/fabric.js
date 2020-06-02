@@ -94,7 +94,12 @@ class Fabric extends Component {
   };*/
 
   getFabricData = (id) => {
-    fetch(api + "fabrics?filter[where][unique_code]=" + id)
+    fetch(
+      api +
+        "fabrics?filter[where][unique_code]=" +
+        id +
+        "&filter[include]=swatchbook&filter[include]=stock&filter[include]=supplier"
+    )
       .then((res) => {
         if (res.ok) {
           return res.json();
@@ -104,6 +109,7 @@ class Fabric extends Component {
         }
       })
       .then((fabric) => {
+        console.log(fabric);
         this.setState({ fabric: fabric[0] });
         this.setState({ loading: false });
         this.setState({ error: false });

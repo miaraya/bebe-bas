@@ -231,6 +231,7 @@ class _Search extends Component {
 
   saveEditFabric = (values) => {
     this.setState({ creatingLoading: true });
+    console.log(values);
 
     values &&
       this.state.record.fabric_id &&
@@ -246,7 +247,7 @@ class _Search extends Component {
           supplier_id: values.supplier,
           price: values.price,
           swatchbook_id: values.swatchbook,
-          sprice_band_id: values.price_band,
+          price_band_id: values.price_band,
         }),
       })
         .then((response) => response.json())
