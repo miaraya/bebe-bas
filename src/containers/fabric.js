@@ -94,7 +94,7 @@ class Fabric extends Component {
   };*/
 
   getFabricData = (id) => {
-    fetch(api + "fabrics/" + id)
+    fetch(api + "fabrics?filter[where][unique_code]=" + id)
       .then((res) => {
         if (res.ok) {
           return res.json();
@@ -104,8 +104,7 @@ class Fabric extends Component {
         }
       })
       .then((fabric) => {
-
-        this.setState({ fabric });
+        this.setState({ fabric: fabric[0] });
         this.setState({ loading: false });
         this.setState({ error: false });
       })
@@ -199,9 +198,7 @@ class Fabric extends Component {
                   </Descriptions.Item>
                   {fabric.price_band_id > 0 && (
                     <Descriptions.Item label={this.getWord("price-band")}>
-                      <Rate
-                        defaultValue={Number(fabric.price_band_id)}
-                      />
+                      <Rate defaultValue={Number(fabric.price_band_id)} />
                     </Descriptions.Item>
                   )}
                   <Descriptions.Item label={this.getWord("swatchbook")}>
