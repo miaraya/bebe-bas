@@ -5,7 +5,7 @@ import "antd/dist/antd.css";
 import "../css/css.css";
 import { Layout, Modal } from "antd";
 
-import { Radio, message, Row } from "antd";
+import { Radio, message, Row, Tag } from "antd";
 import { Input } from "antd";
 import { api } from "./constants";
 import { Table } from "antd";
@@ -857,7 +857,14 @@ class _Search extends Component {
         sorter: (a, b) => {
           return a.unique_code.localeCompare(b.unique_code);
         },
-        render: (fabric) => <Link to={`/f/${fabric}`}>{fabric}</Link>,
+        render: (fabric, record) => (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <Link to={`/f/${fabric}`}>{fabric}</Link>
+            {record.total <= 10 && record.total > 0 && (
+              <Tag color="orange">LOW STOCK</Tag>
+            )}
+          </div>
+        ),
       },
       {
         title: this.getWord("fabric-code-old"),

@@ -2,12 +2,17 @@ import React, { Component } from "react";
 import { Link } from "react-router";
 import "antd/dist/antd.css";
 import "../css/css.css";
-import { Spin, Descriptions } from "antd";
+import { Spin, Descriptions, PageHeader, Tag, Typography } from "antd";
 import Top from "../components/top";
 
 import Logo from "../assets/logo_small.png";
 
-import { api } from "./constants";
+import {
+  api,
+  fabric_url_thumbnail,
+  fabric_url_full,
+  location_url,
+} from "./constants";
 import { Layout, Modal, Row, Col } from "antd";
 import { Rate } from "antd";
 import AuthService from "../AuthService";
@@ -98,7 +103,7 @@ class Fabric extends Component {
       api +
         "fabrics?filter[where][unique_code]=" +
         id +
-        "&filter[include]=swatchbook&filter[include]=stock&filter[include]=supplier"
+        "&filter[include]=swatchbook&filter[include]=stock&filter[include]=supplier&filter[include]=type"
     )
       .then((res) => {
         if (res.ok) {
@@ -109,7 +114,6 @@ class Fabric extends Component {
         }
       })
       .then((fabric) => {
-        console.log(fabric);
         this.setState({ fabric: fabric[0] });
         this.setState({ loading: false });
         this.setState({ error: false });
@@ -179,16 +183,23 @@ class Fabric extends Component {
           >
             <img src={Logo} alt="Bebe Tailor" width="150px" />
           </Row>
+          <PageHeader
+            title={fabric.unique_code}
+            tags={
+              fabric.total_stock > 0 &&
+              fabric.total_stock <= 10 && <Tag color="orange">LOW STOCK</Tag>
+            }
+          ></PageHeader>
 
           <Content className="container">
             <Row type="flex" justify="center" align="top" gutter={40} span={24}>
               <img
                 style={{ maxWidth: 300, alignSelf: "center" }}
                 alt={fabric.unique_code}
-                src={fabric.thumbnail}
+                src={fabric_url_thumbnail + fabric.image}
                 onClick={() => {
                   this.setState({
-                    image: fabric.image,
+                    image: fabric_url_full + fabric.image,
                   });
                   this.setState({ visible: true });
                 }}
@@ -200,7 +211,7 @@ class Fabric extends Component {
                   </Descriptions.Item>
 
                   <Descriptions.Item label={this.getWord("type")}>
-                    {fabric.type}
+                    {`${fabric.type.description} (${fabric.type.alias})`}
                   </Descriptions.Item>
                   {fabric.price_band_id > 0 && (
                     <Descriptions.Item label={this.getWord("price-band")}>
@@ -242,9 +253,9 @@ class Fabric extends Component {
                       title={this.getWord("stock-fabric-location")}
                       column={2}
                     >
-                      {fabric.stock.map((l) => (
+                      {fabric.stock.map((l, i) => (
                         <Descriptions.Item
-                          key={l.id}
+                          key={i}
                           label={
                             <Link
                               disabled={!l.image}
@@ -254,7 +265,7 @@ class Fabric extends Component {
                               }}
                               onClick={() => {
                                 this.setState({
-                                  image: l.image,
+                                  image: location_url + l.image,
                                 });
                                 this.setState({ visible: true });
                               }}
