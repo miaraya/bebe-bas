@@ -114,9 +114,14 @@ class Fabric extends Component {
         }
       })
       .then((fabric) => {
-        this.setState({ fabric: fabric[0] });
-        this.setState({ loading: false });
-        this.setState({ error: false });
+        if (fabric.length > 0) {
+          this.setState({ fabric: fabric[0] });
+          this.setState({ loading: false });
+          this.setState({ error: false });
+        } else {
+          this.setState({ loading: false });
+          this.setState({ error: true });
+        }
       })
       .catch((error) => {
         this.setState({ loading: false });
