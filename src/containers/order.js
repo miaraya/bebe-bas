@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import "antd/dist/antd.css";
 import "../css/css.css";
+import { StaffList } from "../components";
 import {
   Layout,
   Row,
@@ -52,7 +53,6 @@ class Order extends Component {
       image,
       visible,
       order_customer,
-      payments,
       ifus,
       items,
       status_id,
@@ -120,7 +120,7 @@ class Order extends Component {
                 prefix=""
                 value={
                   language === "vietnamese"
-                    ? order_customer.order_status_viet
+                    ? order_customer.status
                     : order_customer.status
                 }
                 style={{
@@ -150,43 +150,58 @@ class Order extends Component {
           <Content className="container">
             <Descriptions title={this.getWord("order-details")}>
               <Descriptions.Item label={this.getWord("customer-name")}>
-                {order_customer.customer_name}
+                {`${order_customer.customer_first_name} ${order_customer.customer_last_name}`}
               </Descriptions.Item>
 
               <Descriptions.Item label={this.getWord("email")}>
-                {order_customer.email && order_customer.email.toLowerCase()}
+                {order_customer.customer_email.toLowerCase()}
               </Descriptions.Item>
               <Descriptions.Item label={this.getWord("staff")}>
-                <span>
-                  {order_customer.staff + " - " + order_customer.store}
-                  <Avatar
-                    src={order_customer.staff_thumbnail}
-                    style={{ marginLeft: 20 }}
-                  />
-                </span>
+                <StaffList record={order_customer} />
+              </Descriptions.Item>
+
+              <Descriptions.Item label={this.getWord("store")}>
+                {order_customer.store.name}
               </Descriptions.Item>
               <Descriptions.Item label={this.getWord("date")}>
-                {moment(order_customer.order_date).format(dateFormat)}
+                {moment(order_customer.timestamp).format(dateFormat)}
               </Descriptions.Item>
-              <Descriptions.Item label={this.getWord("status")}>
-                {order_customer.status}
-              </Descriptions.Item>
+
               <Descriptions.Item label={this.getWord("hotel")}>
+                {order_customer.hotel_ids && order_customer.hotel_ids.length
+                  ? order_customer.hotel_ids.map(
+                      (h) =>
+                        h.active && (
+                          <span
+                            key={h.id}
+                          >{`${h.hotel.name}, room: ${h.room} `}</span>
+                        )
+                    )
+                  : order_customer.store_id === 4
+                  ? "On Line"
+                  : "No Hotel"}
                 {order_customer.hotel}
               </Descriptions.Item>
-              <Descriptions.Item label={this.getWord("room")}>
-                {order_customer.room}
-              </Descriptions.Item>
-              <Descriptions.Item label={this.getWord("fitting-day")}>
-                {moment(order_customer.fitting_day).format(
-                  language === "vietnamese" ? dateFormatViet : dateFormat
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label={this.getWord("last-day")}>
-                {moment(order_customer.last_day)
-                  .utc()
-                  .format(language === "vietnamese" ? "DD/MM/YY" : "MMM DD,YY")}
-              </Descriptions.Item>
+              {order_customer.store_id !== 4 && (
+                <Descriptions.Item label={this.getWord("fitting-day")}>
+                  {order_customer.fitting !== null
+                    ? moment(order_customer.fitting).format(
+                        language === "vietnamese" ? dateFormatViet : dateFormat
+                      )
+                    : "-"}
+                </Descriptions.Item>
+              )}
+              {order_customer.store_id !== 4 && (
+                <Descriptions.Item label={this.getWord("last-day")}>
+                  {order_customer.last_day !== null
+                    ? moment(order_customer.last_day)
+                        .utc()
+                        .format(
+                          language === "vietnamese" ? "DD/MM/YY" : "MMM DD,YY"
+                        )
+                    : "-"}
+                </Descriptions.Item>
+              )}
             </Descriptions>
 
             <Row type="flex" justify="space-between"></Row>
@@ -284,13 +299,13 @@ class Order extends Component {
               <h2>{this.getWord("order-payments")}</h2>
             </Divider>
             <Row gutter={8}>
-              <Col sm={24} xs={24} md={8} style={{ marginBottom: 20 }}>
+              <Col sm={24} xs={24} md={6} style={{ marginBottom: 20 }}>
                 <Descriptions title="" column={1} bordered>
                   <Descriptions.Item
                     label={this.getWord("total-price")}
                     style={{ alignSelf: "right" }}
                   >
-                    ${order_customer.total}
+                    ${order_customer.total_price}
                   </Descriptions.Item>
                   {order_customer.discount > 0 && (
                     <Descriptions.Item label={this.getWord("discount")}>
@@ -299,11 +314,14 @@ class Order extends Component {
                   )}
                   {order_customer.discount > 0 && (
                     <Descriptions.Item label={this.getWord("to-pay")}>
-                      ${order_customer.to_pay}
+                      ${order_customer.total_price - order_customer.discount}
                     </Descriptions.Item>
                   )}
                   <Descriptions.Item label={this.getWord("paid")}>
-                    ${order_customer.paid}
+                    $
+                    {order_customer.total_price -
+                      order_customer.discount -
+                      order_customer.balance}
                   </Descriptions.Item>
                   <Descriptions.Item label={this.getWord("balance")}>
                     <span
@@ -316,9 +334,9 @@ class Order extends Component {
                   </Descriptions.Item>
                 </Descriptions>
               </Col>
-              <Col sm={24} xs={24} md={16}>
+              <Col sm={24} xs={24} md={18}>
                 <Table
-                  dataSource={payments}
+                  dataSource={order_customer.payments}
                   pagination={false}
                   rowKey="id"
                   size="small"
@@ -327,19 +345,22 @@ class Order extends Component {
                     title={this.getWord("date")}
                     dataIndex="creation_date"
                     key="creation_date"
+                    render={(record) => moment(record).format(dateFormat)}
                   />
                   <Column
                     title={this.getWord("payment-type")}
                     dataIndex="type"
                     key="type"
+                    render={(record) => record.name}
                   />
                   <Column
                     title="Amount [USD]"
                     dataIndex="amount"
                     key="amount"
+                    render={(record) => `$${record}`}
                   />
                   <Column
-                    title="Type"
+                    title="Method"
                     dataIndex="is_cc"
                     key="is_cc"
                     render={(is_cc) =>
@@ -352,13 +373,26 @@ class Order extends Component {
                   />
                   <Column
                     title={this.getWord("cashier")}
-                    dataIndex="cashier"
-                    key="cashier"
+                    dataIndex="staff"
+                    key="staff"
+                    render={(record) => (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          flexDirection: "column",
+                        }}
+                      >
+                        <Avatar src={record.image} />
+                        <span>{record.name}</span>
+                      </div>
+                    )}
                   />
                   <Column
                     title={this.getWord("store")}
                     dataIndex="store"
                     key="store"
+                    render={(record) => record.name}
                   />
                   <Column
                     title={this.getWord("notes")}
@@ -452,8 +486,8 @@ class Order extends Component {
 
     this.getOrderData(id);
     this.getOrderItems(id);
-    this.getOrderPayments(id);
-    this.getOrderIFU(id);
+    //this.getOrderPayments(id);
+    //this.getOrderIFU(id);
   };
   getDictionary = () => {
     fetch(api + "/dictionaries")
@@ -494,7 +528,7 @@ class Order extends Component {
   };
 
   getOrderData = (id) => {
-    fetch(api + "web_order_customers/" + id)
+    fetch(api + "orders/" + id)
       .then((res) => {
         if (res.ok) {
           return res.json();

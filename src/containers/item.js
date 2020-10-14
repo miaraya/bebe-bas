@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import "antd/dist/antd.css";
 import "../css/css.css";
 import { Layout, Tabs, Row, Col, Modal } from "antd";
-import { Statistic, Steps, Descriptions, Avatar } from "antd";
+import { Statistic, Steps, Descriptions } from "antd";
 
 import { Divider, Empty } from "antd";
 import { Spin } from "antd";
@@ -17,6 +17,12 @@ import { Card } from "antd";
 import Top from "../components/top";
 import AuthService from "../AuthService";
 import moment from "moment";
+import {
+  fabric_image,
+  fabric_thumbnail,
+  StaffList,
+  item_image,
+} from "../components";
 
 const { Step } = Steps;
 
@@ -32,7 +38,7 @@ class Item extends Component {
     super(props);
     this.state = {
       loading: true,
-      error: true,
+      error: false,
       details: [],
       images: [],
       options: [],
@@ -46,12 +52,11 @@ class Item extends Component {
   }
 
   render() {
-    const { id } = this.props.params;
+    //const { id } = this.props.params;
     const {
       order_customer,
       loading,
       error,
-      details,
       images,
       image,
       visible,
@@ -114,7 +119,7 @@ class Item extends Component {
               <Statistic
                 title={this.getWord("item-number")}
                 prefix="#"
-                value={id}
+                value={`${order_customer.order_id}-${order_customer.index}`}
                 groupSeparator=""
                 style={{
                   textAlign: "center",
@@ -124,11 +129,7 @@ class Item extends Component {
             <Col xs={24} sm={24} md={4} justify="center">
               <Statistic
                 title={this.getWord("item")}
-                value={
-                  this.state.language === "vietnamese"
-                    ? details.vietnamese
-                    : details.description
-                }
+                value={order_customer.garment.alias}
                 style={{
                   textAlign: "center",
                 }}
@@ -137,11 +138,7 @@ class Item extends Component {
             <Col xs={24} sm={24} md={4} justify="center">
               <Statistic
                 title={this.getWord("item-status")}
-                value={
-                  this.state.language === "vietnamese"
-                    ? details.item_status_viet
-                    : details.status_id
-                }
+                value={order_customer.status}
                 style={{
                   textAlign: "center",
                 }}
@@ -174,48 +171,51 @@ class Item extends Component {
                 )}
               </Descriptions.Item>
               <Descriptions.Item label={this.getWord("order-status")}>
-                {this.state.language === "vietnamese"
-                  ? order_customer.order_status_viet
-                  : order_customer.status}
+                {order_customer.order.status}
               </Descriptions.Item>
 
               <Descriptions.Item label={this.getWord("customer-name")}>
-                {order_customer.customer_name}
+                {`${order_customer.order.customer_first_name} ${order_customer.order.customer_last_name}`}
               </Descriptions.Item>
               <Descriptions.Item label={this.getWord("email")}>
-                {order_customer.email ? order_customer.email.toLowerCase() : ""}
+                {order_customer.order.customer_email &&
+                  order_customer.order.customer_email.toLowerCase()}
               </Descriptions.Item>
               <Descriptions.Item label={this.getWord("staff")}>
-                <span>
-                  {order_customer.staff + " - " + order_customer.store}
-                  <Avatar
-                    src={order_customer.staff_thumbnail}
-                    style={{ marginLeft: 20 }}
-                  />
-                </span>
+                <StaffList record={order_customer.order} />
               </Descriptions.Item>
               <Descriptions.Item label={this.getWord("date")}>
-                {moment(order_customer.order_date).format(dateFormat)}
-              </Descriptions.Item>
-              <Descriptions.Item label={this.getWord("item-status")}>
-                {this.state.language === "vietnamese"
-                  ? details.item_status_viet
-                  : details.status_id}
-              </Descriptions.Item>
-              <Descriptions.Item label={this.getWord("hotel")}>
-                {order_customer.hotel}
-              </Descriptions.Item>
-              <Descriptions.Item label={this.getWord("room")}>
-                {order_customer.room}
+                {moment(order_customer.order.timestamp).format(dateFormat)}
               </Descriptions.Item>
 
-              <Descriptions.Item label={this.getWord("fitting-day")}>
-                {moment(order_customer.fitting_day).format(
-                  language === "vietnamese" ? dateFormatViet : dateFormat
-                )}
+              <Descriptions.Item label={this.getWord("hotel")}>
+                {order_customer.order.hotel_ids.length
+                  ? order_customer.order.hotel_ids.map(
+                      (h) =>
+                        h.active && (
+                          <span
+                            key={h.id}
+                          >{`${h.hotel.name}, room: ${h.room} `}</span>
+                        )
+                    )
+                  : order_customer.order.store_id === 4
+                  ? "On Line"
+                  : "No Hotel"}
+                {order_customer.hotel}
               </Descriptions.Item>
+
+              {order_customer.order.store_id !== 4 && (
+                <Descriptions.Item label={this.getWord("fitting-day")}>
+                  {order_customer.order.fitting !== null
+                    ? moment(order_customer.order.fitting).format(
+                        language === "vietnamese" ? dateFormatViet : dateFormat
+                      )
+                    : "-"}
+                </Descriptions.Item>
+              )}
+
               <Descriptions.Item label={this.getWord("last-day")}>
-                {moment(order_customer.last_day)
+                {moment(order_customer.order.last_day)
                   .utc()
                   .format(language === "vietnamese" ? "DD/MM/YY" : "MMM DD,YY")}
               </Descriptions.Item>
@@ -232,15 +232,20 @@ class Item extends Component {
                         {options.length > 0 ? (
                           options.map((o) => (
                             <Descriptions.Item
+                              key={o.id}
                               label={
                                 language === "vietnamese"
-                                  ? o.option_name_viet
-                                  : o.option_name
+                                  ? o.option.vietnamese
+                                    ? o.option.vietnamese
+                                    : o.option.name
+                                  : o.option.name
                               }
                             >
                               {language === "vietnamese"
-                                ? o.option_value_viet
-                                : o.value}
+                                ? o.value.vietnamese
+                                  ? o.value.vietnamese
+                                  : o.value.name
+                                : o.value.name}
                             </Descriptions.Item>
                           ))
                         ) : (
@@ -250,8 +255,8 @@ class Item extends Component {
                       <Divider />{" "}
                       <Descriptions title={this.getWord("notes")} column={1}>
                         <Descriptions.Item label={this.getWord("notes")}>
-                          {details.notes
-                            ? details.notes
+                          {order_customer.notes
+                            ? order_customer.notes
                             : this.getWord("no-notes")}
                         </Descriptions.Item>
                       </Descriptions>
@@ -263,34 +268,36 @@ class Item extends Component {
                         bordered={false}
                       >
                         {fabrics.length > 0 &&
-                          fabrics.map((o) => (
-                            <Descriptions.Item key={o.id}>
+                          fabrics.map((f) => (
+                            <Descriptions.Item key={f.id}>
                               <Card
                                 size={"small"}
-                                key={o.id}
+                                key={f.id}
                                 hoverable="hoverable"
                                 cover={
                                   <img
                                     onClick={() => {
                                       this.setState({
-                                        image: o.image_url,
+                                        image: fabric_image + f.fabric.image,
                                       });
                                       this.setState({ visible: true });
                                     }}
                                     style={{ height: 150, overflow: "hidden" }}
-                                    alt={o.unique_code}
-                                    src={o.thumbnail_url}
+                                    alt={f.fabric.unique_code}
+                                    src={fabric_thumbnail + f.fabric.image}
                                   />
                                 }
                               >
                                 <Meta
                                   title={
-                                    <Link to={`/f/${o.unique_code}`}>
-                                      {o.unique_code}
+                                    <Link to={`/f/${f.fabric.unique_code}`}>
+                                      {f.fabric.unique_code}
                                     </Link>
                                   }
                                   description={
-                                    o.notes ? o.notes : this.getWord("no-notes")
+                                    f.notes !== null
+                                      ? f.notes
+                                      : this.getWord("no-notes")
                                   }
                                 />
                               </Card>
@@ -301,29 +308,30 @@ class Item extends Component {
                     <Col span={8}>
                       <Descriptions title={this.getWord("image")} column={1}>
                         {images.length > 0 ? (
-                          images.map((o) => (
-                            <Descriptions.Item key={o.id}>
+                          images.map((i) => (
+                            <Descriptions.Item key={i.id}>
                               <Card
-                                title={o.unique_code}
                                 size={"small"}
-                                key={o.id}
+                                key={i.id}
                                 hoverable="hoverable"
                                 cover={
                                   <img
+                                    alt="Order "
                                     onClick={() => {
                                       this.setState({
-                                        image: o.image_url,
+                                        image: item_image + i.image,
                                       });
                                       this.setState({ visible: true });
                                     }}
-                                    alt={o.unique_code}
-                                    src={o.image_url}
+                                    src={item_image + i.image}
                                   />
                                 }
                               >
                                 <Meta
                                   description={
-                                    o.notes ? o.notes : this.getWord("no-notes")
+                                    i.notes !== null
+                                      ? i.notes
+                                      : this.getWord("no-notes")
                                   }
                                 />
                               </Card>
@@ -500,14 +508,30 @@ class Item extends Component {
 
     if (_.indexOf(id, "-") > 0) this.getItemId(id);
     else this.getData(id);
+    this.getDictionary();
   };
 
   getItemId = (id) => {
     let aux = id.split("-");
-    fetch(api + "/orders/getItem/" + aux[0] + "/" + aux[1])
+    fetch(
+      `${api}items?filter[where][order_id]=${aux[0]}&filter[where][index]=${aux[1]}&filter[include]=order&filter[include]=garment&filter[include]=options&filter[include]=fabrics&filter[include]=images`
+    )
       .then((res) => res.json())
-      .then((res) => {
-        this.getData(res.id);
+      .then((order_customer) => {
+        console.log(order_customer[0].fabrics);
+        this.setState({ order_customer: order_customer[0] });
+        this.setState({ options: order_customer[0].options });
+        this.setState({ fabrics: order_customer[0].fabrics });
+        this.setState({ images: order_customer[0].images });
+
+        this.setState({ loading: false });
+
+        //this.getData(order_customer.id);
+      })
+      .catch((error) => {
+        this.setState({ loading: false });
+
+        this.setState({ error: true });
       });
   };
 
@@ -518,15 +542,14 @@ class Item extends Component {
   };
 
   getData = (id) => {
-    this.getDictionary();
-    this.getOrderData(id);
-    this.getItemInfo(id);
-    this.getItemImages(id);
-    this.getItemOptions(id);
-    this.getItemFabrics(id);
-    this.getItemFittings(id);
-    this.getMeasurements(id);
-    this.getMeasurementImages(id);
+    //this.getOrderData(id);
+    //this.getItemInfo(id);
+    //this.getItemImages(id);
+    //this.getItemOptions(id);
+    //this.getItemFabrics(id);
+    //this.getItemFittings(id);
+    //this.getMeasurements(id);
+    //this.getMeasurementImages(id);
   };
 
   getDictionary = () => {
@@ -534,7 +557,6 @@ class Item extends Component {
       .then((res) => res.json())
       .then((dictionary) => {
         this.setState({ dictionary });
-        this.setState({ isLoading: false });
       });
   };
 
@@ -620,7 +642,6 @@ class Item extends Component {
                 : [],
             })
           : this.setState({ measurements: [] });
-        this.setState({ error: false });
       });
   };
 
@@ -696,7 +717,6 @@ class Item extends Component {
         details
           ? this.setState({ details: details[0] })
           : this.setState({ details: [] });
-        this.setState({ error: false });
 
         switch (details[0].status_id) {
           case "done":
