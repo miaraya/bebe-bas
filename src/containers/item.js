@@ -65,7 +65,6 @@ class Item extends Component {
       fittings,
       measurements,
       measurement_images,
-      measurement_note,
       language,
       status_id,
     } = this.state;
@@ -214,11 +213,17 @@ class Item extends Component {
                 </Descriptions.Item>
               )}
 
-              <Descriptions.Item label={this.getWord("last-day")}>
-                {moment(order_customer.order.last_day)
-                  .utc()
-                  .format(language === "vietnamese" ? "DD/MM/YY" : "MMM DD,YY")}
-              </Descriptions.Item>
+              {order_customer.order.store_id !== 4 && (
+                <Descriptions.Item label={this.getWord("last-day")}>
+                  {order_customer.order.last_day !== null
+                    ? moment(order_customer.order.last_day)
+                        .utc()
+                        .format(
+                          language === "vietnamese" ? "DD/MM/YY" : "MMM DD,YY"
+                        )
+                    : "-"}
+                </Descriptions.Item>
+              )}
             </Descriptions>
             <Divider />
             <Descriptions title={this.getWord("item-details")}></Descriptions>
@@ -410,8 +415,8 @@ class Item extends Component {
                               key={o.id}
                               label={
                                 language === "vietnamese"
-                                  ? o.type_viet
-                                  : o.type_eng
+                                  ? o.measurement.type_viet
+                                  : o.measurement.type_eng
                               }
                             >
                               {o.value}
@@ -424,8 +429,8 @@ class Item extends Component {
                       <Divider />
                       <Descriptions title={this.getWord("notes")} column={1}>
                         <Descriptions.Item>
-                          {measurement_note
-                            ? measurement_note
+                          {measurements.length > 0 && measurements[0].note
+                            ? measurements[0].note
                             : this.getWord("no-notes")}
                         </Descriptions.Item>
                       </Descriptions>
@@ -523,6 +528,9 @@ class Item extends Component {
         this.setState({ options: order_customer[0].options });
         this.setState({ fabrics: order_customer[0].fabrics });
         this.setState({ images: order_customer[0].images });
+        this.setState({
+          measurements: order_customer[0].order.measurement_ids,
+        });
 
         this.setState({ loading: false });
 
@@ -608,40 +616,6 @@ class Item extends Component {
                 : [],
             })
           : this.setState({ measurement_images: [] });
-      });
-  };
-  getMeasurements = (id) => {
-    fetch(api + "web_order_measurement_items?filter[where][item_id]=" + id)
-      .then((res) => {
-        if (res.ok) {
-          return res.json();
-        } else {
-          this.setState({ error: true });
-          throw new Error("Something went wrong ...");
-        }
-      })
-      .then((json) => {
-        json
-          ? this.setState({
-              measurement_note: json[0] ? json[0].note : "",
-            })
-          : this.setState({ measurement_note: "" });
-        var measurements = _(json)
-          .groupBy((x) => x.customer_name)
-          .map((value, key) => ({ measurements: value, name: key }))
-          .value();
-
-        measurements
-          ? this.setState({
-              measurements: measurements[0]
-                ? _.sortBy(measurements[0].measurements, [
-                    function (o) {
-                      return o.order;
-                    },
-                  ])
-                : [],
-            })
-          : this.setState({ measurements: [] });
       });
   };
 
