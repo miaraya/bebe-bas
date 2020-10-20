@@ -449,12 +449,12 @@ class Item extends Component {
                                   <img
                                     onClick={() => {
                                       this.setState({
-                                        image: o.image_url,
+                                        image: item_image + o.image,
                                       });
                                       this.setState({ visible: true });
                                     }}
                                     alt={o.unique_code}
-                                    src={o.image_url}
+                                    src={item_image + o.image}
                                   />
                                 }
                               >
@@ -530,6 +530,9 @@ class Item extends Component {
         this.setState({ images: order_customer[0].images });
         this.setState({
           measurements: order_customer[0].order.measurement_ids,
+        });
+        this.setState({
+          measurement_images: order_customer[0].order.measurement_images,
         });
 
         this.setState({ loading: false });
