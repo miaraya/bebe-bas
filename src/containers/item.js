@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import "antd/dist/antd.css";
 import "../css/css.css";
-import { Layout, Tabs, Row, Col, Modal } from "antd";
+import { Layout, Tabs, Row, Col, Modal, Typography } from "antd";
 import { Statistic, Steps, Descriptions } from "antd";
 
 import { Divider, Empty } from "antd";
@@ -233,36 +233,49 @@ class Item extends Component {
                 <TabPane tab={<h3> {this.getWord("items")}</h3>} key="1">
                   <Row gutter={40}>
                     <Col span={8}>
-                      <Descriptions title={this.getWord("options")} column={1}>
+                      <Descriptions
+                        title={this.getWord("options")}
+                        column={1}
+                        bordered="true"
+                        size="small"
+                      >
                         {options.length > 0 ? (
-                          options.map((o) => (
-                            <Descriptions.Item
-                              key={o.id}
-                              label={
-                                language === "vietnamese"
-                                  ? o.option.vietnamese
+                          _.chain(options)
+                            .orderBy((x) => x.option.order, "asc")
+                            .value()
+                            .map((o, i) => (
+                              <Descriptions.Item
+                                key={o.id}
+                                label={
+                                  language === "vietnamese"
                                     ? o.option.vietnamese
-                                    : o.option.name
-                                  : o.option.name
-                              }
-                            >
-                              {language === "vietnamese"
-                                ? o.value.vietnamese
+                                      ? `${i + 1}. ${o.option.vietnamese}`
+                                      : `${i + 1}. ${o.option.name}`
+                                    : `${i + 1}. ${o.option.name}`
+                                }
+                              >
+                                {language === "vietnamese"
                                   ? o.value.vietnamese
-                                  : o.value.name
-                                : o.value.name}
-                            </Descriptions.Item>
-                          ))
+                                    ? o.value.vietnamese
+                                    : o.value.name
+                                  : o.value.name}
+                              </Descriptions.Item>
+                            ))
                         ) : (
                           <Empty />
                         )}
                       </Descriptions>
-                      <Divider />{" "}
+                      <Divider />
                       <Descriptions title={this.getWord("notes")} column={1}>
-                        <Descriptions.Item label={this.getWord("notes")}>
-                          {order_customer.notes
-                            ? order_customer.notes
-                            : this.getWord("no-notes")}
+                        <Descriptions.Item
+                          label={this.getWord("notes")}
+                          layout="vertical"
+                        >
+                          {order_customer.notes ? (
+                            <Typography>{order_customer.notes}</Typography>
+                          ) : (
+                            this.getWord("no-notes")
+                          )}
                         </Descriptions.Item>
                       </Descriptions>
                     </Col>
@@ -351,6 +364,94 @@ class Item extends Component {
                     </Col>
                   </Row>
                 </TabPane>
+                <TabPane tab={<h3> {this.getWord("measurements")}</h3>} key="3">
+                  <Row gutter={40}>
+                    <Col span={16}>
+                      <Descriptions
+                        title={this.getWord("values")}
+                        column={2}
+                        bordered="true"
+                        size="small"
+                      >
+                        {measurements.length > 0 ? (
+                          _.chain(measurements)
+                            .filter(
+                              (x) =>
+                                x.sub_customer_id === order_customer.customer_id
+                            )
+                            .orderBy((x) => x.measurement.order, "asc")
+                            .value()
+                            .map((o, i) => (
+                              <Descriptions.Item
+                                key={o.id}
+                                label={
+                                  language === "vietnamese"
+                                    ? `${i + 1}. ${o.measurement.type_viet}:`
+                                    : `${i + 1}. ${o.measurement.type_eng}:`
+                                }
+                              >
+                                <Typography
+                                  style={{ textAlign: "end" }}
+                                >{` ${o.value}cm`}</Typography>
+                              </Descriptions.Item>
+                            ))
+                        ) : (
+                          <Empty />
+                        )}
+                      </Descriptions>
+                      <Divider />
+                      <Descriptions title={this.getWord("notes")} column={1}>
+                        <Descriptions.Item>
+                          {measurements.length > 0 && measurements[0].note
+                            ? measurements[0].note
+                            : this.getWord("no-notes")}
+                        </Descriptions.Item>
+                      </Descriptions>
+                    </Col>
+                    <Col span={8}>
+                      <Descriptions title={this.getWord("image")} column={1}>
+                        {measurement_images.length > 0 ? (
+                          _.filter(
+                            measurement_images,
+                            (x) =>
+                              x.sub_customer_id === order_customer.customer_id
+                          ).map((o) => (
+                            <Descriptions.Item>
+                              <Card
+                                title={o.unique_code}
+                                size={"small"}
+                                key={o.id}
+                                hoverable="hoverable"
+                                cover={
+                                  <img
+                                    onClick={() => {
+                                      this.setState({
+                                        image: item_image + o.image,
+                                      });
+                                      this.setState({ visible: true });
+                                    }}
+                                    alt={o.unique_code}
+                                    src={item_image + o.image}
+                                  />
+                                }
+                              >
+                                <Meta
+                                  description={
+                                    o.notes ? o.notes : this.getWord("no-notes")
+                                  }
+                                />
+                              </Card>
+                            </Descriptions.Item>
+                          ))
+                        ) : (
+                          <Descriptions.Item>
+                            <Empty description={this.getWord("no-images")} />
+                          </Descriptions.Item>
+                        )}
+                      </Descriptions>
+                    </Col>
+                  </Row>
+                </TabPane>
                 <TabPane tab={<h3> {this.getWord("fitting-")}</h3>} key="2">
                   <h3>{this.getWord("history")}</h3>
                   <Timeline
@@ -405,76 +506,6 @@ class Item extends Component {
                     )}
                   </Timeline>
                 </TabPane>
-                <TabPane tab={<h3> {this.getWord("measurements")}</h3>} key="3">
-                  <Row gutter={40}>
-                    <Col span={16}>
-                      <Descriptions title={this.getWord("values")} column={2}>
-                        {measurements.length > 0 ? (
-                          measurements.map((o) => (
-                            <Descriptions.Item
-                              key={o.id}
-                              label={
-                                language === "vietnamese"
-                                  ? o.measurement.type_viet
-                                  : o.measurement.type_eng
-                              }
-                            >
-                              {o.value}
-                            </Descriptions.Item>
-                          ))
-                        ) : (
-                          <Empty />
-                        )}
-                      </Descriptions>
-                      <Divider />
-                      <Descriptions title={this.getWord("notes")} column={1}>
-                        <Descriptions.Item>
-                          {measurements.length > 0 && measurements[0].note
-                            ? measurements[0].note
-                            : this.getWord("no-notes")}
-                        </Descriptions.Item>
-                      </Descriptions>
-                    </Col>
-                    <Col span={8}>
-                      <Descriptions title={this.getWord("image")} column={1}>
-                        {measurement_images.length > 0 ? (
-                          measurement_images.map((o) => (
-                            <Descriptions.Item>
-                              <Card
-                                title={o.unique_code}
-                                size={"small"}
-                                key={o.id}
-                                hoverable="hoverable"
-                                cover={
-                                  <img
-                                    onClick={() => {
-                                      this.setState({
-                                        image: item_image + o.image,
-                                      });
-                                      this.setState({ visible: true });
-                                    }}
-                                    alt={o.unique_code}
-                                    src={item_image + o.image}
-                                  />
-                                }
-                              >
-                                <Meta
-                                  description={
-                                    o.notes ? o.notes : this.getWord("no-notes")
-                                  }
-                                />
-                              </Card>
-                            </Descriptions.Item>
-                          ))
-                        ) : (
-                          <Descriptions.Item>
-                            <Empty description={this.getWord("no-images")} />
-                          </Descriptions.Item>
-                        )}
-                      </Descriptions>
-                    </Col>
-                  </Row>
-                </TabPane>
               </Tabs>
             </Row>
           </Content>
@@ -523,7 +554,8 @@ class Item extends Component {
     )
       .then((res) => res.json())
       .then((order_customer) => {
-        console.log(order_customer[0].fabrics);
+        //console.log(order_customer[0].fabrics);
+
         this.setState({ order_customer: order_customer[0] });
         this.setState({ options: order_customer[0].options });
         this.setState({ fabrics: order_customer[0].fabrics });
@@ -536,8 +568,6 @@ class Item extends Component {
         });
 
         this.setState({ loading: false });
-
-        //this.getData(order_customer.id);
       })
       .catch((error) => {
         this.setState({ loading: false });
@@ -561,6 +591,15 @@ class Item extends Component {
     //this.getItemFittings(id);
     //this.getMeasurements(id);
     //this.getMeasurementImages(id);
+  };
+
+  getGarmentMeasurement = (id, measurements) => {
+    fetch(api + "/garment_measurements?filter[where][garment_id]=" + id)
+      .then((res) => res.json())
+      .then((garment_measurement) => {
+        console.log(garment_measurement, measurements);
+        //this.setState({ dictionary });
+      });
   };
 
   getDictionary = () => {
