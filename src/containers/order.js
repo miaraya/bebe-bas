@@ -12,6 +12,7 @@ import {
   Descriptions,
   Icon,
   Avatar,
+  Typography,
 } from "antd";
 import { Divider } from "antd";
 import { Spin } from "antd";
@@ -263,6 +264,11 @@ class Order extends Component {
                     title={this.getWord("notes")}
                     dataIndex="notes"
                     key="_notes"
+                    render={(notes) => (
+                      <Typography>
+                        {notes && notes.replace(/<[^>]*>?/gm, "")}
+                      </Typography>
+                    )}
                   />
                 </Table>
               )}
@@ -392,7 +398,7 @@ class Order extends Component {
                     title={this.getWord("store")}
                     dataIndex="store"
                     key="store"
-                    render={(record) => record.name}
+                    render={(record) => record && record.name}
                   />
                   <Column
                     title={this.getWord("notes")}
@@ -528,7 +534,7 @@ class Order extends Component {
   };
 
   getOrderData = (id) => {
-    fetch(api + "orders/" + id)
+    fetch(api + "orders/detail/" + id)
       .then((res) => {
         if (res.ok) {
           return res.json();
