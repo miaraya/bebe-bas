@@ -549,22 +549,20 @@ class Item extends Component {
 
   getItemId = (id) => {
     let aux = id.split("-");
-    fetch(
-      `${api}items?filter[where][order_id]=${aux[0]}&filter[where][index]=${aux[1]}&filter[include]=order&filter[include]=garment&filter[include]=options&filter[include]=fabrics&filter[include]=images`
-    )
+    fetch(`${api}/items/${aux[0]}/${aux[1]}`)
       .then((res) => res.json())
       .then((order_customer) => {
-        //console.log(order_customer[0].fabrics);
+        console.log(order_customer);
 
-        this.setState({ order_customer: order_customer[0] });
-        this.setState({ options: order_customer[0].options });
-        this.setState({ fabrics: order_customer[0].fabrics });
-        this.setState({ images: order_customer[0].images });
+        this.setState({ order_customer: order_customer });
+        this.setState({ options: order_customer.options });
+        this.setState({ fabrics: order_customer.fabrics });
+        this.setState({ images: order_customer.images });
         this.setState({
-          measurements: order_customer[0].order.measurement_ids,
+          measurements: order_customer.order.measurement_ids,
         });
         this.setState({
-          measurement_images: order_customer[0].order.measurement_images,
+          measurement_images: order_customer.order.measurement_images,
         });
 
         this.setState({ loading: false });
