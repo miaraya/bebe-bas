@@ -2,8 +2,8 @@ import React, { Component } from "react";
 import "antd/dist/antd.css";
 import "../css/css.css";
 import { Layout, Tabs, Row, Col, Modal, Typography } from "antd";
-import { Statistic, Steps, Descriptions } from "antd";
-
+import { Statistic, Descriptions } from "antd";
+//import {Steps} from "antd";
 import { Divider, Empty } from "antd";
 import { Spin } from "antd";
 import { Timeline, Icon } from "antd";
@@ -24,7 +24,7 @@ import {
   item_image,
 } from "../components";
 
-const { Step } = Steps;
+//const { Step } = Steps;
 
 const Auth = new AuthService(null);
 
@@ -66,7 +66,7 @@ class Item extends Component {
       measurements,
       measurement_images,
       language,
-      status_id,
+      //status_id,
     } = this.state;
 
     let dateFormat = "MMM DD,YY hh:mm A";
@@ -137,14 +137,14 @@ class Item extends Component {
             <Col xs={24} sm={24} md={4} justify="center">
               <Statistic
                 title={this.getWord("item-status")}
-                value={order_customer.status}
+                value={order_customer.status.status}
                 style={{
                   textAlign: "center",
                 }}
               />
             </Col>
 
-            <Col
+            {/*   <Col
               justify="center"
               xs={12}
               sm={16}
@@ -154,11 +154,11 @@ class Item extends Component {
               }}
             >
               <Steps direction="horizontal" size="small" current={status_id}>
-                <Step title="Paid" description="" />
+                <Step title="Paid" description="" value={2} />
                 <Step title="In Progress" description="" />
                 <Step title="Finished" description="" />
               </Steps>
-            </Col>
+            </Col> */}
           </Row>
           <Content className="container">
             <Descriptions title={this.getWord("order-details")}>
@@ -170,7 +170,7 @@ class Item extends Component {
                 )}
               </Descriptions.Item>
               <Descriptions.Item label={this.getWord("order-status")}>
-                {order_customer.order.status}
+                {order_customer.order.status.status}
               </Descriptions.Item>
 
               <Descriptions.Item label={this.getWord("customer-name")}>
@@ -416,7 +416,7 @@ class Item extends Component {
                             (x) =>
                               x.sub_customer_id === order_customer.customer_id
                           ).map((o) => (
-                            <Descriptions.Item>
+                            <Descriptions.Item key={o.id}>
                               <Card
                                 title={o.unique_code}
                                 size={"small"}
@@ -553,7 +553,7 @@ class Item extends Component {
       .then((res) => res.json())
       .then((order_customer) => {
         console.log(order_customer);
-
+        this.setState({ status_id: order_customer.status.id });
         this.setState({ order_customer: order_customer });
         this.setState({ options: order_customer.options });
         this.setState({ fabrics: order_customer.fabrics });
@@ -715,35 +715,6 @@ class Item extends Component {
       .then((images) => {
         this.setState({ images });
       });
-  };
-
-  getItemInfo = (id) => {
-    fetch(api + "web_order_items?filter[where][item_id]=" + id)
-      .then((res) => {
-        if (res.ok) {
-          return res.json();
-        } else {
-          this.setState({ error: true });
-          throw new Error("Something went wrong ...");
-        }
-      })
-      .then((details) => {
-        details
-          ? this.setState({ details: details[0] })
-          : this.setState({ details: [] });
-
-        switch (details[0].status_id) {
-          case "done":
-            this.setState({ status_id: 2 });
-            break;
-          case "pending":
-            this.setState({ status_id: -1 });
-            break;
-          default:
-            this.setState({ status_id: 1 });
-        }
-      })
-      .catch((error) => this.setState({ error: true }));
   };
 
   getOrderData = (id) => {

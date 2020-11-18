@@ -8,12 +8,13 @@ import {
   Col,
   Modal,
   Statistic,
-  Steps,
   Descriptions,
   Icon,
   Avatar,
   Typography,
 } from "antd";
+//import {Steps} from "antd";
+
 import { Divider } from "antd";
 import { Spin } from "antd";
 import { Table } from "antd";
@@ -26,7 +27,7 @@ import Top from "../components/top";
 import AuthService from "../AuthService";
 import moment from "moment";
 
-const { Step } = Steps;
+//const { Step } = Steps;
 
 const Auth = new AuthService(null);
 
@@ -56,7 +57,7 @@ class Order extends Component {
       order_customer,
       ifus,
       items,
-      status_id,
+      // status_id,
       language,
     } = this.state;
 
@@ -121,15 +122,15 @@ class Order extends Component {
                 prefix=""
                 value={
                   language === "vietnamese"
-                    ? order_customer.status
-                    : order_customer.status
+                    ? order_customer.status.status
+                    : order_customer.status.status
                 }
                 style={{
                   textAlign: "center",
                 }}
               />
             </Col>
-
+            {/*
             <Col
               justify="center"
               xs={12}
@@ -145,7 +146,7 @@ class Order extends Component {
                 <Step title="Finished" description="" />
                 <Step title="Delivered" description="" />
               </Steps>
-            </Col>
+            </Col> */}
           </Row>
 
           <Content className="container">
@@ -225,7 +226,6 @@ class Order extends Component {
                   pagination={false}
                   rowKey="id"
                 >
-                  {" "}
                   <Column
                     title={this.getWord("item-number")}
                     dataIndex="item_alias"
@@ -234,20 +234,18 @@ class Order extends Component {
                       <Link to={`/i/${item_alias}`}>{item_alias}</Link>
                     )}
                   />
-                  {record.is_suit && (
-                    <Column
-                      title={this.getWord("description-")}
-                      dataIndex="description"
-                      key="_description"
-                      render={(description, record) => (
-                        <span>
-                          {language === "vietnamese"
-                            ? record.vietnamese
-                            : description}
-                        </span>
-                      )}
-                    />
-                  )}
+                  <Column
+                    title={this.getWord("description-")}
+                    dataIndex="description"
+                    key="_description"
+                    render={(description, record) => (
+                      <span>
+                        {language === "vietnamese"
+                          ? record.vietnamese
+                          : description}
+                      </span>
+                    )}
+                  />
                   <Column
                     title={this.getWord("status")}
                     dataIndex="status_id"
@@ -548,20 +546,7 @@ class Order extends Component {
         this.setState({ error: false });
         this.setState({ loading: false });
 
-        switch (order_customer.status) {
-          case "for_delivery":
-            this.setState({ status_id: 2 });
-            break;
-          case "completed":
-            this.setState({ status_id: 3 });
-            break;
-
-          case "unpaid":
-            this.setState({ status_id: -1 });
-            break;
-          default:
-            this.setState({ status_id: 1 });
-        }
+        this.setState({ status_id: order_customer.status.id });
       })
       .catch((error) => {
         this.setState({ loading: false });
