@@ -186,7 +186,9 @@ class Fabric extends Component {
               marginBottom: 20,
             }}
           >
-            <img src={Logo} alt="Bebe Tailor" width="150px" />
+            <a href="/">
+              <img src={Logo} alt="Bebe Tailor" width="150px" />
+            </a>
           </Row>
           <PageHeader
             title={fabric.unique_code}

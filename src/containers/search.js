@@ -1080,7 +1080,9 @@ class _Search extends Component {
             marginBottom: 20,
           }}
         >
-          <img src={Logo} alt="Bebe Tailor" width="150px" />
+          <a href="/">
+            <img src={Logo} alt="Bebe Tailor" width="150px" />
+          </a>
         </Row>
         <HeaderApp
           index="1"
