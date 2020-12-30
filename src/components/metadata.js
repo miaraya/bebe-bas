@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Form, Modal, Tag, Rate } from "antd";
-import { formItemLayout } from "../containers/constants";
+import { formItemLayout, fabric_url_full, api } from "../containers/constants";
 import _ from "lodash";
 
 const { CheckableTag } = Tag;
@@ -10,7 +10,7 @@ export class MetadataForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      creatingLoading: false
+      creatingLoading: false,
     };
   }
   componentWillMount = () => {};
@@ -20,11 +20,11 @@ export class MetadataForm extends Component {
     this.forceUpdate();
   };
   handleChangeRate = (value, m) => {
-    m.meta.forEach(e => {
+    m.meta.forEach((e) => {
       if (e.checked) e.checked = false;
     });
-    _.find(m.meta, e => Number(e.value) === Number(value)).checked = true;
-    _.find(m.meta, e => Number(e.value) === Number(value)).value = value;
+    _.find(m.meta, (e) => Number(e.value) === Number(value)).checked = true;
+    _.find(m.meta, (e) => Number(e.value) === Number(value)).value = value;
 
     //((_.find(m.meta, e => e.value === value).value = value;
 
@@ -34,13 +34,14 @@ export class MetadataForm extends Component {
   render() {
     const {
       creatingLoading,
-      record,
       visible,
       onCancel,
       form,
-      metadata,
-      saveMetadata
+      record,
+      saveMetadata,
     } = this.props;
+
+    console.log("MODAL", record);
     return (
       <Modal
         title={record && `Edit metadata for fabric: ${record.unique_code}`}
@@ -49,7 +50,7 @@ export class MetadataForm extends Component {
         onCancel={() => onCancel(form)}
         okButtonProps={{ loading: creatingLoading }}
         onOk={() => {
-          saveMetadata(metadata, record && record.fabric_id);
+          //saveMetadata(metadata, record && record.fabric_id);
         }}
       >
         <div>
@@ -58,29 +59,29 @@ export class MetadataForm extends Component {
               style={{
                 overflow: "hidden",
                 width: "100%",
-                marginBottom: 20
+                marginBottom: 20,
               }}
               alt={record.unique_code}
-              src={record.image_url}
+              src={fabric_url_full + record.image}
             />
           )}
           <Form>
-            {metadata &&
-              metadata.map(m =>
+            {record &&
+              record.metadata.map((m) =>
                 m.id !== 3 ? (
                   <FormItem
                     key={m.id}
-                    label={m.metadata}
+                    label={m.metadata.name}
                     {...formItemLayout}
                     value={m}
                   >
-                    {_.sortBy(m.meta, m => m.value).map(m => (
+                    {_.sortBy(m.meta, (m) => m.value).map((m) => (
                       <CheckableTag
                         key={m.id}
-                        onChange={checked => this.handleChange(checked, m)}
+                        onChange={(checked) => this.handleChange(checked, m)}
                         checked={m.checked}
                       >
-                        {m.value}
+                        {m.value.value}
                       </CheckableTag>
                     ))}
                   </FormItem>
@@ -93,10 +94,10 @@ export class MetadataForm extends Component {
                   >
                     <Rate
                       value={
-                        _.find(m.meta, x => x.fabric_metadata_id) &&
-                        Number(_.find(m.meta, x => x.checked).value)
+                        _.find(m.meta, (x) => x.fabric_metadata_id) &&
+                        Number(_.find(m.meta, (x) => x.checked).value)
                       }
-                      onChange={checked => {
+                      onChange={(checked) => {
                         this.handleChangeRate(checked, m);
                       }}
                       checked={m.checked}
