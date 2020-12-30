@@ -34,6 +34,7 @@ import Logo from "../assets/logo_small.png";
 import { api, fabric_url_thumbnail, fabric_url_full } from "./constants";
 import _ from "lodash";
 import AuthService from "../AuthService";
+const { Text } = Typography;
 
 const Auth = new AuthService(null);
 const { Panel } = Collapse;
@@ -478,13 +479,20 @@ class Collection extends Component {
       overflow: "hidden",
     };
 
-    const getPriceBand = (fabric) => {
+    const PriceBand = (props) => {
+      const { fabric } = props;
+
       let price_band = _.find(
         fabric.fabric.metadata,
         (x) => x.metadata_id === 3
-      ).value.value;
+      )
+        ? _.find(fabric.fabric.metadata, (x) => x.metadata_id === 3).value.value
+        : -1;
+      console.log(price_band);
 
-      return price_band ? price_band : -1;
+      return (
+        <Rate key={fabric.id} disabled defaultValue={Number(price_band)} />
+      );
     };
 
     if (error) {
@@ -630,13 +638,25 @@ class Collection extends Component {
                               value={fabric.fabric.unique_code}
                               onChange={(e) => handleCheck(e)}
                             >
-                              {fabric.fabric.unique_code}
+                              <Tooltip
+                                title={
+                                  fabric.fabric.total_stock > 0
+                                    ? null
+                                    : "No Stock"
+                                }
+                              >
+                                <Text
+                                  type={
+                                    fabric.fabric.total_stock > 0
+                                      ? null
+                                      : "danger"
+                                  }
+                                >
+                                  {fabric.fabric.unique_code}
+                                </Text>
+                              </Tooltip>
                             </Checkbox>
-                            <Rate
-                              key={fabric.id}
-                              disabled
-                              defaultValue={getPriceBand(fabric)}
-                            />
+                            <PriceBand fabric={fabric} />
                           </span>
                         }
                         cover={
