@@ -121,7 +121,7 @@ class Collection extends Component {
     });
     this.setState({ loading: false });
 
-    this.setState({ fabrics: _.sortBy(fabrics, (f) => f.unique_code) });
+    this.setState({ fabrics: _.sortBy(fabrics, (f) => f.order).reverse() });
     this.setState({ fabricsUnfiltered: fabrics });
   };
 
