@@ -2,10 +2,11 @@ import React, { Component } from "react";
 import { Link } from "react-router";
 import "antd/dist/antd.css";
 import "../css/css.css";
-import { Spin, Descriptions, PageHeader, Tag, Typography } from "antd";
+import { Spin, Descriptions, PageHeader, Tag, Typography, Divider } from "antd";
 import Top from "../components/top";
 
 import Logo from "../assets/logo_small.png";
+import _ from "lodash";
 
 import {
   api,
@@ -98,13 +99,8 @@ class Fabric extends Component {
       .catch(error => {});
   };*/
 
-  getFabricData = (id) => {
-    fetch(
-      api +
-        "fabrics?filter[where][unique_code]=" +
-        id +
-        "&filter[include]=swatchbook&filter[include]=stock&filter[include]=supplier&filter[include]=type"
-    )
+  getFabricData = (unique_code) => {
+    fetch(api + "fabrics/detail/" + unique_code)
       .then((res) => {
         if (res.ok) {
           return res.json();
@@ -114,8 +110,17 @@ class Fabric extends Component {
         }
       })
       .then((fabric) => {
-        if (fabric.length > 0) {
-          this.setState({ fabric: fabric[0] });
+        if (fabric) {
+          this.setState({ fabric });
+          let metadata = _(fabric.metadata)
+            .groupBy((m) => m.metadata_id)
+            .map((value, key) => ({
+              value,
+              key: value[0].metadata.name,
+              id: value[0].metadata.id,
+            }))
+            .value();
+          this.setState({ metadata });
           this.setState({ loading: false });
           this.setState({ error: false });
         } else {
@@ -153,7 +158,15 @@ class Fabric extends Component {
   };
 
   render() {
-    const { loading, error, fabric, image, visible, dateFormat } = this.state;
+    const {
+      loading,
+      error,
+      fabric,
+      image,
+      visible,
+      dateFormat,
+      metadata,
+    } = this.state;
 
     if (loading) {
       return (
@@ -201,7 +214,7 @@ class Fabric extends Component {
           <Content className="container">
             <Row type="flex" justify="center" align="top" gutter={40} span={24}>
               <img
-                style={{ maxWidth: 300, alignSelf: "center" }}
+                style={{ maxWidth: 300, alignSelf: "top" }}
                 alt={fabric.unique_code}
                 src={fabric_url_thumbnail + fabric.image}
                 onClick={() => {
@@ -220,11 +233,7 @@ class Fabric extends Component {
                   <Descriptions.Item label={this.getWord("type")}>
                     {`${fabric.type.description} (${fabric.type.alias})`}
                   </Descriptions.Item>
-                  {fabric.price_band_id > 0 && (
-                    <Descriptions.Item label={this.getWord("price-band")}>
-                      <Rate defaultValue={Number(fabric.price_band_id)} />
-                    </Descriptions.Item>
-                  )}
+
                   <Descriptions.Item label={this.getWord("swatchbook")}>
                     <Link to={`/s/${fabric.swatchbook.unique_code}`}>
                       {fabric.swatchbook.unique_code}
@@ -253,39 +262,54 @@ class Fabric extends Component {
                     )}
                   </Descriptions.Item>
                 </Descriptions>
-
+                <Divider />
+                {/* METADATA */}
+                {
+                  <Descriptions title="Metadata">
+                    {metadata.map((m) => (
+                      <Descriptions.Item label={m.key} key={m.key}>
+                        {m.value.map((v) =>
+                          m.id !== 3 ? (
+                            <Tag>{v.value.value}</Tag>
+                          ) : (
+                            <Rate disabled defaultValue={v.value.value} />
+                          )
+                        )}
+                      </Descriptions.Item>
+                    ))}
+                  </Descriptions>
+                }
+                <Divider />
                 {fabric.stock.length > 0 && (
-                  <span>
-                    <Descriptions
-                      title={this.getWord("stock-fabric-location")}
-                      column={2}
-                    >
-                      {fabric.stock.map((l, i) => (
-                        <Descriptions.Item
-                          key={i}
-                          label={
-                            <Link
-                              disabled={!l.image}
-                              style={{
-                                borderColor: "transparent",
-                                padding: 0,
-                              }}
-                              onClick={() => {
-                                this.setState({
-                                  image: location_url + l.image,
-                                });
-                                this.setState({ visible: true });
-                              }}
-                            >
-                              <span>{l.location}</span>
-                            </Link>
-                          }
-                        >
-                          {l.stock}m
-                        </Descriptions.Item>
-                      ))}
-                    </Descriptions>
-                  </span>
+                  <Descriptions
+                    title={this.getWord("stock-fabric-location")}
+                    column={2}
+                  >
+                    {fabric.stock.map((l, i) => (
+                      <Descriptions.Item
+                        key={i}
+                        label={
+                          <Link
+                            disabled={!l.image}
+                            style={{
+                              borderColor: "transparent",
+                              padding: 0,
+                            }}
+                            onClick={() => {
+                              this.setState({
+                                image: location_url + l.image,
+                              });
+                              this.setState({ visible: true });
+                            }}
+                          >
+                            <span>{l.location}</span>
+                          </Link>
+                        }
+                      >
+                        {l.stock}m
+                      </Descriptions.Item>
+                    ))}
+                  </Descriptions>
                 )}
               </Col>
             </Row>
