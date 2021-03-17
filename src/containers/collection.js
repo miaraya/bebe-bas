@@ -31,10 +31,9 @@ import { MetadataForm } from "../components/metadata";
 
 import Logo from "../assets/logo_small.png";
 
-import { api, fabric_url_thumbnail, fabric_url_full } from "./constants";
+import { api } from "./constants";
 import _ from "lodash";
 import AuthService from "../AuthService";
-const { Text } = Typography;
 
 const Auth = new AuthService(null);
 const { Panel } = Collapse;
@@ -65,8 +64,6 @@ class Collection extends Component {
       record: null,
       editFabricVisible: false,
       creatingLoading: false,
-      filter: [],
-      filterValues: [],
     };
   }
   componentWillMount = async () => {
@@ -77,65 +74,58 @@ class Collection extends Component {
 
     let id = this.props.params.id;
     this.setState({ loading: true });
-    //this.getMetadata();
+    this.getMetadata();
     this.getFabrics(id);
     this.setState({ error: false });
   };
 
-  getFabrics = async (name) => {
-    let request = await fetch(`
-      ${api}collections/detailbyName/${name}`);
-    let collection = await request.json();
+  getFabrics = async (id) => {
+    let request = await fetch(
+      api + "web_collections?filter[where][collection]=" + id
+    );
+    let fabrics = await request.json();
 
-    for (const f of collection.fabric_ids) {
-      f.fabric.metadata.forEach((fabric) =>
-        this.setState((prevState) => ({
-          filterMetadata: [...prevState.filterMetadata, fabric],
-        }))
-      );
+    for (const f of fabrics) {
+      f.metadata &&
+        f.metadata.forEach((f) =>
+          this.setState((prevState) => ({
+            filterMetadata: [...prevState.filterMetadata, f],
+          }))
+        );
     }
 
-    let filter = _(this.state.filterMetadata)
-      .groupBy((c) => c.metadata.name)
+    //METADATA
+    let filterMetadata = _(this.state.filterMetadata)
+      .groupBy((c) => c.metadata)
       .map((value, key) => ({
-        key,
+        metadata: value[0].metadata,
+        key: value[0].value,
         values: _(value)
-          .groupBy((c) => c.value.value)
+          .groupBy((c) => c.value)
           .map((value, key) => ({
-            value: value,
-            key: key,
+            value: value[0].value_id,
+            data: value,
             label: `${key} (${value.length})`,
             metadata_id: value[0].metadata_id,
-            value_id: value[0].value_id,
+            key: key,
+
             quantity: value.length,
           }))
+          .sortBy(fabrics, (f) => f.label)
           .value(),
       }))
       .value();
-    this.setState({ filter });
 
+    this.setState({
+      filterMetadata: _.sortBy(filterMetadata, (f) => f.order),
+    });
     this.setState({ loading: false });
 
     this.setState({ fabrics: _.sortBy(fabrics, (f) => f.order).reverse() });
-
     this.setState({ fabricsUnfiltered: fabrics });
-
-    this.setState({
-      fabrics: _.sortBy(collection.fabric_ids, (f) => f.fabric.unique_code),
-    });
-    this.setState({
-      fabricsUnfiltered: _.sortBy(
-        collection.fabric_ids,
-        (f) => f.fabric.unique_code
-      ),
-    });
-
-    this.setState({ loading: false });
-    // console.log(_.sortBy(collection.fabric_ids, (f) => f.fabric.unique_code));
   };
 
   checkMeta = (record) => {
-    //console.log(record);
     let meta = this.state.metadata;
     record.metadata &&
       record.metadata.forEach(
@@ -155,12 +145,10 @@ class Collection extends Component {
     return record;
   };
   editFabric = async (record) => {
-    //console.log("RECORD", record);
     this.setState({ image: null });
     this.setState({ creatingLoading: false });
 
     let aux = this.checkMeta(record);
-    //console.log("AUX", aux);
     this.setState({ record: aux });
     //const { form } = this.editFabricForm.props;
     //form.resetFields();
@@ -181,7 +169,6 @@ class Collection extends Component {
         this.setState({ metadataClear: _.sortBy(metadata, m => m.value) });
       });*/
   };
-  /*
   getMetadata = () => {
     fetch(api + "web_metadata")
       .then((res) => res.json())
@@ -189,7 +176,7 @@ class Collection extends Component {
         this.setState({ metadata: _.sortBy(metadata, (m) => m.value) });
         this.setState({ metadataClear: _.sortBy(metadata, (m) => m.value) });
       });
-  };*/
+  };
 
   render() {
     const handleCopy = (el) => {
@@ -241,13 +228,9 @@ class Collection extends Component {
             }
           >
             <span>
-              {
-                //console.log(selectedFabrics)
-              }
-              {selectedFabrics.map((f) => {
-                //console.log(f);
-                return <Tag key={f}>{f}</Tag>;
-              })}
+              {selectedFabrics.map((f) => (
+                <Tag key={f}>{f}</Tag>
+              ))}
               {selectedFabrics.length > 0 && (
                 <Tooltip title="Copy">
                   <Button
@@ -272,66 +255,46 @@ class Collection extends Component {
           <Panel header="Filters" key="1" style={customPanelStyle}>
             <Form onSubmit={this.handleSubmit}>
               <Checkbox.Group onChange={handleChange}>
-                {filter.map((x, j) => {
-                  return (
-                    <Col key={j} xs={24} sm={12}>
-                      <Form.Item label={x.key} key={x.key}>
-                        {x.values.map((v) => {
-                          return (
-                            <Col xs={12} sm={12} md={8} key={v.label}>
-                              <Checkbox value={v.value}>
-                                {v.metadata_id === 3 ? (
-                                  <span>
-                                    <Rate
-                                      key={v.id}
-                                      disabled
-                                      defaultValue={Number(v.key)}
-                                    />
-                                    {` (${v.quantity})`}
-                                  </span>
-                                ) : (
-                                  v.label
-                                )}
-                              </Checkbox>
-                            </Col>
-                          );
-                        })}
-                      </Form.Item>
-                    </Col>
-                  );
-                })}
+                {filterMetadata &&
+                  filterMetadata.map((x, j) => {
+                    return (
+                      <Col key={j} xs={24} sm={12}>
+                        <Form.Item label={x.metadata} key={x.metadata}>
+                          {x.values &&
+                            x.values.map((v) => {
+                              return (
+                                <Col xs={12} sm={12} md={8} key={v.label}>
+                                  <Checkbox value={v.value}>
+                                    {v.metadata_id === 3 ? (
+                                      <span>
+                                        <Rate
+                                          key={v.id}
+                                          disabled
+                                          defaultValue={Number(v.key)}
+                                        />
+                                        {` (${v.quantity})`}
+                                      </span>
+                                    ) : (
+                                      v.label
+                                    )}
+                                  </Checkbox>
+                                </Col>
+                              );
+                            })}
+                        </Form.Item>
+                      </Col>
+                    );
+                  })}
               </Checkbox.Group>
-              <Form.Item
-                style={{ display: "flex", justifyContent: "flex-end" }}
-              >
-                <Button type="primary" onClick={handleFilter}>
-                  Filter
-                </Button>
-              </Form.Item>
             </Form>
           </Panel>
         </Collapse>
       </Row>
     );
-
-    const handleFilter = () => {
-      fabricsUnfiltered.length
-        ? this.setState({
-            fabrics: _.filter(fabricsUnfiltered, (f) =>
-              _.includes(this.state.filterValues, f.fabric_id)
-            ),
-          })
-        : this.setState({ fabrics: fabricsUnfiltered });
-    };
     const handleChange = async (values) => {
-      let temp = [];
-      values.forEach((value) => {
-        value.forEach((v) => {
-          temp.push(v.fabric_id);
-        });
-      });
+      this.setState({ filter: values });
 
-      this.setState({ filterValues: _.uniq(temp) });
+      await setFilters(values);
     };
 
     const setFilters = async (filter) => {
@@ -421,7 +384,6 @@ class Collection extends Component {
     };
 
     const handleGetInfo = async (record) => {
-      //console.log("handleGetInfo", record);
       let request = await fetch(
         api + "fabric_data?filter[where][fabric_id]=" + record.fabric_id
       );
@@ -469,7 +431,6 @@ class Collection extends Component {
       editFabricVisible,
       creatingLoading,
       metadata,
-      filter,
     } = this.state;
 
     const customPanelStyle = {
@@ -478,22 +439,6 @@ class Collection extends Component {
       marginBottom: 24,
       border: 0,
       overflow: "hidden",
-    };
-
-    const PriceBand = (props) => {
-      const { fabric } = props;
-
-      let price_band = _.find(
-        fabric.fabric.metadata,
-        (x) => x.metadata_id === 3
-      )
-        ? _.find(fabric.fabric.metadata, (x) => x.metadata_id === 3).value.value
-        : -1;
-      console.log(price_band);
-
-      return (
-        <Rate key={fabric.id} disabled defaultValue={Number(price_band)} />
-      );
     };
 
     if (error) {
@@ -574,116 +519,103 @@ class Collection extends Component {
                     this.setState({ pageSize }),
                 }}
                 dataSource={fabrics}
-                renderItem={(fabric) => {
-                  console.log(fabric);
-                  return (
-                    <List.Item>
-                      <Card
-                        actions={[
-                          <Tooltip title="More Info">
-                            <Icon
-                              type="caret-down"
-                              key="more"
-                              rotate={
-                                this.state.activeKey === fabric.id ? 180 : 0
-                              }
-                              onClick={() =>
-                                this.setState({
-                                  activeKey:
-                                    this.state.activeKey === fabric.id
-                                      ? 0
-                                      : fabric.id,
-                                })
-                              }
-                            />
-                          </Tooltip>,
-                          Auth.loggedIn() && (
-                            <Tooltip title="Fabric Data">
-                              <Link
-                                to={`/f/${fabric.fabric.unique_code}`}
-                                target="_blank"
-                              >
-                                <Icon type="eye" />
-                              </Link>
-                            </Tooltip>
-                          ),
-                          Auth.loggedIn() && (
-                            <Tooltip title="Edit">
-                              <Icon
-                                type="edit"
-                                key="edit"
-                                onClick={() => this.editFabric(fabric)}
-                              />
-                            </Tooltip>
-                          ),
-                        ]}
-                        loading={loading}
-                        bodyStyle={{ padding: 10 }}
-                        headStyle={{
-                          paddingLeft: 10,
-                          paddingRight: 10,
-                          width: "100%",
-                        }}
-                        bordered={true}
-                        key={fabric.unique_code}
-                        title={
-                          <span
-                            style={{
-                              display: "flex",
-                              flex: 1,
-                              flexDirection: "row",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Checkbox
-                              value={fabric.fabric.unique_code}
-                              onChange={(e) => handleCheck(e)}
-                            >
-                              <Tooltip
-                                title={
-                                  fabric.fabric.total_stock > 0
-                                    ? null
-                                    : "No Stock"
-                                }
-                              >
-                                <Text
-                                  type={
-                                    fabric.fabric.total_stock > 0
-                                      ? null
-                                      : "danger"
-                                  }
-                                >
-                                  {fabric.fabric.unique_code}
-                                </Text>
-                              </Tooltip>
-                            </Checkbox>
-                            <PriceBand fabric={fabric} />
-                          </span>
-                        }
-                        cover={
-                          <img
-                            style={{
-                              maxHeight: 180,
-                              masoverflow: "hidden",
-                            }}
-                            alt={fabric.unique_code}
-                            src={fabric_url_thumbnail + fabric.fabric.image}
-                            onClick={() => {
+                renderItem={(fabric) => (
+                  <List.Item>
+                    <Card
+                      actions={[
+                        <Tooltip title="More Info">
+                          <Icon
+                            type="caret-down"
+                            key="more"
+                            rotate={
+                              this.state.activeKey === fabric.id ? 180 : 0
+                            }
+                            onClick={() =>
                               this.setState({
-                                image: fabric_url_full + fabric.fabric.image,
-                              });
-                              this.setState({ visible: true });
-                            }}
+                                activeKey:
+                                  this.state.activeKey === fabric.id
+                                    ? 0
+                                    : fabric.id,
+                              })
+                            }
                           />
-                        }
-                      >
-                        <Collapse accordion={true} activeKey={fabric.id}>
-                          <Panel
-                            key={fabric.id}
-                            header={null}
-                            className="collapse"
+                        </Tooltip>,
+                        Auth.loggedIn() && (
+                          <Tooltip title="refresh">
+                            <Icon
+                              type="redo"
+                              key="refresh"
+                              onClick={() => handleGetInfo(fabric)}
+                            ></Icon>
+                          </Tooltip>
+                        ),
+                        Auth.loggedIn() && (
+                          <Tooltip title="Fabric Data">
+                            <Link
+                              to={`/f/${fabric.unique_code}`}
+                              target="_blank"
+                            >
+                              <Icon type="eye" />
+                            </Link>
+                          </Tooltip>
+                        ),
+                        Auth.loggedIn() && (
+                          <Tooltip title="Edit">
+                            <Icon
+                              type="edit"
+                              key="edit"
+                              onClick={() => this.editFabric(fabric)}
+                            />
+                          </Tooltip>
+                        ),
+                      ]}
+                      loading={loading}
+                      bodyStyle={{ padding: 10 }}
+                      headStyle={{
+                        paddingLeft: 10,
+                        paddingRight: 10,
+                        width: "100%",
+                      }}
+                      bordered={true}
+                      key={fabric.unique_code}
+                      title={
+                        <span
+                          style={{
+                            display: "flex",
+                            flex: 1,
+                            flexDirection: "row",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Checkbox
+                            value={fabric.unique_code}
+                            onChange={(e) => handleCheck(e)}
                           >
-                            {/*
+                            {fabric.unique_code}
+                          </Checkbox>
+                        </span>
+                      }
+                      cover={
+                        <img
+                          style={{
+                            maxHeight: 180,
+                            masoverflow: "hidden",
+                          }}
+                          alt={fabric.unique_code}
+                          src={fabric.thumbnail_url}
+                          onClick={() => {
+                            this.setState({ image: fabric.image_url });
+                            this.setState({ visible: true });
+                          }}
+                        />
+                      }
+                    >
+                      <Collapse accordion={true} activeKey={fabric.id}>
+                        <Panel
+                          key={fabric.id}
+                          header={null}
+                          className="collapse"
+                        >
                           <Descriptions key={1} size="small" column={1}>
                             {filterMetadata &&
                               filterMetadata.map((f) => (
@@ -711,43 +643,39 @@ class Collection extends Component {
                                 </Descriptions.Item>
                               ))}
                           </Descriptions>
-                          */}
-                          </Panel>
-                        </Collapse>
+                        </Panel>
+                      </Collapse>
 
-                        <Collapse
-                          accordion={true}
-                          activeKey={activeKey}
-                          className="collapse"
-                        >
-                          <Panel key={fabric.id} className="collapse">
-                            <Descriptions key={1} size="small" column={1}>
-                              <Descriptions.Item label="Swatchbook">
-                                {Auth.loggedIn() ? (
-                                  <Link
-                                    to={`/s/${fabric.fabric.swatchbook.unique_code}`}
-                                    target="_blank"
-                                  >
-                                    {fabric.fabric.swatchbook.unique_code}
-                                  </Link>
-                                ) : (
-                                  <Typography>
-                                    {fabric.fabric.swatchbook.unique_code}
-                                  </Typography>
-                                )}
-                              </Descriptions.Item>
-                              <Descriptions.Item label="Old Code">
-                                {fabric.fabric.old_code}
-                              </Descriptions.Item>
+                      <Collapse
+                        accordion={true}
+                        activeKey={activeKey}
+                        className="collapse"
+                      >
+                        <Panel key={fabric.id} className="collapse">
+                          <Descriptions key={1} size="small" column={1}>
+                            <Descriptions.Item label="Swatchbook">
+                              {Auth.loggedIn() ? (
+                                <Link
+                                  to={`/s/${fabric.swatchbook}`}
+                                  target="_blank"
+                                >
+                                  {fabric.swatchbook}
+                                </Link>
+                              ) : (
+                                <Typography> {fabric.swatchbook}</Typography>
+                              )}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Old Code">
+                              {fabric.old_code}
+                            </Descriptions.Item>
 
-                              <Descriptions.Item label="Type">{`${fabric.fabric.type.description}`}</Descriptions.Item>
-                            </Descriptions>
-                          </Panel>
-                        </Collapse>
-                      </Card>
-                    </List.Item>
-                  );
-                }}
+                            <Descriptions.Item label="Type">{`${fabric.type}`}</Descriptions.Item>
+                          </Descriptions>
+                        </Panel>
+                      </Collapse>
+                    </Card>
+                  </List.Item>
+                )}
               />
             </Checkbox.Group>
           </Content>
@@ -794,30 +722,29 @@ class Collection extends Component {
             type="text"
             defaultValue={_.map(selectedFabrics).join(", ")}
           />
-          {/*record && (
-            <MetadataForm
-              record={record}
-              visible={editFabricVisible}
-              creatingLoading={creatingLoading}
-              onOk={this.handleEditFabric}
-              destroyOnClose={true}
-              centered={true}
-              width={"520"}
-              onCancel={(form) => {
-                this.setState({ image: null });
+          <MetadataForm
+            record={record}
+            visible={editFabricVisible}
+            creatingLoading={creatingLoading}
+            onOk={this.handleEditFabric}
+            metadata={metadata}
+            destroyOnClose={true}
+            centered={true}
+            width={"520"}
+            onCancel={(form) => {
+              this.setState({ image: null });
 
-                this.setState({ editFabricVisible: false });
+              this.setState({ editFabricVisible: false });
+              this.getMetadata();
+            }}
+            saveMetadata={async (metadata, fabric_id) => {
+              await handleSaveMetadata(metadata, fabric_id).then(() => {
+                handleGetInfo(record);
                 //this.getMetadata();
-              }}
-              saveMetadata={async (metadata, fabric_id) => {
-                await handleSaveMetadata(metadata, fabric_id).then(() => {
-                  handleGetInfo(record);
-                  //this.getMetadata();
-                  this.setState({ image: null });
-                });
-              }}
-            />
-            ) */}
+                this.setState({ image: null });
+              });
+            }}
+          />
         </Layout>
       );
   }
