@@ -266,17 +266,23 @@ class Fabric extends Component {
                 {/* METADATA */}
                 {
                   <Descriptions title="Metadata">
-                    {metadata.map((m) => (
-                      <Descriptions.Item label={m.key} key={m.key}>
-                        {m.value.map((v) =>
-                          m.id !== 3 ? (
-                            <Tag>{v.value.value}</Tag>
-                          ) : (
-                            <Rate disabled defaultValue={v.value.value} />
-                          )
-                        )}
-                      </Descriptions.Item>
-                    ))}
+                    {metadata.map((m) => {
+                      console.log(m);
+                      return (
+                        <Descriptions.Item label={m.key} key={m.key}>
+                          {m.value.map((v) =>
+                            m.id !== 3 ? (
+                              <Tag>{v.value.value}</Tag>
+                            ) : (
+                              <Rate
+                                disabled
+                                defaultValue={Number(v.value.value)}
+                              />
+                            )
+                          )}
+                        </Descriptions.Item>
+                      );
+                    })}
                   </Descriptions>
                 }
                 <Divider />

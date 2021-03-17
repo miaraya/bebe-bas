@@ -85,7 +85,10 @@ class Collection extends Component {
     );
     let fabrics = await request.json();
 
+    console.log(fabrics);
+
     for (const f of fabrics) {
+      console.log(f.metadata);
       f.metadata &&
         f.metadata.forEach((f) =>
           this.setState((prevState) => ({
@@ -95,6 +98,7 @@ class Collection extends Component {
     }
 
     //METADATA
+    console.log(this.state.filterMetadata);
     let filterMetadata = _(this.state.filterMetadata)
       .groupBy((c) => c.metadata)
       .map((value, key) => ({
@@ -115,6 +119,8 @@ class Collection extends Component {
           .value(),
       }))
       .value();
+
+    console.log(filterMetadata);
 
     this.setState({
       filterMetadata: _.sortBy(filterMetadata, (f) => f.order),
@@ -253,17 +259,20 @@ class Collection extends Component {
           )}
         >
           <Panel header="Filters" key="1" style={customPanelStyle}>
-            <Form onSubmit={this.handleSubmit}>
-              <Checkbox.Group onChange={handleChange}>
+            <Form>
+              <Checkbox.Group
+                onChange={handleChange}
+                style={{ display: "flex", justifyContent: "space-evenly" }}
+              >
                 {filterMetadata &&
                   filterMetadata.map((x, j) => {
                     return (
-                      <Col key={j} xs={24} sm={12}>
+                      <Row key={j}>
                         <Form.Item label={x.metadata} key={x.metadata}>
                           {x.values &&
                             x.values.map((v) => {
                               return (
-                                <Col xs={12} sm={12} md={8} key={v.label}>
+                                <Row key={v.label}>
                                   <Checkbox value={v.value}>
                                     {v.metadata_id === 3 ? (
                                       <span>
@@ -278,14 +287,23 @@ class Collection extends Component {
                                       v.label
                                     )}
                                   </Checkbox>
-                                </Col>
+                                </Row>
                               );
                             })}
                         </Form.Item>
-                      </Col>
+                      </Row>
                     );
                   })}
               </Checkbox.Group>
+              <Form.Item style={{ textAlign: "end" }}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  onClick={() => handleFilter()}
+                >
+                  Filter
+                </Button>
+              </Form.Item>
             </Form>
           </Panel>
         </Collapse>
@@ -293,8 +311,11 @@ class Collection extends Component {
     );
     const handleChange = async (values) => {
       this.setState({ filter: values });
+      //await setFilters(values);
+    };
 
-      await setFilters(values);
+    const handleFilter = async () => {
+      await setFilters(this.state.filter);
     };
 
     const setFilters = async (filter) => {
