@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Form, Modal, Tag, Rate } from "antd";
-import { formItemLayout, fabric_url_full, api } from "../containers/constants";
+import { formItemLayout, image_url, api } from "../containers/constants";
 import _ from "lodash";
 
 const { CheckableTag } = Tag;
@@ -62,7 +62,7 @@ export class MetadataForm extends Component {
                 marginBottom: 20,
               }}
               alt={record.unique_code}
-              src={fabric_url_full + record.image}
+              src={image_url + record.image}
             />
           )}
           <Form>
