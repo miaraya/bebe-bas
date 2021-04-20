@@ -26,12 +26,13 @@ import {
   Modal,
   Rate,
   Checkbox,
+  Avatar,
 } from "antd";
 import { MetadataForm } from "../components/metadata";
 
 import Logo from "../assets/logo_small.png";
 
-import { api } from "./constants";
+import { api, thumbnail_url, image_url } from "./constants";
 import _ from "lodash";
 import AuthService from "../AuthService";
 
@@ -59,46 +60,80 @@ class Collection extends Component {
       filter: [],
       selectedFabrics: [],
       affix: false,
-      pageSize: 50,
       activeKey: 0,
       record: null,
       editFabricVisible: false,
       creatingLoading: false,
+      page: 1,
+      pageSize: 10,
+      total: 0,
+      collection: "",
     };
   }
+
   componentWillMount = async () => {
     if (Auth.loggedIn()) {
       const profile = Auth.getProfile();
       this.setState({ user: profile });
     }
 
-    let id = this.props.params.id;
-    this.setState({ loading: true });
-    this.getMetadata();
-    this.getFabrics(id);
+    let collection = this.props.params.id;
+    this.setState({ collection });
+    //this.setState({ loading: true });
+    // this.getMetadata();
+    this.getFabrics(collection, this.state.page, this.state.pageSize);
     this.setState({ error: false });
   };
 
-  getFabrics = async (id) => {
+  getFabrics = async (collection, page, pageSize) => {
+    //console.log(collection, page, pageSize);
+    const skip = page * pageSize - pageSize;
+    //console.log(skip);
+
+    const url = `${api}collections/detailbyName/${collection}/${pageSize}/${skip}`;
+    //console.log(url);
     let request = await fetch(
-      api + "web_collections?filter[where][collection]=" + id
+      url
+      //api + "web_collections?filter[where][collection]=" + id
     );
     let fabrics = await request.json();
+    //console.log(fabrics);
+    this.setState({ loading: false });
 
-    console.log(fabrics);
+    if (fabrics) {
+      this.setState({ total: fabrics.fabrics });
 
-    for (const f of fabrics) {
-      console.log(f.metadata);
-      f.metadata &&
-        f.metadata.forEach((f) =>
-          this.setState((prevState) => ({
-            filterMetadata: [...prevState.filterMetadata, f],
-          }))
-        );
+      this.setState({
+        fabrics: _.sortBy(fabrics.fabric_ids, (f) => f.order).reverse(),
+      });
+      this.setState({
+        fabricsUnfiltered: _.sortBy(
+          fabrics.fabric_ids,
+          (f) => f.order
+        ).reverse(),
+      });
+      this.setState({ error: false });
+    } else {
+      this.setState({ error: true });
     }
+    //console.log(fabrics.fabric_ids);
+
+    //console.log(fabrics.fabric_ids);
+    /*
+    for (const f of fabrics.fabric_ids) {
+      //console.log(f.metadata);
+      f.fabric.metadata.forEach((f) =>
+        this.setState((prevState) => ({
+          filterMetadata: [...prevState.filterMetadata, f],
+        }))
+      );
+    }
+    console.log(this.state.filterMetadata);
+
+  
 
     //METADATA
-    console.log(this.state.filterMetadata);
+    //console.log(this.state.filterMetadata);
     let filterMetadata = _(this.state.filterMetadata)
       .groupBy((c) => c.metadata)
       .map((value, key) => ({
@@ -120,15 +155,11 @@ class Collection extends Component {
       }))
       .value();
 
-    console.log(filterMetadata);
 
     this.setState({
       filterMetadata: _.sortBy(filterMetadata, (f) => f.order),
     });
-    this.setState({ loading: false });
-
-    this.setState({ fabrics: _.sortBy(fabrics, (f) => f.order).reverse() });
-    this.setState({ fabricsUnfiltered: fabrics });
+*/
   };
 
   checkMeta = (record) => {
@@ -179,6 +210,7 @@ class Collection extends Component {
     fetch(api + "web_metadata")
       .then((res) => res.json())
       .then((metadata) => {
+        //console.log(metadata);
         this.setState({ metadata: _.sortBy(metadata, (m) => m.value) });
         this.setState({ metadataClear: _.sortBy(metadata, (m) => m.value) });
       });
@@ -224,7 +256,7 @@ class Collection extends Component {
       <Row>
         <Descriptions size="small" column={column}>
           <Descriptions.Item label="Number of Fabrics">
-            {fabrics && fabrics.length}
+            {total}
           </Descriptions.Item>
           <Descriptions.Item
             label={
@@ -258,7 +290,7 @@ class Collection extends Component {
             <Icon type="caret-right" rotate={isActive ? 90 : 0} />
           )}
         >
-          <Panel header="Filters" key="1" style={customPanelStyle}>
+          {/*<Panel header="Filters" key="1" style={customPanelStyle}>
             <Form>
               <Checkbox.Group
                 onChange={handleChange}
@@ -306,6 +338,7 @@ class Collection extends Component {
               </Form.Item>
             </Form>
           </Panel>
+       */}
         </Collapse>
       </Row>
     );
@@ -452,6 +485,7 @@ class Collection extends Component {
       editFabricVisible,
       creatingLoading,
       metadata,
+      total,
     } = this.state;
 
     const customPanelStyle = {
@@ -529,15 +563,26 @@ class Collection extends Component {
                   xxl: 4,
                 }}
                 pagination={{
+                  total,
                   showSizeChanger: true,
-                  pageSizeOptions: ["10", "50", "100", "1000"],
+                  pageSizeOptions: ["10", "20", "50", "100"],
                   position: "both",
                   showTitle: true,
                   style: { marginBottom: 10 },
-                  pageSize: pageSize,
+                  pageSize,
                   size: "small",
-                  onShowSizeChange: (page, pageSize) =>
-                    this.setState({ pageSize }),
+                  onShowSizeChange: (page, pageSize) => {
+                    this.setState({ pageSize });
+                    this.setState({ page });
+                    this.setState({ loading: true });
+                    this.getFabrics(this.state.collection, page, pageSize);
+                  },
+                  onChange: (page, pageSize) => {
+                    this.setState({ pageSize });
+                    this.setState({ page });
+                    this.setState({ loading: true });
+                    this.getFabrics(this.state.collection, page, pageSize);
+                  },
                 }}
                 dataSource={fabrics}
                 renderItem={(fabric) => (
@@ -561,6 +606,7 @@ class Collection extends Component {
                             }
                           />
                         </Tooltip>,
+                        /*
                         Auth.loggedIn() && (
                           <Tooltip title="refresh">
                             <Icon
@@ -569,17 +615,18 @@ class Collection extends Component {
                               onClick={() => handleGetInfo(fabric)}
                             ></Icon>
                           </Tooltip>
-                        ),
+                        ),*/
                         Auth.loggedIn() && (
                           <Tooltip title="Fabric Data">
                             <Link
-                              to={`/f/${fabric.unique_code}`}
+                              to={`/f/${fabric.fabric.unique_code}`}
                               target="_blank"
                             >
                               <Icon type="eye" />
                             </Link>
                           </Tooltip>
                         ),
+                        /*
                         Auth.loggedIn() && (
                           <Tooltip title="Edit">
                             <Icon
@@ -588,7 +635,7 @@ class Collection extends Component {
                               onClick={() => this.editFabric(fabric)}
                             />
                           </Tooltip>
-                        ),
+                        )*/
                       ]}
                       loading={loading}
                       bodyStyle={{ padding: 10 }}
@@ -598,7 +645,7 @@ class Collection extends Component {
                         width: "100%",
                       }}
                       bordered={true}
-                      key={fabric.unique_code}
+                      key={fabric.fabric.unique_code}
                       title={
                         <span
                           style={{
@@ -609,10 +656,10 @@ class Collection extends Component {
                           }}
                         >
                           <Checkbox
-                            value={fabric.unique_code}
+                            value={fabric.fabric.unique_code}
                             onChange={(e) => handleCheck(e)}
                           >
-                            {fabric.unique_code}
+                            {`${fabric.fabric.unique_code}`}
                           </Checkbox>
                         </span>
                       }
@@ -622,51 +669,16 @@ class Collection extends Component {
                             maxHeight: 180,
                             masoverflow: "hidden",
                           }}
-                          alt={fabric.unique_code}
-                          src={fabric.thumbnail_url}
+                          alt={fabric.fabric.unique_code}
+                          src={`${thumbnail_url}/${fabric.fabric.image}`}
                           onClick={() => {
-                            this.setState({ image: fabric.image_url });
+                            this.setState({ image: fabric.fabric.image });
                             this.setState({ visible: true });
                           }}
                         />
                       }
                     >
-                      <Collapse accordion={true} activeKey={fabric.id}>
-                        <Panel
-                          key={fabric.id}
-                          header={null}
-                          className="collapse"
-                        >
-                          <Descriptions key={1} size="small" column={1}>
-                            {filterMetadata &&
-                              filterMetadata.map((f) => (
-                                <Descriptions.Item
-                                  label={f.metadata}
-                                  key={f.metadata}
-                                >
-                                  {fabric.metadata &&
-                                    fabric.metadata.map((m) =>
-                                      f.metadata === m.metadata &&
-                                      m.metadata_id &&
-                                      m.metadata_id !== 3 ? (
-                                        <Tag key={m.id}>{m.value}</Tag>
-                                      ) : (
-                                        f.metadata === m.metadata &&
-                                        m.metadata_id === 3 && (
-                                          <Rate
-                                            key={m.id}
-                                            disabled
-                                            defaultValue={Number(m.value)}
-                                          />
-                                        )
-                                      )
-                                    )}
-                                </Descriptions.Item>
-                              ))}
-                          </Descriptions>
-                        </Panel>
-                      </Collapse>
-
+                      <FabricMetadata fabric={fabric} />
                       <Collapse
                         accordion={true}
                         activeKey={activeKey}
@@ -677,20 +689,22 @@ class Collection extends Component {
                             <Descriptions.Item label="Swatchbook">
                               {Auth.loggedIn() ? (
                                 <Link
-                                  to={`/s/${fabric.swatchbook}`}
+                                  to={`/s/${fabric.fabric.swatchbook.unique_code}`}
                                   target="_blank"
                                 >
-                                  {fabric.swatchbook}
+                                  {fabric.fabric.swatchbook.unique_code}
                                 </Link>
                               ) : (
-                                <Typography> {fabric.swatchbook}</Typography>
+                                <Typography>
+                                  {fabric.fabric.swatchbook.unique_code}
+                                </Typography>
                               )}
                             </Descriptions.Item>
                             <Descriptions.Item label="Old Code">
-                              {fabric.old_code}
+                              {fabric.fabric.old_code}
                             </Descriptions.Item>
 
-                            <Descriptions.Item label="Type">{`${fabric.type}`}</Descriptions.Item>
+                            <Descriptions.Item label="Type">{`${fabric.fabric.type.description}`}</Descriptions.Item>
                           </Descriptions>
                         </Panel>
                       </Collapse>
@@ -726,7 +740,7 @@ class Collection extends Component {
                 width: "100%",
               }}
               alt="Bebe Tailor"
-              src={image}
+              src={`${image_url}/${image}`}
               onClick={() => {
                 this.setState({ visible: false });
                 this.setState({ image: null });
@@ -743,6 +757,7 @@ class Collection extends Component {
             type="text"
             defaultValue={_.map(selectedFabrics).join(", ")}
           />
+          {/*
           <MetadataForm
             record={record}
             visible={editFabricVisible}
@@ -765,9 +780,70 @@ class Collection extends Component {
                 this.setState({ image: null });
               });
             }}
-          />
+          /> */}
         </Layout>
       );
+  }
+}
+
+class FabricMetadata extends React.Component {
+  render() {
+    const { fabric } = this.props;
+    let metadata = _(fabric.fabric.metadata)
+      .groupBy((m) => m.metadata_id)
+      .map((value, key) => ({
+        value,
+        key: value[0].metadata.name,
+        id: value[0].metadata.id,
+      }))
+      .value();
+
+    return (
+      <Descriptions key={1} size="small" column={1}>
+        {metadata.map((m) => {
+          return (
+            <Descriptions.Item label={m.key} key={m.id}>
+              {m.value.map((v) =>
+                m.id !== 3 ? (
+                  <Tag key={v.id}>{v.value.value}</Tag>
+                ) : (
+                  <Rate
+                    key={v.id}
+                    disabled
+                    defaultValue={Number(v.value.value)}
+                  />
+                )
+              )}
+            </Descriptions.Item>
+          );
+        })}
+      </Descriptions>
+    );
+    /*
+  {fabric.fabric.metadata.map((f) => (
+    <Descriptions.Item
+      label={f.metadata}
+      key={f.metadata}
+    >
+      {fabric.metadata &&
+        fabric.metadata.map((m) =>
+          f.metadata === m.metadata &&
+          m.metadata_id &&
+          m.metadata_id !== 3 ? (
+            <Tag key={m.id}>{m.value}</Tag>
+          ) : (
+            f.metadata === m.metadata &&
+            m.metadata_id === 3 && (
+              <Rate
+                key={m.id}
+                disabled
+                defaultValue={Number(m.value)}
+              />
+            )
+          )
+        )}
+    </Descriptions.Item>
+  ))}*/
   }
 }
 export default Collection;
