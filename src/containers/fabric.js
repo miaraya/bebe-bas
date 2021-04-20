@@ -8,12 +8,7 @@ import Top from "../components/top";
 import Logo from "../assets/logo_small.png";
 import _ from "lodash";
 
-import {
-  api,
-  fabric_url_thumbnail,
-  fabric_url_full,
-  location_url,
-} from "./constants";
+import { api, thumbnail_url, image_url, location_url } from "./constants";
 import { Layout, Modal, Row, Col } from "antd";
 import { Rate } from "antd";
 import AuthService from "../AuthService";
@@ -216,10 +211,10 @@ class Fabric extends Component {
               <img
                 style={{ maxWidth: 300, alignSelf: "top" }}
                 alt={fabric.unique_code}
-                src={fabric_url_thumbnail + fabric.image}
+                src={`${thumbnail_url}/${fabric.image}`}
                 onClick={() => {
                   this.setState({
-                    image: fabric_url_full + fabric.image,
+                    image: image_url + fabric.image,
                   });
                   this.setState({ visible: true });
                 }}
@@ -267,7 +262,7 @@ class Fabric extends Component {
                 {
                   <Descriptions title="Metadata">
                     {metadata.map((m) => {
-                      console.log(m);
+                      console.log(metadata);
                       return (
                         <Descriptions.Item label={m.key} key={m.key}>
                           {m.value.map((v) =>
