@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Link } from "react-router";
 import "antd/dist/antd.css";
 import "../css/css.css";
-import { Spin, Descriptions, PageHeader, Tag, Typography, Divider } from "antd";
+import { Spin, Descriptions, PageHeader, Tag, Divider } from "antd";
 import Top from "../components/top";
 
 import Logo from "../assets/logo_small.png";
@@ -214,7 +214,7 @@ class Fabric extends Component {
                 src={`${thumbnail_url}/${fabric.image}`}
                 onClick={() => {
                   this.setState({
-                    image: image_url + fabric.image,
+                    image: `${image_url}/${fabric.image}`,
                   });
                   this.setState({ visible: true });
                 }}
@@ -267,7 +267,7 @@ class Fabric extends Component {
                         <Descriptions.Item label={m.key} key={m.key}>
                           {m.value.map((v) =>
                             m.id !== 3 ? (
-                              <Tag>{v.value.value}</Tag>
+                              <Tag key={m.id}>{v.value.value}</Tag>
                             ) : (
                               <Rate
                                 disabled
