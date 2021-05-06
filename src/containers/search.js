@@ -951,6 +951,7 @@ class _Search extends Component {
         title: this.getWord("stock"),
         dataIndex: "total_stock",
         key: "total_stock",
+
         sorter: (a, b) => a.total_stock - b.total_stock,
         filters: [
           {
@@ -962,6 +963,8 @@ class _Search extends Component {
             value: 1,
           },
         ],
+        defaultFilteredValue: ["1"],
+        filtered: true,
         filterMultiple: false,
         onFilter: (stock, record) => {
           if (stock === 0) return Number(record.total) <= 0;
