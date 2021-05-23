@@ -6,7 +6,6 @@ import Top from "../components/top";
 
 import {
   Row,
-  Col,
   Descriptions,
   List,
   Tag,
@@ -15,7 +14,6 @@ import {
   PageHeader,
   Icon,
   BackTop,
-  Typography,
   Button,
   Tooltip,
   message,
@@ -26,9 +24,8 @@ import {
   Modal,
   Rate,
   Checkbox,
-  Avatar,
 } from "antd";
-import { MetadataForm } from "../components/metadata";
+//import { MetadataForm } from "../components/metadata";
 
 import Logo from "../assets/logo_small.png";
 
@@ -38,7 +35,7 @@ import AuthService from "../AuthService";
 
 const Auth = new AuthService(null);
 const { Panel } = Collapse;
-
+const { Meta } = Card;
 const { Content, Footer } = Layout;
 
 class Collection extends Component {
@@ -52,7 +49,6 @@ class Collection extends Component {
       locations: [],
       colorFilter: [],
       typeFilter: [],
-      isLoading: false,
       fabrics: [],
       colors: [],
       types: [],
@@ -65,7 +61,7 @@ class Collection extends Component {
       editFabricVisible: false,
       creatingLoading: false,
       page: 1,
-      pageSize: 10,
+      pageSize: 12,
       total: 0,
       collection: "",
     };
@@ -85,22 +81,18 @@ class Collection extends Component {
     this.setState({ error: false });
   };
 
-  getFabrics = async (collection, page, pageSize) => {
-    //console.log(collection, page, pageSize);
+  getFabrics = async (collection, page, pageSize, filter = null) => {
     const skip = page * pageSize - pageSize;
-    //console.log(skip);
 
-    const url = `${api}collections/detailbyName/${collection}/${pageSize}/${skip}`;
-    //console.log(url);
-    let request = await fetch(
-      url
-      //api + "web_collections?filter[where][collection]=" + id
-    );
+    const url = `${api}collections/detailbyName/${collection}/${pageSize}/${skip}/${filter}`;
+    let request = await fetch(url);
     let fabrics = await request.json();
+
     //console.log(fabrics);
-    this.setState({ loading: false });
 
     if (fabrics) {
+      this.setState({ loading: false });
+
       this.setState({ total: fabrics.fabrics });
 
       this.setState({
@@ -120,33 +112,33 @@ class Collection extends Component {
 
     //console.log(fabrics.fabric_ids);
     /*
+    this.setState({ filterMetadata: [] });
     for (const f of fabrics.fabric_ids) {
-      //console.log(f.metadata);
       f.fabric.metadata.forEach((f) =>
         this.setState((prevState) => ({
           filterMetadata: [...prevState.filterMetadata, f],
         }))
       );
     }
-    console.log(this.state.filterMetadata);
-
-  
+    */
 
     //METADATA
-    //console.log(this.state.filterMetadata);
+    /*
     let filterMetadata = _(this.state.filterMetadata)
-      .groupBy((c) => c.metadata)
+      .groupBy((c) => c.metadata.name)
       .map((value, key) => ({
-        metadata: value[0].metadata,
+        metadata: value[0].metadata.name,
         key: value[0].value,
         values: _(value)
-          .groupBy((c) => c.value)
+          .groupBy((c) => c.value_id)
           .map((value, key) => ({
             value: value[0].value_id,
             data: value,
-            label: `${key} (${value.length})`,
+            key: value[0].value.value,
+
+            label: `${value[0].value.value} (${value.length})`,
             metadata_id: value[0].metadata_id,
-            key: key,
+            test: value,
 
             quantity: value.length,
           }))
@@ -155,11 +147,16 @@ class Collection extends Component {
       }))
       .value();
 
+      
 
     this.setState({
       filterMetadata: _.sortBy(filterMetadata, (f) => f.order),
+    });*/
+
+    this.setState({
+      filterMetadata: fabrics.metadata,
     });
-*/
+    //console.log(this.state.filterMetadata);
   };
 
   checkMeta = (record) => {
@@ -258,39 +255,42 @@ class Collection extends Component {
           <Descriptions.Item label="Number of Fabrics">
             {total}
           </Descriptions.Item>
-          <Descriptions.Item
-            label={
-              selectedFabrics.length > 0
-                ? `Selected Fabrics (${selectedFabrics.length})`
-                : `Selected Fabrics`
-            }
-          >
-            <span>
-              {selectedFabrics.map((f) => (
-                <Tag key={f}>{f}</Tag>
-              ))}
-              {selectedFabrics.length > 0 && (
-                <Tooltip title="Copy">
-                  <Button
-                    type="solid"
-                    shape="circle"
-                    icon="copy"
-                    onClick={() => {
-                      handleCopy(".toCopy");
-                    }}
-                  />
-                </Tooltip>
-              )}
-            </span>
-          </Descriptions.Item>
+          {selectedFabrics.length && (
+            <Descriptions.Item
+              label={
+                selectedFabrics.length > 0
+                  ? `Selected Fabrics (${selectedFabrics.length})`
+                  : `Selected Fabrics`
+              }
+            >
+              <span>
+                {selectedFabrics.map((f) => (
+                  <Tag key={f}>{f}</Tag>
+                ))}
+                {selectedFabrics.length > 0 && (
+                  <Tooltip title="Copy">
+                    <Button
+                      type="solid"
+                      shape="circle"
+                      icon="copy"
+                      onClick={() => {
+                        handleCopy(".toCopy");
+                      }}
+                    />
+                  </Tooltip>
+                )}
+              </span>
+            </Descriptions.Item>
+          )}
         </Descriptions>
+
         <Collapse
           bordered={false}
           expandIcon={({ isActive }) => (
             <Icon type="caret-right" rotate={isActive ? 90 : 0} />
           )}
         >
-          {/*<Panel header="Filters" key="1" style={customPanelStyle}>
+          <Panel header="Filters" key="1" style={customPanelStyle}>
             <Form>
               <Checkbox.Group
                 onChange={handleChange}
@@ -300,28 +300,27 @@ class Collection extends Component {
                   filterMetadata.map((x, j) => {
                     return (
                       <Row key={j}>
-                        <Form.Item label={x.metadata} key={x.metadata}>
-                          {x.values &&
-                            x.values.map((v) => {
-                              return (
-                                <Row key={v.label}>
-                                  <Checkbox value={v.value}>
-                                    {v.metadata_id === 3 ? (
-                                      <span>
-                                        <Rate
-                                          key={v.id}
-                                          disabled
-                                          defaultValue={Number(v.key)}
-                                        />
-                                        {` (${v.quantity})`}
-                                      </span>
-                                    ) : (
-                                      v.label
-                                    )}
-                                  </Checkbox>
-                                </Row>
-                              );
-                            })}
+                        <Form.Item label={x.name.toString()} key={x.id}>
+                          {x.metadata.map((v, j) => {
+                            return (
+                              <Row key={j}>
+                                <Checkbox value={v.value_id}>
+                                  {v.metadata_id === 3 ? (
+                                    <span>
+                                      <Rate
+                                        key={v.id}
+                                        disabled
+                                        defaultValue={Number(v.value)}
+                                      />
+                                      {` (${v.count})`}
+                                    </span>
+                                  ) : (
+                                    `${v.value} (${v.count})`
+                                  )}
+                                </Checkbox>
+                              </Row>
+                            );
+                          })}
                         </Form.Item>
                       </Row>
                     );
@@ -338,28 +337,38 @@ class Collection extends Component {
               </Form.Item>
             </Form>
           </Panel>
-       */}
         </Collapse>
       </Row>
     );
     const handleChange = async (values) => {
+      //console.log(values);
       this.setState({ filter: values });
       //await setFilters(values);
     };
 
     const handleFilter = async () => {
-      await setFilters(this.state.filter);
+      //console.log(this.state.filter);
+      this.getFabrics(
+        this.state.collection,
+        this.state.page,
+        this.state.pageSize,
+        this.state.filter
+      );
+
+      //await setFilters(this.state.filter);
     };
 
     const setFilters = async (filter) => {
+      console.log(filter);
       if (filter.length) {
         let aux = fabricsUnfiltered;
-        filter.forEach(
-          (x) =>
-            (aux = _.filter(aux, (e) =>
-              _.find(e.metadata, (i) => i.value_id === x)
-            ))
-        );
+        console.log(fabricsUnfiltered);
+        filter.forEach((x) => {
+          console.log(x);
+          aux = _.filter(aux, (e) =>
+            _.find(e.fabric.metadata, (i) => i.value_id === x)
+          );
+        });
         this.setState(
           { fabrics: _.sortBy(aux, (s) => s.price_band).reverse() },
           () => this.setState({ isLoading: false })
@@ -390,7 +399,7 @@ class Collection extends Component {
     const handleSwitch = () => {
       this.setState({ affix: !this.state.affix });
     };
-
+    /*
     const saveMetadata = async (
       value_id,
       metadata_id,
@@ -415,7 +424,7 @@ class Collection extends Component {
           active: checked ? 1 : 0,
         }),
       });
-      /*   .then(response => response.json())
+         .then(response => response.json())
         .then(responseData => {
           responseData &&
             checked === true &&
@@ -426,7 +435,7 @@ class Collection extends Component {
             message.success(`Metadata "${value}" removed.`);
 
           this.forceUpdate();
-        });*/
+        });
       let responseData = await request.json();
       responseData &&
         checked === true &&
@@ -436,20 +445,7 @@ class Collection extends Component {
         checked === false &&
         message.success(`Metadata "${value}" removed.`);
     };
-
-    const handleGetInfo = async (record) => {
-      let request = await fetch(
-        api + "fabric_data?filter[where][fabric_id]=" + record.fabric_id
-      );
-      let aux = await request.json();
-
-      record.metadata = aux;
-      this.setState({ record });
-      this.forceUpdate();
-      this.setState({ creatingLoading: false });
-      this.setState({ editFabricVisible: false });
-    };
-
+   
     const handleSaveMetadata = async (metadata, fabric_id) => {
       for (let md = 0; md < metadata.length; md++) {
         let aux = _.filter(
@@ -468,7 +464,7 @@ class Collection extends Component {
         }
       }
     };
-
+*/
     const {
       loading,
       error,
@@ -480,11 +476,6 @@ class Collection extends Component {
       selectedFabrics,
       affix,
       pageSize,
-      activeKey,
-      record,
-      editFabricVisible,
-      creatingLoading,
-      metadata,
       total,
     } = this.state;
 
@@ -551,8 +542,8 @@ class Collection extends Component {
             </Anchor>
             <Checkbox.Group style={{ width: "100%" }}>
               <List
-                split={true}
                 loading={loading}
+                split={true}
                 grid={{
                   gutter: 16,
                   xs: 1,
@@ -565,7 +556,7 @@ class Collection extends Component {
                 pagination={{
                   total,
                   showSizeChanger: true,
-                  pageSizeOptions: ["10", "20", "50", "100"],
+                  pageSizeOptions: ["12", "24", "48", "120"],
                   position: "both",
                   showTitle: true,
                   style: { marginBottom: 10 },
@@ -588,64 +579,7 @@ class Collection extends Component {
                 renderItem={(fabric) => (
                   <List.Item>
                     <Card
-                      actions={[
-                        <Tooltip title="More Info">
-                          <Icon
-                            type="caret-down"
-                            key="more"
-                            rotate={
-                              this.state.activeKey === fabric.id ? 180 : 0
-                            }
-                            onClick={() =>
-                              this.setState({
-                                activeKey:
-                                  this.state.activeKey === fabric.id
-                                    ? 0
-                                    : fabric.id,
-                              })
-                            }
-                          />
-                        </Tooltip>,
-                        /*
-                        Auth.loggedIn() && (
-                          <Tooltip title="refresh">
-                            <Icon
-                              type="redo"
-                              key="refresh"
-                              onClick={() => handleGetInfo(fabric)}
-                            ></Icon>
-                          </Tooltip>
-                        ),*/
-                        Auth.loggedIn() && (
-                          <Tooltip title="Fabric Data">
-                            <Link
-                              to={`/f/${fabric.fabric.unique_code}`}
-                              target="_blank"
-                            >
-                              <Icon type="eye" />
-                            </Link>
-                          </Tooltip>
-                        ),
-                        /*
-                        Auth.loggedIn() && (
-                          <Tooltip title="Edit">
-                            <Icon
-                              type="edit"
-                              key="edit"
-                              onClick={() => this.editFabric(fabric)}
-                            />
-                          </Tooltip>
-                        )*/
-                      ]}
-                      loading={loading}
-                      bodyStyle={{ padding: 10 }}
-                      headStyle={{
-                        paddingLeft: 10,
-                        paddingRight: 10,
-                        width: "100%",
-                      }}
-                      bordered={true}
-                      key={fabric.fabric.unique_code}
+                      style={{ maxWidth: 300 }}
                       title={
                         <span
                           style={{
@@ -664,50 +598,26 @@ class Collection extends Component {
                         </span>
                       }
                       cover={
-                        <img
+                        <div
                           style={{
                             maxHeight: 180,
-                            masoverflow: "hidden",
+                            maxWidth: 300,
+                            overflow: "hidden",
                           }}
-                          alt={fabric.fabric.unique_code}
-                          src={`${thumbnail_url}/${fabric.fabric.image}`}
-                          onClick={() => {
-                            this.setState({ image: fabric.fabric.image });
-                            this.setState({ visible: true });
-                          }}
-                        />
+                        >
+                          <img
+                            style={{ marginTop: -120 }}
+                            alt={fabric.fabric.unique_code}
+                            src={`${thumbnail_url}/${fabric.fabric.image}`}
+                            onClick={() => {
+                              this.setState({ image: fabric.fabric.image });
+                              this.setState({ visible: true });
+                            }}
+                          />
+                        </div>
                       }
                     >
-                      <FabricMetadata fabric={fabric} />
-                      <Collapse
-                        accordion={true}
-                        activeKey={activeKey}
-                        className="collapse"
-                      >
-                        <Panel key={fabric.id} className="collapse">
-                          <Descriptions key={1} size="small" column={1}>
-                            <Descriptions.Item label="Swatchbook">
-                              {Auth.loggedIn() ? (
-                                <Link
-                                  to={`/s/${fabric.fabric.swatchbook.unique_code}`}
-                                  target="_blank"
-                                >
-                                  {fabric.fabric.swatchbook.unique_code}
-                                </Link>
-                              ) : (
-                                <Typography>
-                                  {fabric.fabric.swatchbook.unique_code}
-                                </Typography>
-                              )}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Old Code">
-                              {fabric.fabric.old_code}
-                            </Descriptions.Item>
-
-                            <Descriptions.Item label="Type">{`${fabric.fabric.type.description}`}</Descriptions.Item>
-                          </Descriptions>
-                        </Panel>
-                      </Collapse>
+                      <Meta description={<FabricMetadata fabric={fabric} />} />
                     </Card>
                   </List.Item>
                 )}
@@ -817,6 +727,23 @@ class FabricMetadata extends React.Component {
             </Descriptions.Item>
           );
         })}
+        {Auth.loggedIn() && (
+          <div>
+            <Descriptions.Item label="Swatchbook">
+              <Link
+                to={`/s/${fabric.fabric.swatchbook.unique_code}`}
+                target="_blank"
+              >
+                {fabric.fabric.swatchbook.unique_code}
+              </Link>
+            </Descriptions.Item>
+            <Descriptions.Item label="Old Code">
+              {fabric.fabric.old_code}
+            </Descriptions.Item>
+
+            <Descriptions.Item label="Type">{`${fabric.fabric.type.description}`}</Descriptions.Item>
+          </div>
+        )}
       </Descriptions>
     );
     /*
