@@ -32,6 +32,7 @@ import Logo from "../assets/logo_small.png";
 import { api, thumbnail_url, image_url } from "./constants";
 import _ from "lodash";
 import AuthService from "../AuthService";
+import { Fragment } from "react";
 
 const Auth = new AuthService(null);
 const { Panel } = Collapse;
@@ -82,18 +83,27 @@ class Collection extends Component {
   };
 
   getFabrics = async (collection, page, pageSize, filter = null) => {
+    console.log(collection, page, pageSize, filter);
     const skip = page * pageSize - pageSize;
+    let url = "";
 
-    const url = `${api}collections/detailbyName/${collection}/${pageSize}/${skip}/${filter}`;
+    if (filter)
+      url = `${api}collections/detailbyName/${collection}/${pageSize}/${skip}/[${filter}]`;
+    else
+      url = `${api}collections/detailbyName/${collection}/${pageSize}/${skip}`;
+
     let request = await fetch(url);
     let fabrics = await request.json();
 
     //console.log(fabrics);
 
     if (fabrics) {
+      console.log("YES");
       this.setState({ loading: false });
 
-      this.setState({ total: fabrics.fabrics });
+      if (filter) {
+        this.setState({ total: fabrics.filtered_total });
+      } else this.setState({ total: fabrics.fabrics });
 
       this.setState({
         fabrics: _.sortBy(fabrics.fabric_ids, (f) => f.order).reverse(),
@@ -348,9 +358,10 @@ class Collection extends Component {
 
     const handleFilter = async () => {
       //console.log(this.state.filter);
+      this.setState({ loading: true });
       this.getFabrics(
         this.state.collection,
-        this.state.page,
+        1,
         this.state.pageSize,
         this.state.filter
       );
@@ -566,13 +577,23 @@ class Collection extends Component {
                     this.setState({ pageSize });
                     this.setState({ page });
                     this.setState({ loading: true });
-                    this.getFabrics(this.state.collection, page, pageSize);
+                    this.getFabrics(
+                      this.state.collection,
+                      page,
+                      pageSize,
+                      this.state.filter
+                    );
                   },
                   onChange: (page, pageSize) => {
                     this.setState({ pageSize });
                     this.setState({ page });
                     this.setState({ loading: true });
-                    this.getFabrics(this.state.collection, page, pageSize);
+                    this.getFabrics(
+                      this.state.collection,
+                      page,
+                      pageSize,
+                      this.state.filter
+                    );
                   },
                 }}
                 dataSource={fabrics}
@@ -728,7 +749,7 @@ class FabricMetadata extends React.Component {
           );
         })}
         {Auth.loggedIn() && (
-          <div>
+          <Fragment>
             <Descriptions.Item label="Swatchbook">
               <Link
                 to={`/s/${fabric.fabric.swatchbook.unique_code}`}
@@ -742,7 +763,7 @@ class FabricMetadata extends React.Component {
             </Descriptions.Item>
 
             <Descriptions.Item label="Type">{`${fabric.fabric.type.description}`}</Descriptions.Item>
-          </div>
+          </Fragment>
         )}
       </Descriptions>
     );
