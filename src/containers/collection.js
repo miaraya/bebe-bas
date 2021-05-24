@@ -62,9 +62,10 @@ class Collection extends Component {
       editFabricVisible: false,
       creatingLoading: false,
       page: 1,
-      pageSize: 12,
+      pageSize: 48,
       total: 0,
       collection: "",
+      filterLoading: false,
     };
   }
 
@@ -100,6 +101,7 @@ class Collection extends Component {
     if (fabrics) {
       console.log("YES");
       this.setState({ loading: false });
+      this.setState({ filterLoading: false });
 
       if (filter) {
         this.setState({ total: fabrics.filtered_total });
@@ -341,8 +343,9 @@ class Collection extends Component {
                   type="primary"
                   htmlType="submit"
                   onClick={() => handleFilter()}
+                  loading={this.state.filterLoading}
                 >
-                  Filter
+                  Search
                 </Button>
               </Form.Item>
             </Form>
@@ -359,6 +362,7 @@ class Collection extends Component {
     const handleFilter = async () => {
       //console.log(this.state.filter);
       this.setState({ loading: true });
+      this.setState({ filterLoading: true });
       this.getFabrics(
         this.state.collection,
         1,
