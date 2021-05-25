@@ -66,6 +66,7 @@ class Collection extends Component {
       total: 0,
       collection: "",
       filterLoading: false,
+      pageSizeOptions: ["12", "24", "48", "120"],
     };
   }
 
@@ -83,14 +84,19 @@ class Collection extends Component {
     this.setState({ error: false });
   };
 
-  getFabrics = async (collection, page, pageSize, filter = null) => {
-    console.log(collection, page, pageSize, filter);
-    const skip = page * pageSize - pageSize;
-    let url = "";
+  getFabrics = async (collection, page, pageSize, filter = []) => {
+    let skip = 0;
 
-    if (filter)
+    if (page * pageSize - pageSize > 0)
+      skip = Math.abs(page * pageSize - pageSize);
+    //console.log(skip, collection, page, pageSize, filter);
+
+    let url = "";
+    //console.log(filter);
+    if (filter.length > 0) {
       url = `${api}collections/detailbyName/${collection}/${pageSize}/${skip}/[${filter}]`;
-    else
+      //console.log(url);
+    } else
       url = `${api}collections/detailbyName/${collection}/${pageSize}/${skip}`;
 
     let request = await fetch(url);
@@ -99,76 +105,25 @@ class Collection extends Component {
     //console.log(fabrics);
 
     if (fabrics) {
-      console.log("YES");
       this.setState({ loading: false });
       this.setState({ filterLoading: false });
 
-      if (filter) {
+      if (filter.length > 0) {
         this.setState({ total: fabrics.filtered_total });
       } else this.setState({ total: fabrics.fabrics });
 
       this.setState({
         fabrics: _.sortBy(fabrics.fabric_ids, (f) => f.order).reverse(),
       });
-      this.setState({
-        fabricsUnfiltered: _.sortBy(
-          fabrics.fabric_ids,
-          (f) => f.order
-        ).reverse(),
-      });
+
       this.setState({ error: false });
     } else {
       this.setState({ error: true });
     }
-    //console.log(fabrics.fabric_ids);
-
-    //console.log(fabrics.fabric_ids);
-    /*
-    this.setState({ filterMetadata: [] });
-    for (const f of fabrics.fabric_ids) {
-      f.fabric.metadata.forEach((f) =>
-        this.setState((prevState) => ({
-          filterMetadata: [...prevState.filterMetadata, f],
-        }))
-      );
-    }
-    */
-
-    //METADATA
-    /*
-    let filterMetadata = _(this.state.filterMetadata)
-      .groupBy((c) => c.metadata.name)
-      .map((value, key) => ({
-        metadata: value[0].metadata.name,
-        key: value[0].value,
-        values: _(value)
-          .groupBy((c) => c.value_id)
-          .map((value, key) => ({
-            value: value[0].value_id,
-            data: value,
-            key: value[0].value.value,
-
-            label: `${value[0].value.value} (${value.length})`,
-            metadata_id: value[0].metadata_id,
-            test: value,
-
-            quantity: value.length,
-          }))
-          .sortBy(fabrics, (f) => f.label)
-          .value(),
-      }))
-      .value();
-
-      
-
-    this.setState({
-      filterMetadata: _.sortBy(filterMetadata, (f) => f.order),
-    });*/
 
     this.setState({
       filterMetadata: fabrics.metadata,
     });
-    //console.log(this.state.filterMetadata);
   };
 
   checkMeta = (record) => {
@@ -372,7 +327,7 @@ class Collection extends Component {
 
       //await setFilters(this.state.filter);
     };
-
+    /*
     const setFilters = async (filter) => {
       console.log(filter);
       if (filter.length) {
@@ -392,7 +347,7 @@ class Collection extends Component {
         this.setState({ fabrics: fabricsUnfiltered });
       }
     };
-
+*/
     const handleCheck = (e) => {
       let value = e.target.value;
       let checked = e.target.checked;
@@ -486,12 +441,12 @@ class Collection extends Component {
       fabrics,
       image,
       visible,
-      fabricsUnfiltered,
       filterMetadata,
       selectedFabrics,
       affix,
       pageSize,
       total,
+      pageSizeOptions,
     } = this.state;
 
     const customPanelStyle = {
@@ -571,7 +526,7 @@ class Collection extends Component {
                 pagination={{
                   total,
                   showSizeChanger: true,
-                  pageSizeOptions: ["12", "24", "48", "120"],
+                  pageSizeOptions,
                   position: "both",
                   showTitle: true,
                   style: { marginBottom: 10 },
@@ -604,7 +559,7 @@ class Collection extends Component {
                 renderItem={(fabric) => (
                   <List.Item>
                     <Card
-                      style={{ maxWidth: 300 }}
+                      style={{ maxWidth: 300, height: 360 }}
                       title={
                         <span
                           style={{
