@@ -6,6 +6,7 @@ import Top from "../components/top";
 
 import {
   Row,
+  Col,
   Descriptions,
   List,
   Tag,
@@ -261,39 +262,45 @@ class Collection extends Component {
             <Form>
               <Checkbox.Group
                 onChange={handleChange}
-                style={{ display: "flex", justifyContent: "space-evenly" }}
+                style={{ display: "flex", justifyContent: "space-between" }}
               >
                 {filterMetadata &&
                   filterMetadata.map((x, j) => {
                     return (
-                      <Row key={j}>
-                        <Form.Item label={x.name.toString()} key={x.id}>
-                          {x.metadata.map((v, j) => {
-                            return (
-                              <Row key={j}>
-                                <Checkbox value={v.value_id}>
-                                  {v.metadata_id === 3 ? (
-                                    <span>
-                                      <Rate
-                                        key={v.id}
-                                        disabled
-                                        defaultValue={Number(v.value)}
-                                      />
-                                      {` (${v.count})`}
-                                    </span>
-                                  ) : (
-                                    `${v.value} (${v.count})`
-                                  )}
-                                </Checkbox>
-                              </Row>
-                            );
-                          })}
-                        </Form.Item>
-                      </Row>
+                      <Form.Item label={x.name.toString()} key={x.id}>
+                        {x.metadata.map((v, j) => {
+                          return (
+                            <Col key={j} xs={x.metadata_id === 2 ? 12 : 24}>
+                              <Checkbox value={v.value_id}>
+                                {v.metadata_id === 3 ? (
+                                  <span>
+                                    <Rate
+                                      key={v.id}
+                                      disabled
+                                      defaultValue={Number(v.value)}
+                                    />
+                                    {` (${v.count})`}
+                                  </span>
+                                ) : (
+                                  `${v.value} (${v.count})`
+                                )}
+                              </Checkbox>
+                            </Col>
+                          );
+                        })}
+                      </Form.Item>
                     );
                   })}
               </Checkbox.Group>
               <Form.Item style={{ textAlign: "end" }}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  onClick={() => handleClear()}
+                  //loading={this.state.filterLoading}
+                >
+                  Clear
+                </Button>
                 <Button
                   type="primary"
                   htmlType="submit"
@@ -312,6 +319,13 @@ class Collection extends Component {
       //console.log(values);
       this.setState({ filter: values });
       //await setFilters(values);
+    };
+
+    const handleClear = () => {
+      this.setState({
+        filter: this.state.filter.splice(0, this.state.filter.length),
+      });
+      console.log(this.state.filter);
     };
 
     const handleFilter = async () => {
@@ -559,7 +573,10 @@ class Collection extends Component {
                 renderItem={(fabric) => (
                   <List.Item>
                     <Card
-                      style={{ maxWidth: 300, height: 360 }}
+                      style={{
+                        maxWidth: 300,
+                        height: Auth.loggedIn() ? 460 : 360,
+                      }}
                       title={
                         <span
                           style={{
