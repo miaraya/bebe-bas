@@ -117,6 +117,7 @@ class Collection extends Component {
         fabrics: _.sortBy(fabrics.fabric_ids, (f) => f.order).reverse(),
       });
 
+      console.log(this.state.fabrics.reverse());
       this.setState({ error: false });
     } else {
       this.setState({ error: true });
